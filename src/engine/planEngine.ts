@@ -1,0 +1,159 @@
+// Moi plan engine — turns onboarding answers + first-scan metrics into a goal,
+// a target line ("Frizz 6 → 3 by Feb 8") and up to 4 daily recommendation cards.
+// Pure function, no network: works in React Native / Expo, a server, or a Supabase Edge Function.
+// The rules live in rules.json (exported from the "Moi plan rules" Sheet), so they can change without code changes.
+
+export type Goal = 'repair' | 'grow' | 'keep' | 'balance';
+
+export interface Profile {
+  goal: Goal;
+  texture: 'straight' | 'wavy' | 'curly' | 'coily';
+  thickness: 'fine' | 'medium' | 'coarse';
+  porosity: 'low' | 'normal' | 'high';
+  scalp: 'normal' | 'oily' | 'dry' | 'flaky';
+  chemical: 'none' | 'color' | 'bleach' | 'relaxer';
+  heatUse: 'none' | 'weekly' | 'daily';
+  length: 'buzzed' | 'short' | 'chin' | 'shoulder' | 'mid-back' | 'waist' | 'longer';
+  tightStyles: boolean;
+  swims: boolean;
+  timeBudget: number;      // minutes/day from "Routine time" (5 / 15 / 30)
+  washNow?: number;        // current wash interval in days from "Wash frequency"
+  noticed?: string[];      // e.g. ['sudden_shedding', 'patches', 'frizz']
+  prefersNatural?: boolean; // from 21 · Hair care method
+  humidity?: number;       // % from weather, optional
+  coldDry?: boolean;       // from weather, optional
+  baseline: { frizz?: number; oiliness?: number; buildup?: number; density?: number; lengthCm?: number };
+}
+
+type Val = number | string;
+interface Lever {
+  id: string; label: string; value: Val; unit: string; min?: number; max?: number;
+  minutes: number; relevance: Record<Goal, number>; why: string; eligible?: boolean;
+  kind?: 'daily' | 'learn'; evidence?: Evidence; ingredients?: string[];
+}
+export type Evidence = 'strong' | 'moderate' | 'expert' | 'lab' | 'early'; // expert = dermatologist / trichologist guidance
+type Cond = [string, 'eq' | 'in' | 'gte' | 'lte' | 'has', unknown];
+type Action = [string, 'need' | 'add' | 'set' | 'atLeast' | 'atMost' | 'exclude' | 'eligible' | 'flag' | 'lookFor' | 'avoid' | 'skip', unknown];
+export interface Rules {
+  version: string; planWeeks: number; maxCards: number;
+  levers: Lever[];
+  rules: { id: string; when: Cond[]; then: Action[]; reason: string }[];
+  targets: Record<Goal, { metric: string; label: string; perFourWeeks: number; floor?: number; format: string }>;
+  washStepLimit?: { daysPerTwoWeeks: number };
+  evidenceWeight?: Record<Evidence, number>;
+  ingredientGroups?: Record<string, string[]>; // friendly name shown to users → label terms used for matching
+  targetOverrides?: { goal: Goal; when: Cond[]; target: Rules['targets'][Goal] }[];
+}
+
+export interface Card { id: string; label: string; value: Val; unit: string; why: string; evidence?: Evidence; ingredients?: string[]; target?: Val; score: number; minutes: number }
+export interface LearnCard { id: string; label: string; why: string; evidence?: Evidence }
+export interface Plan {
+  goal: Goal; target: string; targetDate: string;
+  cards: Card[];            // up to 4 daily rings
+  extras: Card[];           // up to 3 next-best options for a "More you can try" list
+  learn: LearnCard[];       // 'ask a dermatologist' / 'get tested' notes — never a dose
+  ingredients: { lookFor: string[]; avoid: string[] }; // plain-language ingredient groups, no brands; also feeds Product fit
+  flags: string[]; appliedRules: string[]; rulesVersion: string;
+}
+
+function matches(p: Profile, [field, op, v]: Cond): boolean {
+  const x = (p as any)[field];
+  switch (op) {
+    case 'eq': return x === v;
+    case 'in': return Array.isArray(v) && v.includes(x);
+    case 'gte': return typeof x === 'number' && x >= (v as number);
+    case 'lte': return typeof x === 'number' && x <= (v as number);
+    case 'has': return Array.isArray(x) && x.includes(v);
+  }
+}
+
+const fmtDate = (d: Date) => d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+
+export function buildPlan(p: Profile, R: Rules, start = new Date()): Plan {
+  const levers = new Map(R.levers.map(l => [l.id, { ...l, need: 0, excluded: false }]));
+  const flags: string[] = [];
+  const lookFor = new Set<string>(), avoid = new Set<string>(), skip = new Set<string>();
+  const applied: string[] = [];
+
+  for (const rule of R.rules) {
+    if (!rule.when.every(c => matches(p, c))) continue;
+    applied.push(rule.id);
+    for (const [id, op, arg] of rule.then) {
+      if (id === '_plan') { if (op === 'flag') flags.push(String(arg)); if (op === 'lookFor') lookFor.add(String(arg)); if (op === 'avoid') avoid.add(String(arg)); if (op === 'skip') skip.add(String(arg)); continue; }
+      const l = levers.get(id); if (!l) continue;
+      const n = typeof l.value === 'number' ? l.value : NaN;
+      switch (op) {
+        case 'need': l.need += arg as number; break;
+        case 'add': if (!isNaN(n)) l.value = n + (arg as number); break;
+        case 'set': l.value = arg as Val; break;
+        case 'atLeast': if (!isNaN(n)) l.value = Math.max(n, arg as number); break;
+        case 'atMost': if (!isNaN(n)) l.value = Math.min(n, arg as number); break;
+        case 'exclude': l.excluded = Boolean(arg); break;
+        case 'eligible': l.eligible = Boolean(arg); break;
+      }
+    }
+  }
+
+  // clamp numbers to each lever's safe range
+  for (const l of levers.values()) if (typeof l.value === 'number') {
+    if (l.min !== undefined) l.value = Math.max(l.min, l.value);
+    if (l.max !== undefined) l.value = Math.min(l.max, l.value);
+  }
+
+  // change wash habits gradually: today's card shows the next step, the target is kept
+  const wash = levers.get('wash_interval');
+  let washTarget: Val | undefined;
+  if (wash && p.washNow && R.washStepLimit && typeof wash.value === 'number' && wash.value !== p.washNow) {
+    washTarget = wash.value;
+    const step = R.washStepLimit.daysPerTwoWeeks;
+    wash.value = p.washNow + Math.sign(wash.value - p.washNow) * Math.min(step, Math.abs(wash.value - p.washNow));
+  }
+
+  // score, filter, fit the time budget, take the top cards
+  const W = R.evidenceWeight ?? { strong: 1, moderate: 1, expert: 1, lab: 1, early: 1 };
+  const usable = [...levers.values()].filter(l => l.eligible !== false && !l.excluded && l.relevance[p.goal] > 0);
+  const learn: LearnCard[] = usable.filter(l => l.kind === 'learn').map(l => ({ id: l.id, label: l.label, why: l.why, evidence: l.evidence }));
+  const ranked = usable.filter(l => l.kind !== 'learn')
+    .map((l, i) => ({ l, i, score: l.relevance[p.goal] * (1 + 0.5 * l.need) * (W[l.evidence ?? 'early'] ?? 1) }))
+    .sort((a, b) => b.score - a.score || a.i - b.i);
+
+  const cards: Card[] = [], extras: Card[] = [];
+  let minutes = 0;
+  for (const { l, score } of ranked) {
+    const fits = cards.length < R.maxCards && minutes + l.minutes <= p.timeBudget;
+    if (!fits) { if (extras.length < 3) extras.push({ id: l.id, label: l.label, value: l.value, unit: l.unit, why: l.why, evidence: l.evidence, ...(l.ingredients?.length ? { ingredients: l.ingredients } : {}), score: +score.toFixed(2), minutes: l.minutes }); continue; }
+    minutes += l.minutes;
+    cards.push({ id: l.id, label: l.label, value: l.value, unit: l.unit, why: l.why, evidence: l.evidence, ...(l.ingredients?.length ? { ingredients: l.ingredients } : {}), score: +score.toFixed(2), minutes: l.minutes,
+      ...(l.id === 'wash_interval' && washTarget !== undefined && washTarget !== l.value ? { target: washTarget } : {}) });
+  }
+
+  // target line
+  const t = R.targetOverrides?.find(o => o.goal === p.goal && o.when.every(c => matches(p, c)))?.target ?? R.targets[p.goal];
+  const date = new Date(start); date.setDate(date.getDate() + R.planWeeks * 7);
+  const from = (p.baseline as any)[t.metric];
+  const periods = R.planWeeks / 4;
+  let to = from;
+  if (typeof from === 'number') { to = +(from + t.perFourWeeks * periods).toFixed(1); if (t.floor !== undefined) to = Math.max(t.floor, to); }
+  const target = t.format
+    .replace('{label}', t.label).replace('{from}', String(from ?? '—')).replace('{to}', String(to ?? '—'))
+    .replace('{delta}', (t.perFourWeeks * periods).toFixed(1)).replace('{date}', fmtDate(date));
+
+  for (const c of cards) for (const ing of c.ingredients ?? []) lookFor.add(ing);
+  for (const s of skip) lookFor.delete(s); // e.g. natural-leaning users don't get silicones suggested
+  return { goal: p.goal, target, targetDate: date.toISOString().slice(0, 10), cards, extras, learn, ingredients: { lookFor: [...lookFor], avoid: [...avoid] }, flags, appliedRules: applied, rulesVersion: R.version };
+}
+
+// Product fit helper: checks a scanned ingredient label against the plan's plain-language lists.
+// Users only ever see the friendly group names; the technical label terms stay in rules.json.
+export function checkLabel(labelText: string, plan: Plan, R: Rules) {
+  const items = labelText.toLowerCase().split(/[,\n]/).map(x => x.trim()).filter(Boolean);
+  const has = (group: string, topOnly = false) => {
+    const terms = (R.ingredientGroups?.[group] ?? [group]).map(t => t.toLowerCase());
+    const pool = topOnly ? items.slice(0, 5) : items;
+    return pool.some(i => terms.some(t => i.includes(t)));
+  };
+  return {
+    good: plan.ingredients.lookFor.filter(g => has(g)),
+    watchOut: plan.ingredients.avoid.filter(g => has(g, g.includes('near the top'))),
+  };
+}

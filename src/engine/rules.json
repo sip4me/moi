@@ -1,0 +1,1809 @@
+{
+  "version": "0.4.0",
+  "planWeeks": 12,
+  "maxCards": 4,
+  "levers": [
+    {
+      "id": "wash_interval",
+      "label": "Wash every",
+      "value": 3,
+      "unit": "days",
+      "min": 1,
+      "max": 7,
+      "minutes": 0,
+      "relevance": {
+        "repair": 3,
+        "grow": 2,
+        "keep": 2,
+        "balance": 3
+      },
+      "why": "Washing less often keeps natural oils in; washing more often clears oil and buildup.",
+      "evidence": "moderate",
+      "kind": "daily"
+    },
+    {
+      "id": "leave_in",
+      "label": "Leave-in",
+      "value": 2,
+      "unit": "pumps",
+      "min": 1,
+      "max": 4,
+      "minutes": 1,
+      "relevance": {
+        "repair": 3,
+        "grow": 2,
+        "keep": 1,
+        "balance": 0
+      },
+      "why": "Coats and smooths the cuticle so hair holds moisture and frizzes less.",
+      "evidence": "strong",
+      "kind": "daily",
+      "ingredients": [
+        "conditioning agents",
+        "smoothing silicones"
+      ]
+    },
+    {
+      "id": "heat_cap",
+      "label": "Heat max",
+      "value": 300,
+      "unit": "°F",
+      "min": 250,
+      "max": 350,
+      "minutes": 0,
+      "relevance": {
+        "repair": 3,
+        "grow": 2,
+        "keep": 2,
+        "balance": 0
+      },
+      "why": "Heat makes tiny bubbles and breaks inside the hair. Keep tools on low to medium and use a heat protectant first.",
+      "evidence": "strong",
+      "kind": "daily"
+    },
+    {
+      "id": "satin",
+      "label": "Sleep on",
+      "value": "Satin",
+      "unit": "",
+      "minutes": 0,
+      "relevance": {
+        "repair": 2,
+        "grow": 3,
+        "keep": 1,
+        "balance": 0
+      },
+      "why": "Less friction overnight means less frizz and fewer broken ends. Low-cost habit; little direct research.",
+      "evidence": "early",
+      "kind": "daily"
+    },
+    {
+      "id": "scalp_massage",
+      "label": "Massage",
+      "value": 4,
+      "unit": "min",
+      "min": 2,
+      "max": 10,
+      "minutes": 4,
+      "relevance": {
+        "repair": 0,
+        "grow": 3,
+        "keep": 3,
+        "balance": 1
+      },
+      "why": "One small study found 4 minutes a day for 24 weeks made hair slightly thicker. Early evidence.",
+      "evidence": "early",
+      "kind": "daily"
+    },
+    {
+      "id": "ends_oil",
+      "label": "Oil on ends",
+      "value": 2,
+      "unit": "drops",
+      "min": 1,
+      "max": 4,
+      "minutes": 1,
+      "relevance": {
+        "repair": 1,
+        "grow": 3,
+        "keep": 0,
+        "balance": 0
+      },
+      "why": "A few drops of a light oil like argan, jojoba or coconut on the ends keeps them soft and less frizzy.",
+      "evidence": "lab",
+      "kind": "daily",
+      "ingredients": [
+        "light oils like argan or jojoba"
+      ]
+    },
+    {
+      "id": "trim",
+      "label": "Trim every",
+      "value": 12,
+      "unit": "wks",
+      "min": 6,
+      "max": 16,
+      "minutes": 0,
+      "relevance": {
+        "repair": 1,
+        "grow": 2,
+        "keep": 0,
+        "balance": 0
+      },
+      "why": "Removing split ends early stops splits travelling up the strand.",
+      "evidence": "early",
+      "kind": "daily"
+    },
+    {
+      "id": "loose_styles",
+      "label": "Hairstyles",
+      "value": "Loose",
+      "unit": "",
+      "minutes": 0,
+      "relevance": {
+        "repair": 1,
+        "grow": 1,
+        "keep": 3,
+        "balance": 0
+      },
+      "why": "Tight styles pull on the root and can cause hair loss. A loose braid or twist is gentler.",
+      "evidence": "strong",
+      "kind": "daily"
+    },
+    {
+      "id": "detangle",
+      "label": "Detangle",
+      "value": "Conditioner in",
+      "unit": "",
+      "minutes": 2,
+      "relevance": {
+        "repair": 1,
+        "grow": 2,
+        "keep": 2,
+        "balance": 0
+      },
+      "why": "Wet hair breaks easily; detangling with conditioner in and a wide-tooth comb (never a brush) cuts breakage a lot.",
+      "evidence": "strong",
+      "kind": "daily"
+    },
+    {
+      "id": "deep_condition",
+      "label": "Hair mask",
+      "value": 1,
+      "unit": "×/wk",
+      "min": 0,
+      "max": 2,
+      "minutes": 3,
+      "relevance": {
+        "repair": 2,
+        "grow": 1,
+        "keep": 0,
+        "balance": 0
+      },
+      "why": "Alternate weeks: a protein mask one week, a moisture mask the next. Dermatologists say up to 2× a week for dry or treated hair, once or less for fine hair.",
+      "evidence": "expert",
+      "kind": "daily",
+      "ingredients": [
+        "conditioning agents",
+        "protein"
+      ]
+    },
+    {
+      "id": "rinse",
+      "label": "Rinse for",
+      "value": 60,
+      "unit": "sec",
+      "min": 30,
+      "max": 120,
+      "minutes": 1,
+      "relevance": {
+        "repair": 0,
+        "grow": 0,
+        "keep": 1,
+        "balance": 3
+      },
+      "why": "Product left on the scalp is the main cause of buildup.",
+      "evidence": "early",
+      "kind": "daily"
+    },
+    {
+      "id": "dry_shampoo",
+      "label": "Dry shampoo",
+      "value": "≤1",
+      "unit": "day",
+      "minutes": 0,
+      "relevance": {
+        "repair": 0,
+        "grow": 0,
+        "keep": 0,
+        "balance": 2
+      },
+      "why": "Fine for a day; longer and it adds to buildup on the scalp.",
+      "evidence": "early",
+      "kind": "daily"
+    },
+    {
+      "id": "pillowcase",
+      "label": "Pillowcase",
+      "value": 3,
+      "unit": "days",
+      "min": 2,
+      "max": 7,
+      "minutes": 0,
+      "relevance": {
+        "repair": 0,
+        "grow": 0,
+        "keep": 0,
+        "balance": 2
+      },
+      "why": "Oil and product on the pillowcase go straight back onto the scalp.",
+      "evidence": "early",
+      "kind": "daily"
+    },
+    {
+      "id": "scalp_scrub",
+      "label": "Scalp scrub",
+      "value": 2,
+      "unit": "×/mo",
+      "min": 1,
+      "max": 4,
+      "minutes": 2,
+      "relevance": {
+        "repair": 0,
+        "grow": 0,
+        "keep": 1,
+        "balance": 2
+      },
+      "why": "A gentle scrub a couple of times a month lifts buildup. Skip rough scrubs; they irritate.",
+      "evidence": "early",
+      "kind": "daily"
+    },
+    {
+      "id": "anti_dandruff",
+      "label": "Anti-flake wash",
+      "value": 2,
+      "unit": "×/wk",
+      "min": 1,
+      "max": 3,
+      "minutes": 1,
+      "eligible": false,
+      "relevance": {
+        "repair": 0,
+        "grow": 1,
+        "keep": 2,
+        "balance": 3
+      },
+      "why": "A medicated anti-dandruff shampoo treats the yeast behind most flaking. Leave it on for a few minutes before rinsing.",
+      "evidence": "strong",
+      "kind": "daily",
+      "ingredients": [
+        "anti-dandruff ingredients"
+      ]
+    },
+    {
+      "id": "swim_prep",
+      "label": "Before swim",
+      "value": "Wet + oil",
+      "unit": "",
+      "minutes": 1,
+      "eligible": false,
+      "relevance": {
+        "repair": 2,
+        "grow": 2,
+        "keep": 1,
+        "balance": 1
+      },
+      "why": "Hair soaked in clean water first absorbs less chlorine.",
+      "evidence": "early",
+      "kind": "daily"
+    },
+    {
+      "id": "bond_repair",
+      "label": "Bond repair",
+      "value": 1,
+      "unit": "×/wk",
+      "min": 1,
+      "max": 2,
+      "minutes": 3,
+      "eligible": false,
+      "relevance": {
+        "repair": 3,
+        "grow": 2,
+        "keep": 1,
+        "balance": 0
+      },
+      "why": "Bleach and relaxers weaken hair from the inside; a weekly repair treatment helps it hold up.",
+      "evidence": "early",
+      "kind": "daily"
+    },
+    {
+      "id": "gentle_wash",
+      "label": "Shampoo",
+      "value": "Gentle",
+      "unit": "",
+      "minutes": 0,
+      "eligible": false,
+      "relevance": {
+        "repair": 1,
+        "grow": 0,
+        "keep": 1,
+        "balance": 3
+      },
+      "why": "A milder shampoo (often labelled sulfate-free) strips less oil from a dry, irritated scalp.",
+      "evidence": "early",
+      "kind": "daily"
+    },
+    {
+      "id": "conditioner",
+      "label": "Condition",
+      "value": "Every wash",
+      "unit": "",
+      "minutes": 2,
+      "kind": "daily",
+      "evidence": "strong",
+      "ingredients": [
+        "conditioning agents",
+        "smoothing silicones"
+      ],
+      "relevance": {
+        "repair": 3,
+        "grow": 3,
+        "keep": 1,
+        "balance": 1
+      },
+      "why": "Conditioner after every wash cuts combing breakage by roughly 70–80% in lab tests."
+    },
+    {
+      "id": "pre_wash_oil",
+      "label": "Pre-wash oil",
+      "value": 20,
+      "unit": "min",
+      "min": 10,
+      "max": 60,
+      "minutes": 1,
+      "kind": "daily",
+      "evidence": "lab",
+      "ingredients": [
+        "coconut oil"
+      ],
+      "relevance": {
+        "repair": 2,
+        "grow": 2,
+        "keep": 0,
+        "balance": 0
+      },
+      "why": "Coconut oil before washing helped hair lose less protein in lab tests; other oils didn’t."
+    },
+    {
+      "id": "keto_wash",
+      "label": "Anti-dandruff wash",
+      "value": 2,
+      "unit": "×/wk",
+      "min": 2,
+      "max": 3,
+      "minutes": 1,
+      "kind": "daily",
+      "evidence": "moderate",
+      "ingredients": [
+        "anti-dandruff ingredients"
+      ],
+      "relevance": {
+        "repair": 0,
+        "grow": 0,
+        "keep": 2,
+        "balance": 0
+      },
+      "why": "Small studies found a common anti-dandruff shampoo also helped hair look thicker in pattern thinning."
+    },
+    {
+      "id": "tea_tree",
+      "label": "Tea tree wash",
+      "value": "Leave 3 min",
+      "unit": "",
+      "minutes": 3,
+      "kind": "daily",
+      "eligible": false,
+      "evidence": "moderate",
+      "ingredients": [
+        "tea tree oil"
+      ],
+      "relevance": {
+        "repair": 0,
+        "grow": 0,
+        "keep": 0,
+        "balance": 2
+      },
+      "why": "A tea tree shampoo left on for 3 minutes reduced dandruff in a 4-week trial."
+    },
+    {
+      "id": "rosemary",
+      "label": "Rosemary oil",
+      "value": "Diluted",
+      "unit": "",
+      "minutes": 2,
+      "kind": "daily",
+      "eligible": false,
+      "evidence": "early",
+      "ingredients": [
+        "rosemary oil"
+      ],
+      "relevance": {
+        "repair": 0,
+        "grow": 2,
+        "keep": 2,
+        "balance": 0
+      },
+      "why": "One 6-month trial found it worked about as well as a common regrowth treatment. Mix a few drops into a plain oil first; it can irritate."
+    },
+    {
+      "id": "learn_minoxidil",
+      "label": "Ask a dermatologist about regrowth treatment",
+      "value": "",
+      "unit": "",
+      "minutes": 0,
+      "kind": "learn",
+      "eligible": false,
+      "evidence": "strong",
+      "relevance": {
+        "repair": 0,
+        "grow": 1,
+        "keep": 3,
+        "balance": 0
+      },
+      "why": "There is an approved over-the-counter treatment for gradual thinning. It takes months to work, and a doctor can tell you if it suits you."
+    },
+    {
+      "id": "learn_ferritin",
+      "label": "Ask your doctor to check iron and thyroid",
+      "value": "",
+      "unit": "",
+      "minutes": 0,
+      "kind": "learn",
+      "eligible": false,
+      "evidence": "strong",
+      "relevance": {
+        "repair": 0,
+        "grow": 1,
+        "keep": 3,
+        "balance": 0
+      },
+      "why": "Low iron and thyroid problems are common, fixable causes of shedding. A yearly check-up can catch both."
+    },
+    {
+      "id": "flax_gel",
+      "label": "Flaxseed gel",
+      "value": "Style",
+      "unit": "",
+      "minutes": 2,
+      "kind": "daily",
+      "evidence": "early",
+      "ingredients": [
+        "flaxseed"
+      ],
+      "relevance": {
+        "repair": 2,
+        "grow": 1,
+        "keep": 0,
+        "balance": 0
+      },
+      "eligible": false,
+      "why": "A light, natural gel that holds waves and curls in place and keeps frizz down. No clinical studies yet — it works as a styler."
+    },
+    {
+      "id": "flax_diet",
+      "label": "Ground flaxseed",
+      "value": 1,
+      "unit": "tbsp/day",
+      "min": 1,
+      "max": 2,
+      "minutes": 0,
+      "kind": "daily",
+      "evidence": "early",
+      "ingredients": [
+        "flaxseed"
+      ],
+      "relevance": {
+        "repair": 0,
+        "grow": 1,
+        "keep": 1,
+        "balance": 0
+      },
+      "why": "Flaxseed is rich in omega-3 fats and fibre. Hair results so far come only from animal studies, so treat it as a healthy extra."
+    },
+    {
+      "id": "heat_protect",
+      "label": "Heat protectant",
+      "value": "Every time",
+      "unit": "",
+      "minutes": 1,
+      "kind": "daily",
+      "evidence": "expert",
+      "relevance": {
+        "repair": 2,
+        "grow": 2,
+        "keep": 1,
+        "balance": 0
+      },
+      "why": "Dermatologists say to always use a heat protectant before blow-drying or hot tools."
+    },
+    {
+      "id": "soft_ties",
+      "label": "Hair ties",
+      "value": "Soft",
+      "unit": "",
+      "minutes": 0,
+      "kind": "daily",
+      "evidence": "expert",
+      "relevance": {
+        "repair": 1,
+        "grow": 2,
+        "keep": 2,
+        "balance": 0
+      },
+      "why": "Swap rubber bands for coil or silk ties — they snag and snap less hair."
+    },
+    {
+      "id": "hair_food",
+      "label": "Eat for hair",
+      "value": "Iron + omega-3",
+      "unit": "",
+      "minutes": 0,
+      "kind": "daily",
+      "evidence": "expert",
+      "relevance": {
+        "repair": 0,
+        "grow": 1,
+        "keep": 2,
+        "balance": 0
+      },
+      "why": "Leafy greens, eggs, nuts, fish and citrus give hair the iron, vitamin D and healthy fats it's built from. Very low-fat diets can thin hair."
+    },
+    {
+      "id": "sun_cover",
+      "label": "Sun",
+      "value": "Hat outdoors",
+      "unit": "",
+      "minutes": 0,
+      "kind": "daily",
+      "evidence": "expert",
+      "relevance": {
+        "repair": 1,
+        "grow": 1,
+        "keep": 1,
+        "balance": 0
+      },
+      "why": "Long sun exposure dries hair out, and your scalp can burn too. A hat or scalp sunscreen helps."
+    },
+    {
+      "id": "wind_down",
+      "label": "Wind down",
+      "value": 10,
+      "unit": "min",
+      "min": 5,
+      "max": 20,
+      "minutes": 10,
+      "kind": "daily",
+      "evidence": "expert",
+      "relevance": {
+        "repair": 0,
+        "grow": 0,
+        "keep": 1,
+        "balance": 0
+      },
+      "why": "Big stress can trigger a wave of shedding a few months later. It usually recovers once life calms down."
+    },
+    {
+      "id": "learn_scalp_derm",
+      "label": "See a dermatologist if your scalp still flakes or itches in 4 weeks",
+      "value": "",
+      "unit": "",
+      "minutes": 0,
+      "kind": "learn",
+      "eligible": false,
+      "evidence": "expert",
+      "relevance": {
+        "repair": 0,
+        "grow": 0,
+        "keep": 1,
+        "balance": 3
+      },
+      "why": "A scalp that stays flaky, itchy or burning can be a skin condition that needs treatment."
+    }
+  ],
+  "rules": [
+    {
+      "id": "R01",
+      "when": [
+        [
+          "porosity",
+          "eq",
+          "high"
+        ]
+      ],
+      "then": [
+        [
+          "leave_in",
+          "need",
+          2
+        ],
+        [
+          "leave_in",
+          "add",
+          1
+        ],
+        [
+          "deep_condition",
+          "need",
+          1
+        ],
+        [
+          "_plan",
+          "lookFor",
+          "conditioning agents"
+        ],
+        [
+          "_plan",
+          "lookFor",
+          "smoothing silicones"
+        ],
+        [
+          "_plan",
+          "avoid",
+          "drying alcohol near the top of the list"
+        ]
+      ],
+      "reason": "High porosity loses moisture fast."
+    },
+    {
+      "id": "R02",
+      "when": [
+        [
+          "porosity",
+          "eq",
+          "low"
+        ]
+      ],
+      "then": [
+        [
+          "leave_in",
+          "set",
+          1
+        ],
+        [
+          "deep_condition",
+          "need",
+          -1
+        ],
+        [
+          "scalp_scrub",
+          "need",
+          1
+        ],
+        [
+          "rinse",
+          "need",
+          1
+        ]
+      ],
+      "reason": "Low porosity gets weighed down, and product sits on top as buildup."
+    },
+    {
+      "id": "R03",
+      "when": [
+        [
+          "texture",
+          "in",
+          [
+            "curly",
+            "coily"
+          ]
+        ]
+      ],
+      "then": [
+        [
+          "wash_interval",
+          "atLeast",
+          5
+        ],
+        [
+          "detangle",
+          "need",
+          1
+        ]
+      ],
+      "reason": "Curly and coily hair needs its natural oils and breaks more when dry-combed."
+    },
+    {
+      "id": "R04",
+      "when": [
+        [
+          "scalp",
+          "eq",
+          "oily"
+        ]
+      ],
+      "then": [
+        [
+          "wash_interval",
+          "atMost",
+          2
+        ],
+        [
+          "wash_interval",
+          "need",
+          1
+        ],
+        [
+          "dry_shampoo",
+          "need",
+          1
+        ],
+        [
+          "rinse",
+          "need",
+          1
+        ]
+      ],
+      "reason": "An oily scalp needs more frequent cleansing."
+    },
+    {
+      "id": "R05",
+      "when": [
+        [
+          "scalp",
+          "eq",
+          "oily"
+        ],
+        [
+          "texture",
+          "eq",
+          "straight"
+        ]
+      ],
+      "then": [
+        [
+          "wash_interval",
+          "set",
+          1
+        ]
+      ],
+      "reason": "Oil travels down straight hair fastest."
+    },
+    {
+      "id": "R06",
+      "when": [
+        [
+          "scalp",
+          "eq",
+          "dry"
+        ]
+      ],
+      "then": [
+        [
+          "wash_interval",
+          "atLeast",
+          3
+        ],
+        [
+          "scalp_scrub",
+          "exclude",
+          true
+        ],
+        [
+          "dry_shampoo",
+          "exclude",
+          true
+        ],
+        [
+          "gentle_wash",
+          "eligible",
+          true
+        ],
+        [
+          "gentle_wash",
+          "need",
+          2
+        ]
+      ],
+      "reason": "Over-washing, scrubbing and dry shampoo irritate a dry scalp; switch to a gentler cleanser."
+    },
+    {
+      "id": "R07",
+      "when": [
+        [
+          "scalp",
+          "eq",
+          "flaky"
+        ]
+      ],
+      "then": [
+        [
+          "anti_dandruff",
+          "eligible",
+          true
+        ],
+        [
+          "anti_dandruff",
+          "need",
+          2
+        ],
+        [
+          "wash_interval",
+          "atMost",
+          3
+        ],
+        [
+          "keto_wash",
+          "exclude",
+          true
+        ],
+        [
+          "_plan",
+          "lookFor",
+          "anti-dandruff ingredients"
+        ]
+      ],
+      "reason": "Flaking is usually treatable with a medicated shampoo used at least twice a week."
+    },
+    {
+      "id": "R08",
+      "when": [
+        [
+          "chemical",
+          "in",
+          [
+            "bleach",
+            "relaxer"
+          ]
+        ]
+      ],
+      "then": [
+        [
+          "bond_repair",
+          "eligible",
+          true
+        ],
+        [
+          "bond_repair",
+          "need",
+          2
+        ],
+        [
+          "heat_cap",
+          "set",
+          280
+        ],
+        [
+          "heat_cap",
+          "need",
+          1
+        ],
+        [
+          "_plan",
+          "avoid",
+          "drying alcohol near the top of the list"
+        ]
+      ],
+      "reason": "Chemically processed hair is more fragile."
+    },
+    {
+      "id": "R09",
+      "when": [
+        [
+          "chemical",
+          "eq",
+          "color"
+        ]
+      ],
+      "then": [
+        [
+          "deep_condition",
+          "need",
+          1
+        ],
+        [
+          "heat_cap",
+          "atMost",
+          300
+        ]
+      ],
+      "reason": "Color lifts the cuticle and fades faster with heat."
+    },
+    {
+      "id": "R10",
+      "when": [
+        [
+          "heatUse",
+          "eq",
+          "daily"
+        ]
+      ],
+      "then": [
+        [
+          "heat_cap",
+          "need",
+          2
+        ]
+      ],
+      "reason": "Daily heat is the biggest damage driver."
+    },
+    {
+      "id": "R11",
+      "when": [
+        [
+          "heatUse",
+          "eq",
+          "none"
+        ]
+      ],
+      "then": [
+        [
+          "heat_cap",
+          "exclude",
+          true
+        ]
+      ],
+      "reason": "No point capping heat they don't use."
+    },
+    {
+      "id": "R12",
+      "when": [
+        [
+          "tightStyles",
+          "eq",
+          true
+        ]
+      ],
+      "then": [
+        [
+          "loose_styles",
+          "need",
+          2
+        ]
+      ],
+      "reason": "Tight styles stress the hairline."
+    },
+    {
+      "id": "R13",
+      "when": [
+        [
+          "swims",
+          "eq",
+          true
+        ]
+      ],
+      "then": [
+        [
+          "swim_prep",
+          "eligible",
+          true
+        ],
+        [
+          "swim_prep",
+          "need",
+          2
+        ]
+      ],
+      "reason": "Chlorine dries and roughens the cuticle."
+    },
+    {
+      "id": "R14",
+      "when": [
+        [
+          "humidity",
+          "gte",
+          60
+        ]
+      ],
+      "then": [
+        [
+          "leave_in",
+          "need",
+          1
+        ],
+        [
+          "satin",
+          "need",
+          1
+        ]
+      ],
+      "reason": "Humid air swells porous hair, so frizz levers matter more."
+    },
+    {
+      "id": "R15",
+      "when": [
+        [
+          "coldDry",
+          "eq",
+          true
+        ]
+      ],
+      "then": [
+        [
+          "leave_in",
+          "need",
+          1
+        ],
+        [
+          "satin",
+          "need",
+          1
+        ]
+      ],
+      "reason": "Cold, dry air pulls moisture out."
+    },
+    {
+      "id": "R16",
+      "when": [
+        [
+          "thickness",
+          "eq",
+          "fine"
+        ]
+      ],
+      "then": [
+        [
+          "leave_in",
+          "atMost",
+          2
+        ],
+        [
+          "ends_oil",
+          "set",
+          1
+        ],
+        [
+          "pre_wash_oil",
+          "need",
+          -1
+        ]
+      ],
+      "reason": "Fine hair is weighed down easily."
+    },
+    {
+      "id": "R17",
+      "when": [
+        [
+          "length",
+          "in",
+          [
+            "buzzed",
+            "short"
+          ]
+        ]
+      ],
+      "then": [
+        [
+          "ends_oil",
+          "exclude",
+          true
+        ],
+        [
+          "trim",
+          "exclude",
+          true
+        ],
+        [
+          "detangle",
+          "exclude",
+          true
+        ]
+      ],
+      "reason": "Not relevant for very short hair."
+    },
+    {
+      "id": "R17b",
+      "when": [
+        [
+          "length",
+          "eq",
+          "buzzed"
+        ]
+      ],
+      "then": [
+        [
+          "leave_in",
+          "exclude",
+          true
+        ],
+        [
+          "loose_styles",
+          "exclude",
+          true
+        ],
+        [
+          "satin",
+          "exclude",
+          true
+        ],
+        [
+          "conditioner",
+          "exclude",
+          true
+        ],
+        [
+          "soft_ties",
+          "exclude",
+          true
+        ],
+        [
+          "heat_protect",
+          "exclude",
+          true
+        ]
+      ],
+      "reason": "Styling and leave-in levers don't apply to buzzed hair."
+    },
+    {
+      "id": "R18",
+      "when": [
+        [
+          "goal",
+          "eq",
+          "keep"
+        ],
+        [
+          "noticed",
+          "has",
+          "sudden_shedding"
+        ]
+      ],
+      "then": [
+        [
+          "_plan",
+          "flag",
+          "derm_referral"
+        ],
+        [
+          "learn_ferritin",
+          "eligible",
+          true
+        ]
+      ],
+      "reason": "Sudden or patchy shedding can have medical causes; suggest a dermatologist."
+    },
+    {
+      "id": "R19",
+      "when": [
+        [
+          "goal",
+          "eq",
+          "keep"
+        ],
+        [
+          "noticed",
+          "has",
+          "patches"
+        ]
+      ],
+      "then": [
+        [
+          "_plan",
+          "flag",
+          "derm_referral"
+        ],
+        [
+          "learn_ferritin",
+          "eligible",
+          true
+        ]
+      ],
+      "reason": "Patchy loss can have medical causes; suggest a dermatologist."
+    },
+    {
+      "id": "R20",
+      "when": [
+        [
+          "prefersNatural",
+          "eq",
+          true
+        ]
+      ],
+      "then": [
+        [
+          "rosemary",
+          "eligible",
+          true
+        ],
+        [
+          "rosemary",
+          "need",
+          1
+        ],
+        [
+          "keto_wash",
+          "need",
+          -1
+        ]
+      ],
+      "reason": "They told us they prefer natural care; show the natural option with real evidence."
+    },
+    {
+      "id": "R21",
+      "when": [
+        [
+          "goal",
+          "eq",
+          "keep"
+        ],
+        [
+          "noticed",
+          "has",
+          "pattern_thinning"
+        ]
+      ],
+      "then": [
+        [
+          "learn_minoxidil",
+          "eligible",
+          true
+        ]
+      ],
+      "reason": "Gradual pattern thinning is what the approved regrowth treatment is for; a doctor should confirm."
+    },
+    {
+      "id": "R22",
+      "when": [
+        [
+          "goal",
+          "eq",
+          "grow"
+        ],
+        [
+          "prefersNatural",
+          "eq",
+          true
+        ]
+      ],
+      "then": [
+        [
+          "_plan",
+          "lookFor",
+          "rosemary oil"
+        ]
+      ],
+      "reason": "Natural-leaning growers ask about rosemary; show the honest version."
+    },
+    {
+      "id": "R23",
+      "when": [
+        [
+          "scalp",
+          "eq",
+          "oily"
+        ]
+      ],
+      "then": [
+        [
+          "pre_wash_oil",
+          "set",
+          "Ends only"
+        ],
+        [
+          "_plan",
+          "avoid",
+          "heavy oils on the scalp"
+        ]
+      ],
+      "reason": "Oil on an oily scalp adds to buildup; keep it on the lengths."
+    },
+    {
+      "id": "R24",
+      "when": [
+        [
+          "goal",
+          "eq",
+          "repair"
+        ]
+      ],
+      "then": [
+        [
+          "_plan",
+          "avoid",
+          "drying alcohol near the top of the list"
+        ],
+        [
+          "_plan",
+          "lookFor",
+          "smoothing silicones"
+        ]
+      ],
+      "reason": "Drying alcohols rough up the cuticle; silicones smooth it."
+    },
+    {
+      "id": "R25",
+      "when": [
+        [
+          "scalp",
+          "eq",
+          "flaky"
+        ],
+        [
+          "prefersNatural",
+          "eq",
+          true
+        ]
+      ],
+      "then": [
+        [
+          "tea_tree",
+          "eligible",
+          true
+        ],
+        [
+          "tea_tree",
+          "need",
+          2
+        ],
+        [
+          "anti_dandruff",
+          "exclude",
+          true
+        ]
+      ],
+      "reason": "Natural-leaning users with flakes get tea tree instead of a medicated wash; the medicated option stays in Look for."
+    },
+    {
+      "id": "R26",
+      "when": [
+        [
+          "texture",
+          "in",
+          [
+            "wavy",
+            "curly",
+            "coily"
+          ]
+        ]
+      ],
+      "then": [
+        [
+          "flax_gel",
+          "eligible",
+          true
+        ]
+      ],
+      "reason": "Flaxseed gel is a styler for waves and curls."
+    },
+    {
+      "id": "R27",
+      "when": [
+        [
+          "prefersNatural",
+          "eq",
+          true
+        ]
+      ],
+      "then": [
+        [
+          "flax_gel",
+          "need",
+          1
+        ],
+        [
+          "flax_diet",
+          "need",
+          1
+        ]
+      ],
+      "reason": "Natural-leaning users get the flaxseed options moved up."
+    },
+    {
+      "id": "R28",
+      "when": [
+        [
+          "thickness",
+          "eq",
+          "fine"
+        ],
+        [
+          "texture",
+          "in",
+          [
+            "wavy",
+            "curly",
+            "coily"
+          ]
+        ]
+      ],
+      "then": [
+        [
+          "flax_gel",
+          "need",
+          1
+        ]
+      ],
+      "reason": "Flaxseed gel holds fine waves without the weight of creams."
+    },
+    {
+      "id": "R29",
+      "when": [
+        [
+          "prefersNatural",
+          "eq",
+          true
+        ]
+      ],
+      "then": [
+        [
+          "_plan",
+          "skip",
+          "smoothing silicones"
+        ]
+      ],
+      "reason": "Respect a natural-care preference: don't suggest silicones."
+    },
+    {
+      "id": "R30",
+      "when": [
+        [
+          "heatUse",
+          "eq",
+          "none"
+        ]
+      ],
+      "then": [
+        [
+          "heat_protect",
+          "exclude",
+          true
+        ]
+      ],
+      "reason": "No heat, no heat protectant needed."
+    },
+    {
+      "id": "R31",
+      "when": [
+        [
+          "heatUse",
+          "eq",
+          "daily"
+        ]
+      ],
+      "then": [
+        [
+          "heat_protect",
+          "need",
+          3
+        ]
+      ],
+      "reason": "Daily heat users need the protectant every time."
+    },
+    {
+      "id": "R32",
+      "when": [
+        [
+          "tightStyles",
+          "eq",
+          true
+        ]
+      ],
+      "then": [
+        [
+          "soft_ties",
+          "need",
+          2
+        ]
+      ],
+      "reason": "Tight styles plus rubber bands means more snapping."
+    },
+    {
+      "id": "R33",
+      "when": [
+        [
+          "noticed",
+          "has",
+          "sudden_shedding"
+        ]
+      ],
+      "then": [
+        [
+          "wind_down",
+          "need",
+          3
+        ],
+        [
+          "hair_food",
+          "need",
+          1
+        ]
+      ],
+      "reason": "Stress-triggered shedding: stress and diet are the levers people control."
+    },
+    {
+      "id": "R34",
+      "when": [
+        [
+          "thickness",
+          "eq",
+          "fine"
+        ]
+      ],
+      "then": [
+        [
+          "deep_condition",
+          "atMost",
+          1
+        ],
+        [
+          "deep_condition",
+          "set",
+          "1×/wk, ends only"
+        ],
+        [
+          "deep_condition",
+          "need",
+          -1
+        ]
+      ],
+      "reason": "Masks weigh fine hair down; keep them weekly and off the roots."
+    },
+    {
+      "id": "R35",
+      "when": [
+        [
+          "chemical",
+          "in",
+          [
+            "color",
+            "bleach",
+            "relaxer"
+          ]
+        ]
+      ],
+      "then": [
+        [
+          "deep_condition",
+          "set",
+          2
+        ],
+        [
+          "deep_condition",
+          "need",
+          1
+        ],
+        [
+          "_plan",
+          "lookFor",
+          "protein"
+        ],
+        [
+          "_plan",
+          "lookFor",
+          "vitamin B5"
+        ]
+      ],
+      "reason": "Treated hair can take a mask twice a week; protein and vitamin B5 strengthen it."
+    },
+    {
+      "id": "R36",
+      "when": [
+        [
+          "scalp",
+          "in",
+          [
+            "flaky",
+            "dry"
+          ]
+        ]
+      ],
+      "then": [
+        [
+          "learn_scalp_derm",
+          "eligible",
+          true
+        ]
+      ],
+      "reason": "A scalp that doesn't settle may need a dermatologist."
+    },
+    {
+      "id": "R37",
+      "when": [
+        [
+          "scalp",
+          "eq",
+          "dry"
+        ]
+      ],
+      "then": [
+        [
+          "_plan",
+          "lookFor",
+          "aloe vera"
+        ],
+        [
+          "_plan",
+          "avoid",
+          "rough scrubs"
+        ]
+      ],
+      "reason": "Experts suggest soothing ingredients and gentle cleansing for a dry scalp."
+    },
+    {
+      "id": "R38",
+      "when": [
+        [
+          "length",
+          "in",
+          [
+            "buzzed",
+            "short"
+          ]
+        ]
+      ],
+      "then": [
+        [
+          "sun_cover",
+          "need",
+          2
+        ]
+      ],
+      "reason": "Short hair leaves the scalp exposed to sun."
+    },
+    {
+      "id": "R39",
+      "when": [
+        [
+          "swims",
+          "eq",
+          true
+        ]
+      ],
+      "then": [
+        [
+          "sun_cover",
+          "need",
+          1
+        ]
+      ],
+      "reason": "Swimmers spend long hours in the sun."
+    }
+  ],
+  "targets": {
+    "repair": {
+      "metric": "frizz",
+      "label": "Frizz",
+      "perFourWeeks": -1,
+      "floor": 2,
+      "format": "{label} {from} → {to} by {date}"
+    },
+    "grow": {
+      "metric": "lengthCm",
+      "label": "Length",
+      "perFourWeeks": 0.85,
+      "format": "{label} +{delta} cm by {date}"
+    },
+    "keep": {
+      "metric": "density",
+      "label": "Density",
+      "perFourWeeks": 0,
+      "format": "Hold density at {from}%+ through {date}"
+    },
+    "balance": {
+      "metric": "oiliness",
+      "label": "Oiliness",
+      "perFourWeeks": -1,
+      "floor": 3,
+      "format": "{label} {from} → {to} by {date}"
+    }
+  },
+  "washStepLimit": {
+    "daysPerTwoWeeks": 1,
+    "note": "Change wash habits by at most 1 day every 2 weeks so the scalp adjusts."
+  },
+  "targetOverrides": [
+    {
+      "goal": "balance",
+      "when": [
+        [
+          "scalp",
+          "eq",
+          "flaky"
+        ]
+      ],
+      "target": {
+        "metric": "buildup",
+        "label": "Flaking",
+        "perFourWeeks": -1,
+        "floor": 1,
+        "format": "{label} {from} → {to} by {date}"
+      }
+    },
+    {
+      "goal": "balance",
+      "when": [
+        [
+          "scalp",
+          "eq",
+          "dry"
+        ]
+      ],
+      "target": {
+        "metric": "none",
+        "label": "Scalp",
+        "perFourWeeks": 0,
+        "format": "Calmer, less itchy scalp by {date}"
+      }
+    }
+  ],
+  "evidenceWeight": {
+    "strong": 1.0,
+    "moderate": 0.9,
+    "lab": 0.85,
+    "early": 0.8,
+    "expert": 0.8
+  },
+  "ingredientGroups": {
+    "conditioning agents": [
+      "behentrimonium chloride",
+      "cetrimonium chloride",
+      "stearamidopropyl dimethylamine",
+      "behentrimonium methosulfate"
+    ],
+    "smoothing silicones": [
+      "dimethicone",
+      "amodimethicone",
+      "cyclopentasiloxane"
+    ],
+    "protein": [
+      "hydrolyzed keratin",
+      "hydrolyzed wheat protein",
+      "hydrolyzed silk",
+      "hydrolyzed protein",
+      "hydrolyzed collagen",
+      "silk amino acids",
+      "hydrolyzed rice protein"
+    ],
+    "anti-dandruff ingredients": [
+      "ketoconazole",
+      "zinc pyrithione",
+      "selenium sulfide",
+      "piroctone olamine"
+    ],
+    "tea tree oil": [
+      "melaleuca alternifolia leaf oil",
+      "tea tree oil"
+    ],
+    "rosemary oil": [
+      "rosmarinus officinalis leaf oil",
+      "rosemary oil"
+    ],
+    "coconut oil": [
+      "cocos nucifera oil",
+      "coconut oil"
+    ],
+    "flaxseed": [
+      "linum usitatissimum seed extract",
+      "linum usitatissimum seed oil",
+      "flaxseed",
+      "linseed"
+    ],
+    "drying alcohol near the top of the list": [
+      "alcohol denat.",
+      "sd alcohol",
+      "isopropyl alcohol",
+      "ethanol"
+    ],
+    "heavy oils on the scalp": [
+      "mineral oil",
+      "petrolatum",
+      "shea butter"
+    ],
+    "vitamin B5": [
+      "panthenol",
+      "dexpanthenol"
+    ],
+    "aloe vera": [
+      "aloe barbadensis leaf juice",
+      "aloe vera"
+    ],
+    "light oils like argan or jojoba": [
+      "argania spinosa kernel oil",
+      "simmondsia chinensis seed oil",
+      "cocos nucifera oil",
+      "argan oil",
+      "jojoba oil",
+      "coconut oil"
+    ]
+  }
+}
