@@ -12,7 +12,7 @@ function Row({ k, v, onPress, first }: { k: string; v?: string; onPress?: () => 
   return (
     <Pressable onPress={onPress} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, borderTopWidth: first ? 0 : 1, borderTopColor: '#E6E6E8', backgroundColor: pressed && onPress ? '#EFEFF1' : 'transparent' })}>
       <Text style={{ fontFamily: F.regular, fontSize: 16, color: v ? C.gray : C.ink }}>{k}</Text>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>{v ? <Text style={{ fontFamily: F.medium, fontSize: 16, color: C.ink }}>{v}</Text> : null}{onPress ? <Chev /> : null}</View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, marginLeft: 16 }}>{v ? <Text style={{ fontFamily: F.medium, fontSize: 16, color: C.ink, textAlign: 'right', flexShrink: 1 }}>{v}</Text> : null}{onPress ? <Chev /> : null}</View>
     </Pressable>
   );
 }
@@ -32,10 +32,10 @@ export default function Profile() {
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: F.bold, fontSize: 26, color: C.ink }}>{name}</Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.gray }}>{[answers.texture, answers.thickness].filter(Boolean).join(' · ')}</Text>
+          <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.gray }}>{[answers.texture, answers.length].filter(Boolean).join(' · ')}</Text>
         </View>
-        <Pressable onPress={() => router.push('/reminders')} style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, backgroundColor: pressed ? '#E3E3E6' : '#F2F2F4', alignItems: 'center', justifyContent: 'center' })} accessibilityLabel="Reminders">
-          <Svg width={22} height={22} viewBox="0 0 24 24"><Path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16ZM10 20.5a2 2 0 0 0 4 0" stroke={C.ink} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
+        <Pressable onPress={() => router.push('/settings')} style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, backgroundColor: pressed ? '#E3E3E6' : '#F2F2F4', alignItems: 'center', justifyContent: 'center' })} accessibilityLabel="Settings">
+          <Svg width={22} height={22} viewBox="0 0 24 24"><Path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z" stroke={C.ink} strokeWidth={1.9} fill="none" /><Path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.5A7.6 7.6 0 0 0 7 6.5l-2.4-1-2 3.4 2 1.6a7.6 7.6 0 0 0 0 3l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 0 0 2.6 1.5l.4 2.5h4l.4-2.5a7.6 7.6 0 0 0 2.6-1.5l2.4 1 2-3.4-2-1.6Z" stroke={C.ink} strokeWidth={1.9} strokeLinejoin="round" fill="none" /></Svg>
         </Pressable>
       </View>
       <Sub style={{ marginTop: 14 }}>The more Moi knows, the better your plan</Sub>
@@ -65,7 +65,7 @@ export default function Profile() {
 
       <SectionCard label="THE BASICS" style={{ marginTop: 22, paddingBottom: 4 }}>
         <View>
-          <Row first k="Goal" v={GOAL[answers.goal] ?? '—'} />
+          <Row first k={goalList(answers.goal).length > 1 ? 'Goals' : 'Goal'} v={goalList(answers.goal).map(g => GOAL[g]).filter(Boolean).join(', ') || '—'} />
           <Row k="Texture" v={answers.texture ?? '—'} />
           <Row k="Scalp" v={answers.scalp ?? '—'} />
           <Row k="Porosity" v={answers.porosity ?? '—'} />
@@ -81,3 +81,5 @@ export default function Profile() {
     </Screen>
   );
 }
+
+const goalList = (g: unknown): string[] => (Array.isArray(g) ? g : g ? [String(g)] : []);

@@ -1,5 +1,5 @@
 {
-  "version": "0.4.0",
+  "version": "0.5.0",
   "planWeeks": 12,
   "maxCards": 4,
   "levers": [
@@ -608,6 +608,23 @@
         "balance": 3
       },
       "why": "A scalp that stays flaky, itchy or burning can be a skin condition that needs treatment."
+    },
+    {
+      "id": "learn_pregnancy",
+      "label": "Ask your doctor about hair changes in pregnancy",
+      "value": "",
+      "unit": "",
+      "minutes": 0,
+      "kind": "learn",
+      "eligible": false,
+      "evidence": "expert",
+      "relevance": {
+        "repair": 2,
+        "grow": 2,
+        "keep": 3,
+        "balance": 2
+      },
+      "why": "Pregnancy changes how hair grows, and many people shed more 2–4 months after giving birth. It usually settles on its own. Check with your doctor before starting regrowth treatments or essential oils."
     }
   ],
   "rules": [
@@ -967,9 +984,9 @@
       "id": "R13",
       "when": [
         [
-          "swims",
-          "eq",
-          true
+          "lifestyle",
+          "has",
+          "sports"
         ]
       ],
       "then": [
@@ -981,10 +998,10 @@
         [
           "swim_prep",
           "need",
-          2
+          1
         ]
       ],
-      "reason": "Chlorine dries and roughens the cuticle."
+      "reason": "Sports often means swimming; chlorine dries and roughens the cuticle."
     },
     {
       "id": "R14",
@@ -1644,9 +1661,9 @@
       "id": "R39",
       "when": [
         [
-          "swims",
-          "eq",
-          true
+          "lifestyle",
+          "has",
+          "sports"
         ]
       ],
       "then": [
@@ -1656,7 +1673,96 @@
           1
         ]
       ],
-      "reason": "Swimmers spend long hours in the sun."
+      "reason": "Outdoor training means long hours in the sun."
+    },
+    {
+      "id": "R40",
+      "when": [
+        [
+          "lifestyle",
+          "has",
+          "sports"
+        ]
+      ],
+      "then": [
+        [
+          "gentle_wash",
+          "eligible",
+          true
+        ],
+        [
+          "gentle_wash",
+          "need",
+          1
+        ],
+        [
+          "soft_ties",
+          "need",
+          1
+        ],
+        [
+          "wash_interval",
+          "atMost",
+          3
+        ]
+      ],
+      "reason": "Sweat means washing more often, so the wash needs to be gentle; workout ponytails pull on the hairline."
+    },
+    {
+      "id": "R41",
+      "when": [
+        [
+          "busy",
+          "eq",
+          true
+        ]
+      ],
+      "then": [
+        [
+          "wind_down",
+          "need",
+          2
+        ],
+        [
+          "hair_food",
+          "need",
+          1
+        ]
+      ],
+      "reason": "Heavy weeks (work, school, caring for a child) raise stress and disrupt meals, both linked to shedding."
+    },
+    {
+      "id": "R42",
+      "when": [
+        [
+          "lifestyle",
+          "has",
+          "pregnant"
+        ]
+      ],
+      "then": [
+        [
+          "rosemary",
+          "exclude",
+          true
+        ],
+        [
+          "tea_tree",
+          "exclude",
+          true
+        ],
+        [
+          "learn_minoxidil",
+          "exclude",
+          true
+        ],
+        [
+          "learn_pregnancy",
+          "eligible",
+          true
+        ]
+      ],
+      "reason": "Skip essential oils and regrowth treatments in pregnancy unless a doctor says otherwise."
     }
   ],
   "targets": {

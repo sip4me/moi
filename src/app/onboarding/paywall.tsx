@@ -1,3 +1,4 @@
+import { goNext } from '../../data/flow';
 import { router } from 'expo-router';
 import { Text, View } from 'react-native';
 import { Button, Logo, Screen, Sub, Title } from '../../components/ui';
@@ -5,11 +6,11 @@ import { useStore } from '../../state/store';
 import { C, F } from '../../theme';
 
 export default function Paywall() {
-  const { plan } = useStore();
+  const { plan, answers } = useStore();
   return (
     <Screen footer={<>
       <Text style={{ textAlign: 'center', fontFamily: F.semibold, fontSize: 14, color: C.ink, marginBottom: 10 }}>✓  No payment due now</Text>
-      <Button label="Continue" onPress={() => router.push('/onboarding/home-screen')} />
+      <Button label="Continue" onPress={() => goNext('paywall', answers)} />
       <Text style={{ textAlign: 'center', fontFamily: F.regular, fontSize: 12, color: C.gray, marginTop: 8 }}>Test build — payments aren’t connected yet.</Text>
     </>}>
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16 }}>

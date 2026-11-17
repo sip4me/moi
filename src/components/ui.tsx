@@ -82,12 +82,24 @@ export function Sub({ children, style }: { children: React.ReactNode; style?: an
 }
 
 // "Moi" in Young Serif with the 3D crown on the o, scaled from the Figma lockup (64 px master).
+/**
+ * Wordmark, built to match the Figma "Logo/Moi lockup" (40:400) exactly. Positions are in
+ * units of its 64px master (k = size / 64): each letter is placed where Figma places it, and
+ * the crown uses Figma's transform (27° counter-clockwise about its top-left at 53.8, 14.6),
+ * converted to a rotation about the centre because that is how React Native rotates.
+ * The box is the text height, so inline baselines line up with the sentence around it.
+ */
+const LETTERS: [string, number][] = [['M', -1.9], ['o', 63.8], ['i', 99.5]];
+const CROWN = { w: 32.2, h: 34, left: 59.8, top: 5.4, rotate: '-27deg' };
+
 export function Logo({ size = 40, color = '#2F3D3B' }: { size?: number; color?: string }) {
   const k = size / 64;
   return (
-    <View style={{ width: 123 * k, height: 64 * k }}>
-      <Text style={{ position: 'absolute', left: -2 * k, top: -3.7 * k, fontFamily: F.serif, fontSize: size, lineHeight: 90 * k, color }}>Moi</Text>
-      <Image source={crown} style={{ position: 'absolute', left: 53.8 * k, top: 12 * k, width: 32 * k, height: 34 * k, transform: [{ rotate: '27deg' }] }} resizeMode="contain" />
+    <View style={{ width: 123 * k, height: 64 * k }} accessibilityRole="image" accessibilityLabel="Moi">
+      {LETTERS.map(([ch, x]) => (
+        <Text key={ch} style={{ position: 'absolute', left: x * k, top: -3.7 * k, fontFamily: F.serif, fontSize: size, lineHeight: 90 * k, color }}>{ch}</Text>
+      ))}
+      <Image source={crown} resizeMode="contain" style={{ position: 'absolute', left: CROWN.left * k, top: CROWN.top * k, width: CROWN.w * k, height: CROWN.h * k, transform: [{ rotate: CROWN.rotate }] }} />
     </View>
   );
 }

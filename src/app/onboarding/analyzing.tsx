@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
+import { routeFor } from '../../data/flow';
 import { Screen, Seal, Sub, Title, TopBar } from '../../components/ui';
 import { C, F } from '../../theme';
 
@@ -9,7 +10,7 @@ const STEPS = ['Reading your answers', 'Matching your hair type', 'Checking what
 export default function Analyzing() {
   const [n, setN] = useState(0);
   useEffect(() => {
-    if (n >= STEPS.length) { const t = setTimeout(() => router.replace('/onboarding/plan'), 500); return () => clearTimeout(t); }
+    if (n >= STEPS.length) { const t = setTimeout(() => router.replace(routeFor('plan')), 500); return () => clearTimeout(t); }
     const t = setTimeout(() => setN(n + 1), 700);
     return () => clearTimeout(t);
   }, [n]);

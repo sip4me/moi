@@ -6,22 +6,25 @@
 export type Goal = 'repair' | 'grow' | 'keep' | 'balance';
 
 export interface Profile {
-  goal: Goal;
+  goal: Goal;              // primary goal: the first one picked; sets the target
+  goals?: Goal[];          // every goal picked, primary first
   texture: 'straight' | 'wavy' | 'curly' | 'coily';
-  thickness: 'fine' | 'medium' | 'coarse';
+  thickness: 'fine' | 'medium' | 'coarse'; // measured by the first scan; 'medium' until then
   porosity: 'low' | 'normal' | 'high';
   scalp: 'normal' | 'oily' | 'dry' | 'flaky';
   chemical: 'none' | 'color' | 'bleach' | 'relaxer';
   heatUse: 'none' | 'weekly' | 'daily';
   length: 'buzzed' | 'short' | 'chin' | 'shoulder' | 'mid-back' | 'waist' | 'longer';
   tightStyles: boolean;
-  swims: boolean;
+  lifestyle: string[];     // 'sports' | 'demanding_job' | 'student' | 'pregnant' | 'caregiver'
+  busy: boolean;           // demanding job, student or caring for a child
   timeBudget: number;      // minutes/day from "Routine time" (5 / 15 / 30)
   washNow?: number;        // current wash interval in days from "Wash frequency"
   noticed?: string[];      // e.g. ['sudden_shedding', 'patches', 'frizz']
   prefersNatural?: boolean; // from 21 · Hair care method
   humidity?: number;       // % from weather, optional
   coldDry?: boolean;       // from weather, optional
+  targetValue?: number;    // the score (or cm for length) the person picked on the target screen
   baseline: { frizz?: number; oiliness?: number; buildup?: number; density?: number; lengthCm?: number };
 }
 
@@ -57,6 +60,11 @@ export interface Plan {
 }
 
 function matches(p: Profile, [field, op, v]: Cond): boolean {
+  // A goal rule fires for any goal the person picked, not just the primary one.
+  if (field === 'goal' && p.goals?.length) {
+    if (op === 'eq') return p.goals.includes(v as Goal);
+    if (op === 'in') return Array.isArray(v) && p.goals.some(g => v.includes(g));
+  }
   const x = (p as any)[field];
   switch (op) {
     case 'eq': return x === v;
@@ -111,10 +119,13 @@ export function buildPlan(p: Profile, R: Rules, start = new Date()): Plan {
 
   // score, filter, fit the time budget, take the top cards
   const W = R.evidenceWeight ?? { strong: 1, moderate: 1, expert: 1, lab: 1, early: 1 };
-  const usable = [...levers.values()].filter(l => l.eligible !== false && !l.excluded && l.relevance[p.goal] > 0);
+  // Secondary goals count, slightly less than the primary one, so the plan leads with what matters most.
+  const goals = p.goals?.length ? p.goals : [p.goal];
+  const rel = (l: Lever) => Math.max(...goals.map((g, i) => l.relevance[g] * (i === 0 ? 1 : 0.85)));
+  const usable = [...levers.values()].filter(l => l.eligible !== false && !l.excluded && rel(l) > 0);
   const learn: LearnCard[] = usable.filter(l => l.kind === 'learn').map(l => ({ id: l.id, label: l.label, why: l.why, evidence: l.evidence }));
   const ranked = usable.filter(l => l.kind !== 'learn')
-    .map((l, i) => ({ l, i, score: l.relevance[p.goal] * (1 + 0.5 * l.need) * (W[l.evidence ?? 'early'] ?? 1) }))
+    .map((l, i) => ({ l, i, score: rel(l) * (1 + 0.5 * l.need) * (W[l.evidence ?? 'early'] ?? 1) }))
     .sort((a, b) => b.score - a.score || a.i - b.i);
 
   const cards: Card[] = [], extras: Card[] = [];
@@ -133,10 +144,19 @@ export function buildPlan(p: Profile, R: Rules, start = new Date()): Plan {
   const from = (p.baseline as any)[t.metric];
   const periods = R.planWeeks / 4;
   let to = from;
-  if (typeof from === 'number') { to = +(from + t.perFourWeeks * periods).toFixed(1); if (t.floor !== undefined) to = Math.max(t.floor, to); }
+  let delta = t.perFourWeeks * periods;
+  if (typeof from === 'number') {
+    to = +(from + delta).toFixed(1);
+    if (t.floor !== undefined) to = Math.max(t.floor, to);
+    // A target the person picked wins, kept within what's realistic (never past the floor or above today).
+    if (p.targetValue !== undefined) {
+      if (t.perFourWeeks < 0) to = Math.min(from, Math.max(t.floor ?? 0, p.targetValue));
+      else if (t.metric === 'lengthCm') { delta = Math.max(0, p.targetValue); to = from + delta; }
+    }
+  }
   const target = t.format
     .replace('{label}', t.label).replace('{from}', String(from ?? '—')).replace('{to}', String(to ?? '—'))
-    .replace('{delta}', (t.perFourWeeks * periods).toFixed(1)).replace('{date}', fmtDate(date));
+    .replace('{delta}', delta.toFixed(1)).replace('{date}', fmtDate(date));
 
   for (const c of cards) for (const ing of c.ingredients ?? []) lookFor.add(ing);
   for (const s of skip) lookFor.delete(s); // e.g. natural-leaning users don't get silicones suggested
@@ -156,4 +176,34 @@ export function checkLabel(labelText: string, plan: Plan, R: Rules) {
     good: plan.ingredients.lookFor.filter(g => has(g)),
     watchOut: plan.ingredients.avoid.filter(g => has(g, g.includes('near the top'))),
   };
+}
+
+export type FitIngredient = { name: string; status: 'good' | 'watch'; why: string };
+export type Fit = { score: number; verdict: 'Great fit' | 'Good fit' | 'Use with care' | 'Not for you'; summary: string; ingredients: FitIngredient[] };
+
+/**
+ * Scores a label 1–10 for this plan and explains it ingredient by ingredient, in plain words.
+ * Each listed ingredient is matched against the plan's look-for and avoid groups.
+ */
+export function fitLabel(labelText: string, plan: Plan, R: Rules): Fit {
+  const items = labelText.split(/[,\n]/).map(x => x.trim()).filter(Boolean);
+  const groupOf = (item: string, groups: string[]) =>
+    groups.find(g => (R.ingredientGroups?.[g] ?? [g]).some(t => item.toLowerCase().includes(t.toLowerCase())));
+  const ingredients: FitIngredient[] = [];
+  items.forEach((item, i) => {
+    const bad = groupOf(item, plan.ingredients.avoid);
+    // "near the top" groups only count in the first five ingredients, where concentrations are highest.
+    if (bad && (!bad.includes('near the top') || i < 5)) return ingredients.push({ name: item, status: 'watch', why: `Counts as ${bad}` });
+    const good = groupOf(item, plan.ingredients.lookFor);
+    if (good) ingredients.push({ name: item, status: 'good', why: `One of the ${good} your plan looks for` });
+  });
+  const good = ingredients.filter(x => x.status === 'good').length;
+  const watch = ingredients.length - good;
+  const score = Math.max(1, Math.min(10, 6 + Math.min(good, 3) - 2 * watch));
+  const verdict = score >= 8 ? 'Great fit' : score >= 6 && !watch ? 'Good fit' : score >= 4 ? 'Use with care' : 'Not for you';
+  const n = (k: number, one: string, many: string) => `${k} ingredient${k > 1 ? 's' : ''} ${k > 1 ? many : one}`;
+  const summary = watch
+    ? `${n(watch, 'works', 'work')} against your plan${good ? `; ${good} ${good > 1 ? 'help' : 'helps'}` : ''}.`
+    : good ? `${good} ingredient${good > 1 ? 's' : ''} your plan looks for, nothing to avoid.` : 'Nothing in this label stands out for your plan, good or bad.';
+  return { score, verdict, summary, ingredients };
 }

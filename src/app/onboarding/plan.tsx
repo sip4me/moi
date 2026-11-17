@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { goNext } from '../../data/flow';
 import { Button, CardGrid, DoctorNote, MoreRow, RecCard, Screen, SectionCard, Sub, Title, TopBar } from '../../components/ui';
 import { useStore } from '../../state/store';
 import { C, F, evidenceStyle } from '../../theme';
@@ -10,7 +11,7 @@ export default function PlanScreen() {
   if (!plan) return null;
   const texture = answers.texture ?? 'your';
   return (
-    <Screen scroll footer={<Button label="Let’s get started!" onPress={() => router.push('/onboarding/paywall')} />}>
+    <Screen scroll footer={<Button label="Let’s get started!" onPress={() => goNext('plan', answers)} />}>
       <TopBar progress={0.96} />
       <View style={{ alignItems: 'center', marginTop: 12, gap: 10 }}>
         <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: C.ink, alignItems: 'center', justifyContent: 'center' }}>
