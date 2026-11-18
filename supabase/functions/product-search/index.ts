@@ -57,9 +57,31 @@ async function fetchRemote(q: string) {
   if (rows.length) await db.from('products').upsert(rows, { onConflict: 'code' });
 }
 
+/** Barcode lookup: our table first, then Open Beauty Facts' product endpoint (not the rate-limited search). */
+async function byCode(code: string) {
+  const { data } = await db.from('products').select('*').eq('code', code).maybeSingle();
+  if (data) return data;
+  const res = await fetch(`https://world.openbeautyfacts.org/api/v2/product/${code}.json?fields=${FIELDS}`, { headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(8000) });
+  if (!res.ok) return null;
+  const { product: p } = (await res.json()) as { product?: ObfProduct };
+  const ingredients = (p?.ingredients_text_en || p?.ingredients_text || '').trim();
+  const row = p && p.product_name ? {
+    code, name: p.product_name.trim(), brand: p.brands?.split(',')[0]?.trim() || null, ingredients,
+    image_url: p.image_front_small_url ?? null, hair: (p.categories_tags ?? []).some(t => HAIR.test(t)), updated_at: new Date().toISOString(),
+  } : null;
+  if (row && ingredients.length > 20) await db.from('products').upsert(row, { onConflict: 'code' });
+  return row;
+}
+
 Deno.serve(async req => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   try {
+    const code = new URL(req.url).searchParams.get('code')?.replace(/\D/g, '');
+    if (code) {
+      if (code.length < 8 || code.length > 14) return json({ products: [] });
+      const p = await byCode(code);
+      return json({ products: p ? [p] : [], attribution: 'Product data © Open Beauty Facts contributors, ODbL' });
+    }
     const q = (new URL(req.url).searchParams.get('q') ?? '').trim().toLowerCase().replace(/\s+/g, ' ').slice(0, 60);
     if (q.length < 2) return json({ products: [] });
     let products = await local(q);

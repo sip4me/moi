@@ -86,7 +86,7 @@ export default function Products() {
     <Screen scroll>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <Title>Products</Title>
-        <Pressable onPress={() => router.push({ pathname: '/add-product', params: { mode: 'label' } })} accessibilityRole="button" accessibilityLabel="Scan a product label"
+        <Pressable onPress={() => router.push('/scan-label')} accessibilityRole="button" accessibilityLabel="Scan a product"
           style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 7, height: 38, paddingHorizontal: 15, borderRadius: 999, backgroundColor: pressed ? '#2E2E2E' : C.ink }, squeeze(pressed)]}>
           <ScanIcon color="#fff" /><Text style={{ fontFamily: F.semibold, fontSize: 15, color: '#fff' }}>Scan</Text>
         </Pressable>

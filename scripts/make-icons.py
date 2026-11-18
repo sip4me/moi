@@ -59,4 +59,9 @@ icon(1024, 0.62).convert('RGB').save('assets/icon.png')
 for size, name in [(180, 'apple-touch-icon.png'), (192, 'icon-192.png'), (512, 'icon-512.png'), (48, 'favicon.png')]:
     icon(1024, 0.62).resize((size, size), Image.LANCZOS).convert('RGB').save(f'public/{name}')
 icon(1024, 0.5).resize((512, 512), Image.LANCZOS).convert('RGB').save('public/icon-maskable-512.png')
+# Versioned copies: the page links these, so home screens that cached an older icon pick up the new one.
+import os, shutil
+os.makedirs('public/icons/v2', exist_ok=True)
+for name in ['apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png']:
+    shutil.copy(f'public/{name}', f'public/icons/v2/{name}')
 print('icons written')
