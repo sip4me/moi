@@ -13,6 +13,7 @@ import { WashDayArt } from '../../components/WashDayArt';
 import { SegmentedTabs } from '../../components/SegmentedTabs';
 import { ResetCountdown } from '../../components/ResetCountdown';
 import { CoinDrop, TokenBag } from '../../components/TokenBag';
+import { RecStack } from '../../components/RecStack';
 import { LockIcon, Locked, PeekRow, openPaywall } from '../../components/Peek';
 import { SectionTitle, Tile } from '../../components/Tile';
 import { currentMoment } from '../../data/moments';
@@ -117,45 +118,12 @@ export default function Home() {
           {day.isToday ? 'Your routine' : dayName(day)}
         </SectionTitle>
         {routineItems.length ? (
-          <PeekRow itemWidth={CARD_W} gap={14}>
-            {routineItems.map(c => {
-              const isDone = day.isToday && doneToday.includes(c.id);
-              const bedtime = pineapple && day.isToday && c.id === 'night_braid';
-              return (
-                <Locked key={c.id} label={c.label} radius={22}>
-                  <Tile height={140} imageSize={100} title={c.label} sub={isDone ? 'Done today' : `${c.value}${c.unit ? ` ${c.unit}` : ''}`} done={isDone}
-                    image={bedtime ? undefined : icon3d(c.icon ?? c.id)}
-                    art={bedtime ? <TwoFrameArt spec={PINEAPPLE_ART} timing={PINEAPPLE_TIMING} width={86} /> : undefined}
-                    onPress={bedtime ? () => { if (!isDone) haptic('success'); toggleDone(c.id); } : () => router.push(c.id === 'iron_food' ? '/iron' : `/why/${c.id}`)} />
-                </Locked>
-              );
-            })}
-          </PeekRow>
-        ) : <Sub style={{ fontSize: 15, paddingVertical: 12 }}>Rest day. Nothing planned.</Sub>}
-        {/* Today's checklist: tick a step right here (each tick drops a coin in the bag). */}
-        {day.isToday && routineItems.length ? (
-          <Locked radius={22} label="Today's checklist" style={{ marginTop: 22 }}>
-            <View style={[surface, { borderRadius: 22, paddingHorizontal: 16, paddingVertical: 4 }]}>
-              {routineItems.map((c, i) => {
-                const isDone = doneToday.includes(c.id);
-                return (
-                  <Pressable key={c.id} onPress={() => { if (!isDone) haptic('success'); toggleDone(c.id); }} accessibilityRole="checkbox" accessibilityState={{ checked: isDone }} accessibilityLabel={c.label}
-                    style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderTopWidth: i ? 1 : 0, borderTopColor: '#F0F0F2', opacity: pressed ? 0.6 : 1 })}>
-                    <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: '#F7F7F7', alignItems: 'center', justifyContent: 'center' }}>
-                      <Image source={icon3d(c.icon ?? c.id)} style={{ width: 28, height: 28, opacity: isDone ? 0.45 : 1 }} resizeMode="contain" />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text numberOfLines={1} style={{ fontFamily: F.semibold, fontSize: 15, color: isDone ? C.gray : C.ink, textDecorationLine: isDone ? 'line-through' : 'none' }}>{c.label}</Text>
-                      <Text numberOfLines={1} style={{ fontFamily: F.regular, fontSize: 12, color: C.gray }}>{c.value}{c.unit ? ` ${c.unit}` : ''}</Text>
-                    </View>
-                    {isDone ? <Seal size={26} /> : <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 1.6, borderColor: '#CFCFD4' }} />}
-                  </Pressable>
-                );
-              })}
-            </View>
+          <Locked radius={30} label="Your daily recs">
+            <RecStack items={routineItems} done={day.isToday ? doneToday : (done[day.key] ?? [])} canCheck={day.isToday}
+              bedtimeId={pineapple && day.isToday ? 'night_braid' : undefined} dayLabel={dayName(day)}
+              onToggle={id => toggleDone(id)} />
           </Locked>
-        ) : null}
-        <Sub style={{ fontSize: 13, marginTop: 14 }}>{day.isToday ? 'Tap a card to see why. Tick a step when it’s done and a coin drops in your bag.' : 'A preview. It updates when you log a wash or change a card.'}</Sub>
+        ) : <Sub style={{ fontSize: 15, paddingVertical: 12 }}>Rest day. Nothing planned.</Sub>}
       </View>
 
       {/* Everything else, sorted into three tabs: food, care and style. */}
