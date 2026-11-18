@@ -11,6 +11,9 @@ import { MomentCard } from '../../components/MomentCard';
 import { WashDayArt } from '../../components/WashDayArt';
 import { Locked, PeekRow } from '../../components/Peek';
 import { currentMoment } from '../../data/moments';
+import { TwoFrameArt } from '../../components/TwoFrameArt';
+import { PINEAPPLE_ART, PINEAPPLE_TIMING } from '../../data/art';
+import { haptic } from '../../lib/haptics';
 import { profileFromAnswers } from '../../engine/profile';
 import { useHour } from '../../lib/useHour';
 import { scanStreakWeeks } from '../../data/progress';
@@ -38,6 +41,11 @@ export default function Home() {
   const daysLeft = daysUntilWash(plan, lastWash, todayKey);
   // A timely nudge: pineapple at night, pre-wash oil on wash day, oil before a workout ahead of wash day.
   const moment = plan ? currentMoment({ hour, plan, profile: profileFromAnswers(answers), washToday: days[0]?.isWash ?? false, washTomorrow: days[1]?.isWash ?? false, washedToday: since === 0, doneToday }) : null;
+  // Bedtime: the pineapple takes the animation spot at the top, and shows small in today's routine row.
+  const pineapple = moment?.kind === 'pineapple';
+  const routineItems = pineapple && day.isToday && !day.items.some(c => c.id === 'night_braid')
+    ? [{ id: 'night_braid', icon: 'night_braid', label: 'Pineapple', value: 'Before bed', unit: '' } as (typeof day.items)[number], ...day.items]
+    : day.items;
   const dayName = (d: Day) => (d.isToday ? 'Today' : d.date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }));
   return (
     <Screen scroll tab="index">
@@ -73,10 +81,10 @@ export default function Home() {
       </View>
 
       <View style={{ alignItems: 'center', marginTop: 20, gap: 6 }}>
-        <WashDayArt width={128} />
+        {pineapple ? <TwoFrameArt spec={PINEAPPLE_ART} timing={PINEAPPLE_TIMING} width={128} /> : <WashDayArt width={128} />}
         <Text style={{ fontFamily: F.bold, fontSize: 30, color: C.ink, letterSpacing: -0.6 }}>{paused ? 'Wash day paused' : daysLeft === 0 ? 'Wash day today' : `Wash hair in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`}</Text>
       </View>
-      {moment ? <MomentCard moment={moment} onDone={() => toggleDone(moment.doneId)} /> : null}
+      {moment && !pineapple ? <MomentCard moment={moment} onDone={() => toggleDone(moment.doneId)} /> : null}
       {lifeChange ? (
         <Pressable onPress={() => router.push('/(tabs)/profile')} style={{ marginTop: 18, backgroundColor: C.goldSoft, borderRadius: 18, padding: 14, borderWidth: 1, borderColor: '#F1DDAA' }}>
           <Text style={{ fontFamily: F.semibold, fontSize: 14, color: C.ink }}>{lifeChange.label}</Text>
@@ -85,7 +93,7 @@ export default function Home() {
       ) : null}
       <View style={{ marginTop: 22, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <View><Text style={{ fontFamily: F.semibold, fontSize: 19, color: C.ink }}>{day.isToday ? 'Your routine' : dayName(day)}</Text><Sub style={{ fontSize: 12 }}>{day.isWash ? 'Wash day · ' : ''}{plan.target}</Sub></View>
-        {day.isToday ? <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.gray2 }}>{day.items.filter(c => doneToday.includes(c.id)).length}/{day.items.length} today</Text> : null}
+        {day.isToday ? <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.gray2 }}>{routineItems.filter(c => doneToday.includes(c.id)).length}/{routineItems.length} today</Text> : null}
       </View>
       {day.wash.length ? (
         <Locked radius={24} label={plan.washRoutine.headline} style={{ marginTop: 10 }}>
@@ -108,12 +116,16 @@ export default function Home() {
       ) : null}
       {/* Routine cards in a peek row: the first sits on the page margin, the rest peek in from the right. */}
       <View style={{ marginTop: 12 }}>
-        {day.items.length ? (
+        {routineItems.length ? (
           <PeekRow itemWidth={CARD_W}>
-            {day.items.map(c => (
+            {routineItems.map(c => (
               <Locked key={c.id} label={c.label}>
                 <View style={{ borderRadius: 16, borderWidth: 1, borderColor: C.line, overflow: 'hidden' }}>
-                  <RecCard id={c.id} icon={c.icon} label={c.label} value={c.value} unit={c.unit} done={day.isToday && doneToday.includes(c.id)} onPress={() => router.push(c.id === 'iron_food' ? '/iron' : `/why/${c.id}`)} />
+                  {pineapple && day.isToday && c.id === 'night_braid'
+                    ? <RecCard id={c.id} label={c.label} value={c.value} unit={c.unit} done={doneToday.includes(c.id)}
+                        art={<TwoFrameArt spec={PINEAPPLE_ART} timing={PINEAPPLE_TIMING} width={64} />}
+                        onPress={() => { if (!doneToday.includes(c.id)) haptic('success'); toggleDone(c.id); }} />
+                    : <RecCard id={c.id} icon={c.icon} label={c.label} value={c.value} unit={c.unit} done={day.isToday && doneToday.includes(c.id)} onPress={() => router.push(c.id === 'iron_food' ? '/iron' : `/why/${c.id}`)} />}
                 </View>
               </Locked>
             ))}

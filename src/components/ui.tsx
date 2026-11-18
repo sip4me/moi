@@ -187,7 +187,8 @@ export function CardGrid({ children }: { children: React.ReactNode[] }) {
 }
 
 /** A routine card: label on top, the 3D object for the step, and today's amount underneath. */
-export function RecCard({ id, icon, label, value, unit, done, onPress }: { id: string; icon?: string; label: string; value: string | number; unit: string; done?: boolean; onPress?: () => void; width?: any }) {
+/** `art` replaces the 3D object, e.g. the small pineapple animation at bedtime. */
+export function RecCard({ id, icon, label, value, unit, done, onPress, art }: { id: string; icon?: string; label: string; value: string | number; unit: string; done?: boolean; onPress?: () => void; width?: any; art?: React.ReactNode }) {
   const narrow = useWindowDimensions().width < 360;
   const amount = `${value}${unit ? ` ${unit}` : ''}`;
   return (
@@ -195,7 +196,7 @@ export function RecCard({ id, icon, label, value, unit, done, onPress }: { id: s
       style={({ pressed }) => [s.rec, narrow && { padding: 10, gap: 4 }, { flex: 1, minWidth: 0, backgroundColor: pressed ? '#F2F2F4' : '#fff' }]}>
       <Text numberOfLines={1} style={{ fontFamily: F.semibold, fontSize: narrow ? 13 : 14, color: done ? C.gray : C.ink }}>{label}</Text>
       <View style={{ alignItems: 'center', justifyContent: 'center', height: narrow ? 64 : 72 }}>
-        <Image source={icon3d(icon ?? id)} resizeMode="contain" style={{ width: narrow ? 58 : 66, height: narrow ? 58 : 66, opacity: done ? 0.45 : 1 }} />
+        {art ? <View style={{ opacity: done ? 0.45 : 1 }}>{art}</View> : <Image source={icon3d(icon ?? id)} resizeMode="contain" style={{ width: narrow ? 58 : 66, height: narrow ? 58 : 66, opacity: done ? 0.45 : 1 }} />}
         {done ? <View style={{ position: 'absolute', right: 2, bottom: 0 }}><Seal size={26} /></View> : null}
       </View>
       <Text numberOfLines={1} style={{ fontFamily: F.medium, fontSize: 12, color: done ? C.gray : C.gray2, textAlign: 'center' }}>{done ? 'Done today' : amount}</Text>

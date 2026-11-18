@@ -1,5 +1,6 @@
 // "Moments": a short, timely nudge on Home with its own animation.
-// - Night (7 PM–5 AM): tie hair into a loose pineapple, for hair long enough to gather.
+// - Bedtime (9 PM–midnight): tie hair into a loose pineapple, for hair long enough to gather.
+//   It takes over the animation at the top of Home and shows small in the routine row.
 // - Wash day, before washing: pre-wash oil, when the routine starts with it.
 // - Active people with a wash day today or tomorrow: oil the ends before a workout.
 import type { Plan, Profile } from '../engine/planEngine';
@@ -9,14 +10,16 @@ export type Moment = { kind: MomentKind; eyebrow: string; title: string; body: s
 
 const SHORT = new Set(['buzzed', 'short']);
 
+/** 9 PM up to midnight. */
+export const isBedtime = (hour: number) => hour >= 21;
+
 export function currentMoment({ hour, plan, profile, washToday, washTomorrow, washedToday, doneToday }: {
   hour: number; plan: Plan; profile: Profile; washToday: boolean; washTomorrow: boolean; washedToday: boolean; doneToday: string[];
 }): Moment | null {
-  const night = hour >= 19 || hour < 5;
   const has = (id: string) => doneToday.includes(id);
 
-  if (night) {
-    if (SHORT.has(profile.length) || has('night_braid')) return null;
+  if (isBedtime(hour)) {
+    if (SHORT.has(profile.length)) return null;
     const curly = profile.texture === 'curly' || profile.texture === 'coily';
     return {
       kind: 'pineapple', eyebrow: 'TONIGHT', title: 'Pineapple before bed',
