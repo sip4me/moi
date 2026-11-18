@@ -178,7 +178,7 @@ export default function Home() {
   );
   const search = (
     <>
-      <PageTitle note="Find anything in Moi, or browse care and style.">Search</PageTitle>
+      <Text style={{ fontFamily: F.regular, fontSize: 15, lineHeight: 21, color: C.gray2, marginBottom: 20 }}>Browse care and style</Text>
       <View style={{ marginHorizontal: INDENT }}><SearchBar /></View>
       <View style={{ marginTop: 20 }}><CategoryPills items={TABS} value={tab} onChange={setTab} /></View>
       <View style={{ marginTop: SPACE.section, gap: SPACE.section }}>
