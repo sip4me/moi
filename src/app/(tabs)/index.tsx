@@ -96,9 +96,6 @@ export default function Home() {
   // The hero's button opens the wash routine for the selected wash day, or the next one this week.
   const washDay = day.wash.length ? day : days.find(d => d.wash.length);
   const weekday = (d: Day) => d.date.toLocaleDateString('en-US', { weekday: 'long' });
-  const washLabel = !washDay ? '' : washDay.isToday
-    ? `Start routine · ${washDay.wash.filter(w => doneToday.includes(`wash:${w.id}`)).length}/${washDay.wash.length}`
-    : 'See routine';
   const nextWash = days.find(d => d.isWash && !d.isToday);
   const heroSub = pineapple ? 'Tie a loose pineapple before bed so your hair keeps its shape overnight.'
     : paused ? 'Your routine is adjusted while things change.'
@@ -123,19 +120,12 @@ export default function Home() {
       {/* The calendar: scrolls sideways through past and coming days, or opens the full month. */}
       <HomeCalendar days={cal} done={done} selected={selected} onSelect={setSelected} />
 
-      {/* Hero, right under the calendar: the wash-day animation, the countdown, one line of fine print
-          and a button into the wash routine (shown as notifications). No card, so it stays light. */}
+      {/* Hero, right under the calendar: the wash-day animation, the countdown and one line of fine print.
+          No card and no button, so it stays light; the wash routine opens from Your goal on wash day. */}
       <View style={{ marginTop: 18, alignItems: 'center' }}>
         {pineapple ? <TwoFrameArt spec={PINEAPPLE_ART} timing={PINEAPPLE_TIMING} width={104} /> : <WashDayArt width={104} />}
         <Text style={{ fontFamily: F.bold, fontSize: 24, lineHeight: 28, color: C.ink, letterSpacing: -0.5, textAlign: 'center', marginTop: 10 }}>{paused ? 'Wash day paused' : daysLeft === 0 ? 'Wash day today' : `Wash hair in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`}</Text>
         <Text style={{ fontFamily: F.regular, fontSize: 13, lineHeight: 18, color: C.gray, textAlign: 'center', marginTop: 4, paddingHorizontal: 24 }}>{heroSub}</Text>
-        {washDay ? (
-          <Pressable onPress={subscribed ? () => router.push({ pathname: '/wash-day', params: { day: washDay.key } }) : openPaywall} accessibilityRole="button"
-            style={({ pressed }) => ({ height: 42, paddingHorizontal: 22, borderRadius: 999, marginTop: 14, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#2E2E2E' : C.ink, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
-            {subscribed ? null : <LockIcon size={13} color="#fff" />}
-            <Text style={{ fontFamily: F.semibold, fontSize: 15, color: '#fff' }}>{washLabel}</Text>
-          </Pressable>
-        ) : null}
       </View>
       {moment && !pineapple ? <MomentCard moment={moment} onDone={() => toggleDone(moment.doneId)} /> : null}
       {lifeChange ? (
@@ -156,6 +146,14 @@ export default function Home() {
             <Text numberOfLines={1} style={{ fontFamily: F.regular, fontSize: 14, color: C.gray2, marginTop: 2 }}>{day.isWash ? 'Wash day · ' : ''}{plan.target}</Text>
           </View>
         </View>
+        {/* Wash day only: the one primary action, opening the wash routine (as notifications). */}
+        {day.wash.length ? (
+          <Pressable onPress={subscribed ? () => router.push({ pathname: '/wash-day', params: { day: day.key } }) : openPaywall} accessibilityRole="button"
+            style={({ pressed }) => ({ marginHorizontal: INDENT, marginBottom: 16, height: 50, borderRadius: 999, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#2E2E2E' : C.ink, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
+            {subscribed ? null : <LockIcon size={13} color="#fff" />}
+            <Text style={{ fontFamily: F.semibold, fontSize: 16, color: '#fff' }}>{day.isToday ? `Start wash routine · ${day.wash.filter(w => doneToday.includes(`wash:${w.id}`)).length}/${day.wash.length}` : `See ${weekday(day)}’s wash routine`}</Text>
+          </Pressable>
+        ) : null}
         {routineItems.length ? (
           <Locked radius={30} label="Your daily recs" style={{ marginHorizontal: INDENT }}>
             <RecStack items={routineItems.map(c => toRec(c, pineapple && day.isToday && c.id === 'night_braid'))}
