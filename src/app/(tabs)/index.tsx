@@ -9,18 +9,23 @@ import { IronMaxxing } from '../../components/IronMaxxing';
 import { Trending } from '../../components/Trending';
 import { MomentCard } from '../../components/MomentCard';
 import { WashDayArt } from '../../components/WashDayArt';
+import { Locked, PeekRow } from '../../components/Peek';
 import { currentMoment } from '../../data/moments';
 import { profileFromAnswers } from '../../engine/profile';
 import { useHour } from '../../lib/useHour';
 import { scanStreakWeeks } from '../../data/progress';
-import { CardGrid, DoctorNote, Glyph, Logo, MoreRow, RecCard, Screen, SectionCard, Sub } from '../../components/ui';
+import { DoctorNote, Glyph, Logo, MoreRow, RecCard, Screen, Sub } from '../../components/ui';
 import { useStore } from '../../state/store';
 import { C, F, evidenceStyle } from '../../theme';
+
+/** Peek-row widths: routine cards show the next two peeking in; wider rows show the next one. */
+const CARD_W = 150;
+const ROW_W = 270;
 
 const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function Home() {
-  const { plan, done, todayKey, lastWash, logWash, lifeChange, scans, answers, toggleDone } = useStore();
+  const { plan, done, todayKey, lastWash, lifeChange, scans, answers, toggleDone } = useStore();
   const hour = useHour();
   const [selected, setSelected] = useState(0);
   if (!plan) return null;
@@ -70,9 +75,6 @@ export default function Home() {
       <View style={{ alignItems: 'center', marginTop: 20, gap: 6 }}>
         <WashDayArt width={128} />
         <Text style={{ fontFamily: F.bold, fontSize: 30, color: C.ink, letterSpacing: -0.6 }}>{paused ? 'Wash day paused' : daysLeft === 0 ? 'Wash day today' : `Wash hair in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`}</Text>
-        <Pressable onPress={logWash} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: pressed ? '#2E2E2E' : C.ink, borderRadius: 999, paddingHorizontal: 16, paddingVertical: 9, marginTop: 6 })}>
-          <Glyph id="wash_interval" color="#fff" size={16} /><Text style={{ fontFamily: F.semibold, fontSize: 14, color: '#fff' }}>{since === 0 ? 'Washed today ✓' : 'Log wash'}</Text>
-        </Pressable>
       </View>
       {moment ? <MomentCard moment={moment} onDone={() => toggleDone(moment.doneId)} /> : null}
       {lifeChange ? (
@@ -86,8 +88,9 @@ export default function Home() {
         {day.isToday ? <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.gray2 }}>{day.items.filter(c => doneToday.includes(c.id)).length}/{day.items.length} today</Text> : null}
       </View>
       {day.wash.length ? (
+        <Locked radius={24} label={plan.washRoutine.headline} style={{ marginTop: 10 }}>
         <Pressable onPress={() => router.push({ pathname: '/wash-day', params: { day: day.key } })}
-          style={({ pressed }) => ({ marginTop: 10, borderRadius: 24, padding: 16, backgroundColor: pressed ? '#E4ECFB' : '#EEF3FD' })}>
+          style={({ pressed }) => ({ borderRadius: 24, padding: 16, backgroundColor: pressed ? '#E4ECFB' : '#EEF3FD' })}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink, flex: 1 }}>{plan.washRoutine.headline}</Text>
             <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.gray2 }}>{day.isToday ? `${day.wash.filter(w => doneToday.includes(`wash:${w.id}`)).length}/${day.wash.length}` : `${day.wash.length} steps`} ›</Text>
@@ -101,18 +104,40 @@ export default function Home() {
             ))}
           </View>
         </Pressable>
+        </Locked>
       ) : null}
-      <SectionCard style={{ marginTop: 10 }}>
+      {/* Routine cards in a peek row: the first sits on the page margin, the rest peek in from the right. */}
+      <View style={{ marginTop: 12 }}>
         {day.items.length ? (
-          <CardGrid>{day.items.map(c => <RecCard key={c.id} id={c.id} icon={c.icon} label={c.label} value={c.value} unit={c.unit} done={day.isToday && doneToday.includes(c.id)} onPress={() => router.push(c.id === 'iron_food' ? '/iron' : `/why/${c.id}`)} />)}</CardGrid>
+          <PeekRow itemWidth={CARD_W}>
+            {day.items.map(c => (
+              <Locked key={c.id} label={c.label}>
+                <View style={{ borderRadius: 16, borderWidth: 1, borderColor: C.line, overflow: 'hidden' }}>
+                  <RecCard id={c.id} icon={c.icon} label={c.label} value={c.value} unit={c.unit} done={day.isToday && doneToday.includes(c.id)} onPress={() => router.push(c.id === 'iron_food' ? '/iron' : `/why/${c.id}`)} />
+                </View>
+              </Locked>
+            ))}
+          </PeekRow>
         ) : <Sub style={{ fontSize: 14, textAlign: 'center', paddingVertical: 12 }}>Rest day. Nothing planned.</Sub>}
-        <Sub style={{ fontSize: 12, textAlign: 'center' }}>{day.isToday ? 'Tap a card to see why and mark it done.' : 'A preview. It updates when you log a wash or change a card.'}</Sub>
-      </SectionCard>
-      {plan.learn.length ? <View style={{ gap: 8, marginTop: 14 }}>{plan.learn.map(l => <DoctorNote key={l.id} id={l.id} label={l.label} why={l.why} onPress={() => router.push(`/why/${l.id}`)} />)}</View> : null}
+        <Sub style={{ fontSize: 12, textAlign: 'center', marginTop: 10 }}>{day.isToday ? 'Tap a card to see why and mark it done.' : 'A preview. It updates when you log a wash or change a card.'}</Sub>
+      </View>
+      {plan.learn.length ? (
+        <View style={{ marginTop: 14 }}>
+          <PeekRow itemWidth={ROW_W}>{plan.learn.map(l => <Locked key={l.id} label={l.label}><DoctorNote id={l.id} label={l.label} why={l.why} onPress={() => router.push(`/why/${l.id}`)} /></Locked>)}</PeekRow>
+        </View>
+      ) : null}
       {plan.extras.length ? (
         <View style={{ gap: 8, marginTop: 16 }}>
           <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>More you can try</Text>
-          {plan.extras.map(c => <MoreRow key={c.id} id={c.id} label={c.label} meta={`${c.value}${c.unit ? ' ' + c.unit : ''} · ${evidenceStyle[c.evidence ?? 'early'].label.toLowerCase()}`} onPress={() => router.push(`/why/${c.id}`)} />)}
+          <PeekRow itemWidth={ROW_W}>
+            {plan.extras.map(c => (
+              <Locked key={c.id} label={c.label} radius={14}>
+                <View style={{ borderRadius: 14, borderWidth: 1, borderColor: C.line, overflow: 'hidden' }}>
+                  <MoreRow id={c.id} label={c.label} meta={`${c.value}${c.unit ? ' ' + c.unit : ''} · ${evidenceStyle[c.evidence ?? 'early'].label.toLowerCase()}`} onPress={() => router.push(`/why/${c.id}`)} />
+                </View>
+              </Locked>
+            ))}
+          </PeekRow>
         </View>
       ) : null}
       <GlamourEntry />

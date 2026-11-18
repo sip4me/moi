@@ -1,18 +1,15 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
-import Svg, { Path, Rect } from 'react-native-svg';
+import { Image, Pressable, Text, View } from 'react-native';
 import { type FeedCard, type FeedSection, type RecordCard, feed, records } from '../data/feed';
 import { C, F } from '../theme';
 import { Chip } from './ui';
+import { LockIcon as Lock, Locked, PeekRow } from './Peek';
 
 const GOLD = '#C9A86A';
 const CARD_W = 128;
 const CARD_H = 164;
 
-const Lock = () => (
-  <Svg width={13} height={13} viewBox="0 0 24 24"><Rect x={5} y={10.5} width={14} height={10} rx={2.5} stroke={C.ink} strokeWidth={1.8} fill="none" /><Path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke={C.ink} strokeWidth={1.8} fill="none" /></Svg>
-);
 
 function Card({ card }: { card: FeedCard }) {
   return (
@@ -53,9 +50,7 @@ function Header({ title, note }: { title: string; note?: string }) {
   );
 }
 
-const Row = ({ children }: { children: React.ReactNode }) => (
-  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -24 }} contentContainerStyle={{ paddingHorizontal: 24, gap: 10 }}>{children}</ScrollView>
-);
+const Row = ({ children }: { children: React.ReactNode }) => <PeekRow itemWidth={CARD_W} gap={10}>{children}</PeekRow>;
 
 function Section({ s }: { s: FeedSection }) {
   const [filter, setFilter] = useState(s.filters?.[0]);
@@ -68,7 +63,7 @@ function Section({ s }: { s: FeedSection }) {
           {s.filters.map(f => <Chip key={f} label={f} on={f === filter} onPress={() => setFilter(f)} />)}
         </View>
       ) : null}
-      <Row>{cards.map(c => <Card key={c.id} card={c} />)}</Row>
+      <Row>{cards.map(c => c.locked ? <Card key={c.id} card={c} /> : <Locked key={c.id} radius={18} label={c.title}><Card card={c} /></Locked>)}</Row>
     </View>
   );
 }
@@ -79,7 +74,7 @@ export function HomeFeed({ streakWeeks }: { streakWeeks: number }) {
     <View>
       {feed().map(s => <Section key={s.id} s={s} />)}
       <Header title="Hair records" />
-      <Row>{records(streakWeeks).map(r => <Record key={r.id} r={r} />)}</Row>
+      <Row>{records(streakWeeks).map(r => <Locked key={r.id} radius={18} label={r.label}><Record r={r} /></Locked>)}</Row>
     </View>
   );
 }

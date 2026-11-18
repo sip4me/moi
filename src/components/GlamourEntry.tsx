@@ -3,6 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { todaysGlamour } from '../data/glamour';
 import { useStore } from '../state/store';
+import { Locked } from './Peek';
 import { F } from '../theme';
 
 /** Home → a peek at today's first glamour card; opens the full deck. */
@@ -10,8 +11,9 @@ export function GlamourEntry() {
   const { todayKey } = useStore();
   const first = todaysGlamour(todayKey)[0];
   return (
+    <Locked radius={26} label="Remind yourself of your glamour" style={{ marginTop: 22 }}>
     <Pressable onPress={() => router.push('/glamour')} accessibilityRole="button" accessibilityLabel="Remind yourself of your glamour"
-      style={({ pressed }) => ({ marginTop: 22, borderRadius: 26, overflow: 'hidden', transform: [{ scale: pressed ? 0.985 : 1 }] })}>
+      style={({ pressed }) => ({ borderRadius: 26, overflow: 'hidden', transform: [{ scale: pressed ? 0.985 : 1 }] })}>
       <Svg style={{ position: 'absolute', width: '100%', height: '100%' }}>
         <Defs><LinearGradient id="glamEntry" x1="0" y1="0" x2="1" y2="1"><Stop offset="0" stopColor="#F8E6DF" /><Stop offset="1" stopColor="#E3B5C6" /></LinearGradient></Defs>
         <Rect width="100%" height="100%" fill="url(#glamEntry)" />
@@ -25,5 +27,6 @@ export function GlamourEntry() {
         </View>
       </View>
     </Pressable>
+    </Locked>
   );
 }

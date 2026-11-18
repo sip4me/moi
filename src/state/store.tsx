@@ -33,11 +33,13 @@ type State = {
   saved: string[];
   /** Labels checked but not added to the shelf, newest first. */
   checked: { label: string; at: string }[];
+  /** Paid plan active. Payments aren't connected yet, so the paywall's Continue sets this for now. */
+  subscribed: boolean;
 };
 
 /** Today's date on the person's own calendar (not UTC), so evenings don't roll over to tomorrow early. */
 const today = () => localKey(new Date());
-const initial: State = { answers: {}, onboarded: false, done: {}, lastWash: null, lifeChange: null, reminders: {}, name: 'Your name', shelf: [], scans: [], overrides: {}, saved: [], checked: [] };
+const initial: State = { answers: {}, onboarded: false, done: {}, lastWash: null, lifeChange: null, reminders: {}, name: 'Your name', shelf: [], scans: [], overrides: {}, saved: [], checked: [], subscribed: false };
 const KEY = 'moi-state-v1';
 
 type Ctx = State & {
@@ -60,6 +62,7 @@ type Ctx = State & {
   logWash: () => void;
   setLifeChange: (c: LifeChange | null) => void;
   setReminder: (id: string, on: boolean) => void;
+  setSubscribed: (on: boolean) => void;
   reset: () => void;
 };
 const StoreCtx = createContext<Ctx | null>(null);
@@ -108,6 +111,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     addChecked: label => setS(p => p.checked[0]?.label === label ? p : { ...p, checked: [{ label, at: new Date().toISOString() }, ...p.checked.filter(c => c.label !== label)].slice(0, 30) }),
     addScan: scan => setS(p => ({ ...p, scans: [scan, ...p.scans].slice(0, 52) })),
     setReminder: (id, on) => setS(p => ({ ...p, reminders: { ...p.reminders, [id]: on } })),
+    setSubscribed: on => setS(p => ({ ...p, subscribed: on })),
     reset: () => setS({ ...initial }),
   };
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;

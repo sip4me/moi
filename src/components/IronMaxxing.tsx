@@ -4,6 +4,7 @@ import { icon3d } from '../data/icons3d';
 import { type IronRecipe, SLOT_LABEL, ironDay, ironTarget } from '../data/ironRecipes';
 import { useStore } from '../state/store';
 import { C, F } from '../theme';
+import { Locked, PeekRow, openPaywall } from './Peek';
 
 /** Progress bar toward the day's iron target, with the meals' total. */
 export function IronMeter({ mg, target }: { mg: number; target: number }) {
@@ -34,7 +35,7 @@ export function MealCard({ meal, onPress, hideSlot }: { meal: IronRecipe; onPres
 
 /** Home → Iron-maxxing: today's four iron-rich meals and snacks, and how close they get to the daily need. */
 export function IronMaxxing() {
-  const { todayKey, answers } = useStore();
+  const { todayKey, answers, subscribed } = useStore();
   const { meals, mg } = ironDay(todayKey);
   const target = ironTarget(answers);
   return (
@@ -44,15 +45,15 @@ export function IronMaxxing() {
           <Image source={icon3d('food_spinach')} style={{ width: 28, height: 28 }} resizeMode="contain" />
           <Text style={{ fontFamily: F.bold, fontSize: 19, letterSpacing: -0.3, color: C.ink }}>Iron-maxxing</Text>
         </View>
-        <Pressable onPress={() => router.push('/iron')} hitSlop={10}>
+        <Pressable onPress={subscribed ? () => router.push('/iron') : openPaywall} hitSlop={10}>
           {({ pressed }) => <Text style={{ fontFamily: F.semibold, fontSize: 14, color: pressed ? C.gray : C.ink, textDecorationLine: 'underline' }}>Full day</Text>}
         </Pressable>
       </View>
       <Text style={{ fontFamily: F.regular, fontSize: 13, lineHeight: 18, color: C.gray2 }}>Low iron is one of the most common, fixable causes of shedding. Here’s how to eat for it today.</Text>
       <IronMeter mg={mg} target={target} />
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-        {meals.map(m => <View key={m.id} style={{ flexBasis: '47%', flexGrow: 1 }}><MealCard meal={m} /></View>)}
-      </View>
+      <PeekRow itemWidth={150} gap={10} inset={16}>
+        {meals.map(m => <Locked key={m.id} radius={20} label={m.name}><MealCard meal={m} /></Locked>)}
+      </PeekRow>
     </View>
   );
 }

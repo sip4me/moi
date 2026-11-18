@@ -1,17 +1,23 @@
 import { LegalLine } from '../../components/Legal';
 import { goNext } from '../../data/flow';
-import { router } from 'expo-router';
-import { Text, View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Pressable, Text, View } from 'react-native';
 import { Button, Screen, Sub, Title, BrandLine } from '../../components/ui';
 import { useStore } from '../../state/store';
 import { C, F } from '../../theme';
 
 export default function Paywall() {
-  const { plan, answers } = useStore();
+  const { plan, answers, setSubscribed } = useStore();
+  // Opened from a locked card on Home: go back there afterwards instead of on through onboarding.
+  const fromHome = useLocalSearchParams<{ from?: string }>().from === 'home';
+  const leave = () => (fromHome ? (router.canGoBack() ? router.back() : router.replace('/(tabs)')) : goNext('paywall', answers));
   return (
     <Screen footer={<>
       <Text style={{ textAlign: 'center', fontFamily: F.semibold, fontSize: 14, color: C.ink, marginBottom: 10 }}>✓  No payment due now</Text>
-      <Button label="Continue" onPress={() => goNext('paywall', answers)} />
+      <Button label="Continue" onPress={() => { setSubscribed(true); leave(); }} />
+      <Pressable onPress={leave} hitSlop={10} style={{ alignSelf: 'center', paddingVertical: 6 }}>
+        {({ pressed }) => <Text style={{ fontFamily: F.medium, fontSize: 14, color: pressed ? C.gray : C.gray2 }}>Not now</Text>}
+      </Pressable>
       <Text style={{ textAlign: 'center', fontFamily: F.regular, fontSize: 12, color: C.gray, marginTop: 8 }}>Test build — payments aren’t connected yet.</Text>
       <LegalLine lead="Subscriptions renew automatically until you cancel. See our" style={{ marginTop: 6 }} />
     </>}>
