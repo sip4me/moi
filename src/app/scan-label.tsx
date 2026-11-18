@@ -6,7 +6,8 @@ import Svg, { Path, Rect } from 'react-native-svg';
 import { Button, Screen, Sub, TopBar } from '../components/ui';
 import { SegmentedTabs } from '../components/SegmentedTabs';
 import { FOOD_DATA_CREDIT, type ScannedFood, foodByBarcode, ironFromLabel, ironVerdict } from '../lib/foodScan';
-import { ironTarget } from '../data/ironRecipes';
+import { ironGoal } from '../data/ironRecipes';
+import { takeHandedPhoto } from '../lib/photoHandoff';
 import { useStore } from '../state/store';
 import { haptic } from '../lib/haptics';
 import { canScanLabels, extractIngredients, productByBarcode, readBarcode, readText } from '../lib/labelScan';
@@ -43,8 +44,10 @@ export default function ScanLabel() {
   const [mode, setMode] = useState(params.mode === 'food' ? 1 : 0);
   const food = mode === 1;
   const [s, setS] = useState<State>({ step: 'start' });
-  const { answers, done, todayKey, toggleDone } = useStore();
-  const need = ironTarget(answers);
+  const { answers, done, todayKey, toggleDone, ironLog, logIron } = useStore();
+  const need = ironGoal(answers);
+  const eaten = (ironLog[todayKey] ?? []).reduce((n, x) => n + x.mg, 0);
+  const [logged, setLogged] = useState(false);
   const ironDone = (done[todayKey] ?? []).includes('iron_food');
   // Opened from a rec that asks for a product scan: a successful scan ticks that rec (and drops a coin).
   const proof = params.proof;
@@ -72,11 +75,22 @@ export default function ScanLabel() {
     }
   }
 
+  // Opened from the search bar's scan / photo buttons: the photo is already taken, so read it now.
+  useEffect(() => {
+    const handed = takeHandedPhoto();
+    if (handed) run(handed);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function pick(fromLibrary: boolean) {
     const opts: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], quality: 0.9 };
     const res = fromLibrary ? await ImagePicker.launchImageLibraryAsync(opts) : await ImagePicker.launchCameraAsync(opts).catch(() => ImagePicker.launchImageLibraryAsync(opts));
     if (res.canceled || !res.assets?.[0]) return;
-    const photo = res.assets[0].uri;
+    run(res.assets[0].uri);
+  }
+
+  async function run(photo: string) {
+    setLogged(false);
     if (food) {
       if (!canScanLabels) return setS({ step: 'error', photo, message: 'Food scanning works in the web app for now. Check the “Iron” line on the Nutrition Facts panel: 20% or more is iron-rich.' });
       return scanFood(photo);
@@ -111,7 +125,7 @@ export default function ScanLabel() {
       s.step === 'start' ? <View style={{ gap: 10 }}><Button label="Take a photo" onPress={() => pick(false)} /><Button label="Upload a photo" variant="secondary" onPress={() => pick(true)} /></View>
         : s.step === 'working' ? <Button label={s.label} loading disabled />
         : s.step === 'product' ? <View style={{ gap: 10 }}><Button label="Check fit for my hair" onPress={() => check(s.product.ingredients, [s.product.brand, s.product.name].filter(Boolean).join(' '))} /><Button label="Scan another" variant="ghost" onPress={() => setS({ step: 'start' })} /></View>
-        : s.step === 'food' ? <View style={{ gap: 10 }}><Button label={ironDone ? 'Counted toward today ✓' : 'Count toward today’s iron'} variant={ironDone ? 'secondary' : 'primary'} onPress={() => { if (!ironDone) { haptic('success'); toggleDone('iron_food'); } }} /><Button label="Scan another food" variant="ghost" onPress={() => setS({ step: 'start' })} /></View>
+        : s.step === 'food' ? <View style={{ gap: 10 }}><Button label={logged ? 'Added to today ✓' : `Add ${s.food.ironMg} mg to today`} variant={logged ? 'secondary' : 'primary'} onPress={() => { if (logged) return; haptic('success'); logIron(s.food.name, s.food.ironMg); setLogged(true); if (!ironDone) toggleDone('iron_food'); }} /><Button label="Scan another food" variant="ghost" onPress={() => { setLogged(false); setS({ step: 'start' }); }} /></View>
         : s.step === 'text' ? <View style={{ gap: 10 }}><Button label="Check fit for my hair" disabled={s.text.trim().length < 10} onPress={() => check(s.text)} /><Button label="Retake photo" variant="ghost" onPress={() => setS({ step: 'start' })} /></View>
         : <View style={{ gap: 10 }}><Button label="Try again" onPress={() => setS({ step: 'start' })} />{food ? <Button label="See iron-rich meals" variant="ghost" onPress={() => router.replace('/iron')} /> : <Button label="Paste the label instead" variant="ghost" onPress={() => router.replace({ pathname: '/add-product', params: { mode: 'label' } })} />}</View>
     }>
@@ -173,8 +187,27 @@ export default function ScanLabel() {
                 <Text style={{ fontFamily: F.bold, fontSize: 34, letterSpacing: -0.8, color: C.ink }}>{s.food.ironMg} mg<Text style={{ fontFamily: F.regular, fontSize: 15, letterSpacing: 0, color: C.gray }}> iron {s.food.basis === 'serving' ? 'per serving' : 'per 100 g'}</Text></Text>
                 {s.food.basis === 'serving' && s.food.serving ? <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.gray }}>Serving: {s.food.serving}</Text> : null}
               </View>
-              <View style={{ height: 8, borderRadius: 4, backgroundColor: '#F0F0F2', overflow: 'hidden' }}><View style={{ width: `${Math.min(100, share)}%`, height: 8, borderRadius: 4, backgroundColor: '#C2493D' }} /></View>
-              <Text style={{ fontFamily: F.regular, fontSize: 14, lineHeight: 20, color: C.gray2 }}>About {share}% of your daily {need} mg.</Text>
+              {/* Today's iron toward the daily goal: what's logged so far, plus this food (lighter) until it's added. */}
+              {(() => {
+                const base = logged ? eaten - s.food.ironMg : eaten;
+                const after = base + s.food.ironMg;
+                const left = Math.max(0, need - after);
+                return (
+                  <View style={{ gap: 6, marginTop: 4 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                      <Text style={{ fontFamily: F.semibold, fontSize: 13, color: C.ink }}>Today’s iron</Text>
+                      <Text style={{ fontFamily: F.semibold, fontSize: 13, color: C.ink }}>{+after.toFixed(1)} / {need} mg</Text>
+                    </View>
+                    <View style={{ height: 12, borderRadius: 6, backgroundColor: '#F3E6E3', overflow: 'hidden', flexDirection: 'row' }}>
+                      <View style={{ width: `${Math.min(100, (base / need) * 100)}%`, height: 12, backgroundColor: '#C2493D' }} />
+                      <View style={{ width: `${Math.max(0, Math.min(100 - (base / need) * 100, (s.food.ironMg / need) * 100))}%`, height: 12, backgroundColor: logged ? '#C2493D' : '#E8988D' }} />
+                    </View>
+                    <Text style={{ fontFamily: F.regular, fontSize: 14, lineHeight: 20, color: C.gray2 }}>
+                      This covers about {share}% of your {need} mg goal. {left > 0 ? `${logged ? '' : 'With it, '}${+left.toFixed(1)} mg more to go today.` : 'That meets your goal for today!'}
+                    </Text>
+                  </View>
+                );
+              })()}
             </View>
             <Text style={{ fontFamily: F.regular, fontSize: 14, lineHeight: 20, color: C.gray2 }}>Tip: eat it with something rich in vitamin C, like citrus, berries or peppers, so your body absorbs more of the iron. Have tea or coffee an hour apart.</Text>
             {s.fromBarcode ? <Text style={{ fontFamily: F.regular, fontSize: 11, color: C.gray }}>{FOOD_DATA_CREDIT}</Text> : <Text style={{ fontFamily: F.regular, fontSize: 12, color: C.gray }}>Read from the label. Double-check the number against the package.</Text>}

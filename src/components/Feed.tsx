@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Image, ScrollView, Text, View } from 'react-native';
 import { type FeedCard, type FeedSection, type RecordCard, feed, records } from '../data/feed';
-import { C, F } from '../theme';
+import { C, CONTENT_INDENT, F, SPACE } from '../theme';
 import { Chip } from './ui';
 import { LockIcon as Lock, Locked, PeekRow, usePageInset } from './Peek';
 import { SectionTitle, Tile } from './Tile';
@@ -45,7 +45,7 @@ function Section({ s }: { s: FeedSection }) {
     <View>
       <Header title={s.title} note={s.note} />
       {s.filters ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -inset, marginBottom: 16, flexGrow: 0 }} contentContainerStyle={{ paddingHorizontal: inset, gap: 8 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -inset, marginBottom: 16, flexGrow: 0 }} contentContainerStyle={{ paddingHorizontal: inset + CONTENT_INDENT, gap: 8 }}>
           {s.filters.map(f => <Chip key={f} label={f} on={f === filter} onPress={() => setFilter(f)} />)}
         </ScrollView>
       ) : null}
@@ -57,7 +57,7 @@ function Section({ s }: { s: FeedSection }) {
 /** Feed sections for a Home tab: `only` picks sections by id; `withRecords` adds Hair records at the end. */
 export function HomeFeed({ streakWeeks, only, withRecords }: { streakWeeks: number; only?: string[]; withRecords?: boolean }) {
   return (
-    <View style={{ gap: 40 }}>
+    <View style={{ gap: SPACE.section }}>
       {feed().filter(s => !only || only.includes(s.id)).map(s => <Section key={s.id} s={s} />)}
       {withRecords ? (
         <View>

@@ -34,6 +34,8 @@ type State = {
   saved: string[];
   /** Labels checked but not added to the shelf, newest first. */
   checked: { label: string; at: string }[];
+  /** Iron from scanned foods, per day: what you ate and its milligrams. */
+  ironLog: Record<string, { name: string; mg: number; at: string }[]>;
   /** Paid plan active. Payments aren't connected yet, so the paywall's Continue sets this for now. */
   subscribed: boolean;
 };
@@ -43,7 +45,7 @@ const today = () => localKey(new Date());
 /** Locks only switch on once Stripe is live (set EXPO_PUBLIC_PAYMENTS_LIVE=1 in Vercel). Until then everything is open for testing. */
 export const PAYMENTS_LIVE = process.env.EXPO_PUBLIC_PAYMENTS_LIVE === '1';
 
-const initial: State = { answers: {}, onboarded: false, done: {}, lastWash: null, lifeChange: null, reminders: {}, name: 'Your name', shelf: [], scans: [], overrides: {}, saved: [], checked: [], subscribed: false };
+const initial: State = { answers: {}, onboarded: false, done: {}, lastWash: null, lifeChange: null, reminders: {}, name: 'Your name', shelf: [], scans: [], overrides: {}, saved: [], checked: [], ironLog: {}, subscribed: false };
 const KEY = 'moi-state-v1';
 
 type Ctx = State & {
@@ -57,6 +59,7 @@ type Ctx = State & {
   addScan: (scan: ScanRecord) => void;
   setOverride: (leverId: string, value: number | null) => void;
   toggleSaved: (cardId: string) => void;
+  logIron: (name: string, mg: number) => void;
   addChecked: (label: string) => void;
   plan: Plan | null;
   todayKey: string;
@@ -113,6 +116,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     removeFromShelf: id => setS(p => ({ ...p, shelf: p.shelf.filter(x => x.id !== id) })),
     setOverride: (id, v) => setS(p => { const o = { ...p.overrides }; if (v === null) delete o[id]; else o[id] = v; return { ...p, overrides: o }; }),
     toggleSaved: id => setS(p => ({ ...p, saved: p.saved.includes(id) ? p.saved.filter(x => x !== id) : [id, ...p.saved] })),
+    logIron: (name, mg) => setS(p => ({ ...p, ironLog: { ...p.ironLog, [todayKey]: [...(p.ironLog[todayKey] ?? []), { name, mg, at: new Date().toISOString() }] } })),
     addChecked: label => setS(p => p.checked[0]?.label === label ? p : { ...p, checked: [{ label, at: new Date().toISOString() }, ...p.checked.filter(c => c.label !== label)].slice(0, 30) }),
     addScan: scan => setS(p => ({ ...p, scans: [scan, ...p.scans].slice(0, 52) })),
     setReminder: (id, on) => setS(p => ({ ...p, reminders: { ...p.reminders, [id]: on } })),

@@ -56,6 +56,7 @@ export default function RootLayout() {
           <Stack.Screen name="why/[id]" options={{ presentation: 'transparentModal', animation: 'fade' }} />
           <Stack.Screen name="feed/[id]" options={{ presentation: 'transparentModal', animation: 'fade' }} />
           <Stack.Screen name="change" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="search" options={{ animation: 'fade' }} />
           <Stack.Screen name="glamour" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
           <Stack.Screen name="reminders" options={{ presentation: 'modal' }} />
         </Stack>

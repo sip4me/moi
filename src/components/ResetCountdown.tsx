@@ -17,11 +17,11 @@ export function ResetCountdown() {
   const passed = (now.getTime() - start.getTime()) / (midnight.getTime() - start.getTime());
   const h = Math.floor(left / 3600), m = Math.floor((left % 3600) / 60), s = left % 60;
   return (
-    <View style={{ alignItems: 'center', marginTop: 56, marginBottom: 12 }} accessibilityRole="timer" accessibilityLabel={`Your routine resets in ${h} hours and ${m} minutes`}>
-      <Text style={{ fontFamily: F.semibold, fontSize: 12, letterSpacing: 2.4, color: C.gray }}>YOUR ROUTINE RESETS IN</Text>
-      <Text style={{ fontFamily: F.display, fontSize: 64, lineHeight: 72, letterSpacing: 3, color: C.ink, marginTop: 6, fontVariant: ['tabular-nums'] }}>{pad(h)}:{pad(m)}:{pad(s)}</Text>
-      <View style={{ width: '62%', height: 5, borderRadius: 3, backgroundColor: '#EFEFF1', marginTop: 14, overflow: 'hidden' }}>
-        <View style={{ width: `${Math.max(2, Math.round(passed * 100))}%`, height: 5, borderRadius: 3, backgroundColor: '#E9A8BF' }} />
+    <View style={{ alignItems: 'center', marginTop: 44, marginBottom: 8 }} accessibilityRole="timer" accessibilityLabel={`Your routine resets in ${h} hours and ${m} minutes`}>
+      <Text style={{ fontFamily: F.semibold, fontSize: 10, letterSpacing: 2, color: C.gray }}>YOUR ROUTINE RESETS IN</Text>
+      <Text style={{ fontFamily: F.display, fontSize: 34, lineHeight: 40, letterSpacing: 2, color: C.ink, marginTop: 4, fontVariant: ['tabular-nums'] }}>{pad(h)}:{pad(m)}:{pad(s)}</Text>
+      <View style={{ width: '44%', height: 4, borderRadius: 2, backgroundColor: '#EFEFF1', marginTop: 10, overflow: 'hidden' }}>
+        <View style={{ width: `${Math.max(2, Math.round(passed * 100))}%`, height: 4, borderRadius: 2, backgroundColor: '#E9A8BF' }} />
       </View>
     </View>
   );

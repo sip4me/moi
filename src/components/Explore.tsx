@@ -1,11 +1,13 @@
 import { router } from 'expo-router';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Circle, Path } from 'react-native-svg';
 import { icon3d } from '../data/icons3d';
 import { IRON_RECIPES, SLOT_LABEL, type Slot } from '../data/ironRecipes';
+import * as ImagePicker from 'expo-image-picker';
 import { haptic } from '../lib/haptics';
+import { handOffPhoto } from '../lib/photoHandoff';
 import { useStore } from '../state/store';
-import { C, F, TILE } from '../theme';
+import { C, CONTENT_INDENT, F, TILE } from '../theme';
 import { Locked, PeekRow, usePageInset } from './Peek';
 import { SectionTitle } from './Tile';
 
@@ -18,7 +20,7 @@ export function CategoryPills({ items, value, onChange }: { items: { label: stri
   return (
     // Fits one row on most phones; on very narrow ones it scrolls sideways (like Airbnb) instead of cutting labels.
     <ScrollView horizontal showsHorizontalScrollIndicator={false} accessibilityRole="tablist" style={{ marginHorizontal: -pad, flexGrow: 0 }}
-      contentContainerStyle={{ paddingHorizontal: pad, paddingVertical: 4, gap: 8 }}>
+      contentContainerStyle={{ paddingHorizontal: pad + CONTENT_INDENT, paddingVertical: 4, gap: 8 }}>
       {items.map((t, i) => {
         const on = i === value;
         return (
@@ -111,6 +113,52 @@ export function RecipeCards({ slot }: { slot: Slot }) {
           );
         })}
       </PeekRow>
+    </View>
+  );
+}
+
+export const SearchIcon = ({ size = 18, color = C.ink }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24"><Circle cx={10.5} cy={10.5} r={6.5} stroke={color} strokeWidth={2.4} fill="none" /><Path d="m15.5 15.5 5 5" stroke={color} strokeWidth={2.4} strokeLinecap="round" /></Svg>
+);
+
+/** Take a food photo right from the search bar (scan = camera, photo = library) and open the iron result. */
+async function snapFood(fromLibrary: boolean) {
+  haptic('tap');
+  const opts: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], quality: 0.9 };
+  const res = fromLibrary ? await ImagePicker.launchImageLibraryAsync(opts) : await ImagePicker.launchCameraAsync(opts).catch(() => ImagePicker.launchImageLibraryAsync(opts));
+  if (res.canceled || !res.assets?.[0]) return;
+  handOffPhoto(res.assets[0].uri);
+  router.push({ pathname: '/scan-label', params: { mode: 'food' } });
+}
+
+const ScanGlyph = () => (
+  <Svg width={19} height={19} viewBox="0 0 24 24"><Path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 9v6M11 9v6M14 9v6M17 9v6" stroke="#fff" strokeWidth={2} fill="none" strokeLinecap="round" /></Svg>
+);
+const PhotoGlyph = () => (
+  <Svg width={19} height={19} viewBox="0 0 24 24"><Path d="M4 8.5a2 2 0 0 1 2-2h2l1.5-2h5L16 6.5h2a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM12 16.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" stroke={C.ink} strokeWidth={2} fill="none" strokeLinejoin="round" /></Svg>
+);
+
+/**
+ * Airbnb-style search pill: tap the text to search Moi; the scan and photo buttons at its tail read a
+ * food's iron from its label or barcode and show how close it gets you to today's goal.
+ */
+export function SearchBar() {
+  return (
+    <View style={{ height: 58, borderRadius: 999, flexDirection: 'row', alignItems: 'center', paddingLeft: 20, paddingRight: 7, gap: 8,
+      backgroundColor: '#fff', borderWidth: 1, borderColor: '#EEEEF0', shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 4 }}>
+      <Pressable onPress={() => { haptic('tap'); router.push('/search'); }} accessibilityRole="search" accessibilityLabel="Search Moi"
+        style={({ pressed }) => ({ flex: 1, alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', gap: 10, opacity: pressed ? 0.6 : 1 })}>
+        <SearchIcon size={19} />
+        <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink }}>Search Moi</Text>
+      </Pressable>
+      <Pressable onPress={() => snapFood(true)} accessibilityRole="button" accessibilityLabel="Check a food's iron from a photo"
+        style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#E9E9EC' : '#F3F3F5' })}>
+        <PhotoGlyph />
+      </Pressable>
+      <Pressable onPress={() => snapFood(false)} accessibilityRole="button" accessibilityLabel="Scan a food for iron"
+        style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#2E2E2E' : C.ink })}>
+        <ScanGlyph />
+      </Pressable>
     </View>
   );
 }

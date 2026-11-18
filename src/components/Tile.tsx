@@ -34,7 +34,7 @@ export function Tile({ image, art, title, sub, eyebrow, badge, done, onPress, he
 /** Section title used on every page: bold, roomy, sentence case. */
 export function SectionTitle({ children, right, note }: { children: React.ReactNode; right?: React.ReactNode; note?: string }) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 14, gap: 12 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 16, gap: 12 }}>
       <View style={{ flex: 1 }}>
         <Text style={{ fontFamily: F.bold, fontSize: 22, letterSpacing: -0.4, color: C.ink }}>{children}</Text>
         {note ? <Text style={{ fontFamily: F.regular, fontSize: 14, color: C.gray2, marginTop: 4 }}>{note}</Text> : null}

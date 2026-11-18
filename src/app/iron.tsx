@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { IronMeter, MealCard } from '../components/IronMaxxing';
 import { Button, Screen, Sub, TopBar } from '../components/ui';
-import { IRON_RECIPES, IRON_TIPS, SLOT_LABEL, type Slot, ironDay, ironTarget } from '../data/ironRecipes';
+import { IRON_RECIPES, IRON_TIPS, SLOT_LABEL, type Slot, ironDay, ironGoal } from '../data/ironRecipes';
 import { haptic } from '../lib/haptics';
 import { useStore } from '../state/store';
 import { C, F } from '../theme';
@@ -26,7 +26,7 @@ export default function Iron() {
       <TopBar />
       <Text style={{ fontFamily: F.bold, fontSize: 28, letterSpacing: -0.5, color: C.ink }}>Iron-maxxing</Text>
       <Sub style={{ marginTop: 6 }}>Four ways to eat iron today, each paired so your body absorbs more of it.</Sub>
-      <View style={{ marginTop: 14 }}><IronMeter mg={mg} target={ironTarget(answers)} /></View>
+      <View style={{ marginTop: 14 }}><IronMeter mg={mg} target={ironGoal(answers)} /></View>
       {meals.map(m => (
         <View key={m.slot} style={{ marginTop: 18 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>

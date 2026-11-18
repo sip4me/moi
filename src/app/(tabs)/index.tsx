@@ -9,11 +9,12 @@ import { IronMaxxing } from '../../components/IronMaxxing';
 import { Trending } from '../../components/Trending';
 import { MomentCard } from '../../components/MomentCard';
 import { WashDayArt } from '../../components/WashDayArt';
-import { BrowseRow, CategoryPills, RecipeCards } from '../../components/Explore';
+import { BrowseRow, CategoryPills, RecipeCards, SearchBar } from '../../components/Explore';
 import { SLOT_LABEL, type Slot } from '../../data/ironRecipes';
 import { ResetCountdown } from '../../components/ResetCountdown';
 import { CoinDrop, TokenBag } from '../../components/TokenBag';
 import { RecStack, type RecItem } from '../../components/RecStack';
+import { GoalBullseye } from '../../components/GoalBullseye';
 import type { Card } from '../../engine/planEngine';
 import { LockIcon, Locked, PeekRow, openPaywall } from '../../components/Peek';
 import { SectionTitle, Tile } from '../../components/Tile';
@@ -26,7 +27,7 @@ import { useHour } from '../../lib/useHour';
 import { scanStreakWeeks } from '../../data/progress';
 import { DoctorNote, Glyph, Logo, MoreRow, Screen, Seal, Sub } from '../../components/ui';
 import { useStore } from '../../state/store';
-import { C, F, SPACE, evidenceStyle, surface } from '../../theme';
+import { C, CONTENT_INDENT as INDENT, F, SPACE, evidenceStyle, surface } from '../../theme';
 
 /** Peek-row widths: routine cards show the next two peeking in; wider rows show the next one. */
 const CARD_W = 148;
@@ -146,22 +147,34 @@ export default function Home() {
 
       {/* Scrolling down settles here: Your routine fills the screen and the top scrolls away. */}
       <View onLayout={e => setRoutineY(e.nativeEvent.layout.y)}
-        style={{ marginTop: SPACE.section + 8, minHeight: height - 120 }}>
-        <SectionTitle note={`${day.isWash ? 'Wash day · ' : ''}${plan.target}`}
+        style={{ marginTop: SPACE.section + 8 }}>
+        <SectionTitle
           right={day.isToday ? <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.gray2, marginBottom: 2 }}>{routineItems.filter(c => doneToday.includes(c.id)).length}/{routineItems.length} today</Text> : null}>
           {day.isToday ? 'Your routine' : dayName(day)}
         </SectionTitle>
+        {/* Your goal, marked by a 3D bullseye whose arrow keeps landing dead centre. */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: -4, marginBottom: 16 }} accessibilityLabel={`Your goal: ${plan.target}`}>
+          <GoalBullseye size={38} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontFamily: F.semibold, fontSize: 14, color: C.ink }}>Your goal{day.isWash ? ' · Wash day' : ''}</Text>
+            <Text numberOfLines={1} style={{ fontFamily: F.regular, fontSize: 13, color: C.gray2, marginTop: 1 }}>{plan.target}</Text>
+          </View>
+        </View>
         {routineItems.length ? (
-          <Locked radius={30} label="Your daily recs">
+          <Locked radius={30} label="Your daily recs" style={{ marginHorizontal: INDENT }}>
             <RecStack items={routineItems.map(c => toRec(c, pineapple && day.isToday && c.id === 'night_braid'))}
               done={day.isToday ? doneToday : (done[day.key] ?? [])} canCheck={day.isToday} dayLabel={dayName(day)}
               onToggle={id => toggleDone(id)} />
           </Locked>
-        ) : <Sub style={{ fontSize: 15, paddingVertical: 12 }}>Rest day. Nothing planned.</Sub>}
+        ) : <Sub style={{ fontSize: 15, paddingVertical: 12, marginHorizontal: INDENT }}>Rest day. Nothing planned.</Sub>}
       </View>
 
-      {/* Everything else, Airbnb-style: raised 3D category pills, then rows of square tiles and big cards. */}
-      <View style={{ marginTop: SPACE.section }}>
+      {/* Search right under the routine, then everything else Airbnb-style: raised 3D category pills,
+          rows of square tiles and big cards. */}
+      <View style={{ marginTop: 32, marginHorizontal: INDENT }}>
+        <SearchBar />
+      </View>
+      <View style={{ marginTop: 22 }}>
         <CategoryPills items={TABS} value={tab} onChange={setTab} />
       </View>
       <View style={{ marginTop: 28, gap: SPACE.section }}>

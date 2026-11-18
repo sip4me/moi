@@ -5,6 +5,8 @@ import type { ImageSourcePropType } from 'react-native';
  * Learn levers share the stethoscope; anything missing falls back to the water drop.
  */
 export const ICON3D: Record<string, ImageSourcePropType> = {
+  goal_target: require('../../assets/icons3d/goal_target.png'),
+  goal_arrow: require('../../assets/icons3d/goal_arrow.png'),
   cat_food: require('../../assets/icons3d/cat_food.png'),
   cat_care: require('../../assets/icons3d/cat_care.png'),
   cat_style: require('../../assets/icons3d/cat_style.png'),

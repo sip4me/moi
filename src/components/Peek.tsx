@@ -3,7 +3,7 @@ import React from 'react';
 import { Platform, Pressable, ScrollView, Text, View, type ViewStyle, useWindowDimensions } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 import { useStore } from '../state/store';
-import { C, F } from '../theme';
+import { C, CONTENT_INDENT, F } from '../theme';
 
 const web = Platform.OS === 'web';
 
@@ -17,14 +17,15 @@ export const usePageInset = () => (useWindowDimensions().width < 360 ? 18 : 24);
  */
 export function PeekRow({ children, itemWidth, gap = 12, inset }: { children: React.ReactNode; itemWidth: number; gap?: number; inset?: number }) {
   const page = usePageInset();
-  const pad = inset ?? page;
-  const view = Math.min(useWindowDimensions().width, 430) - 2 * (page - pad);
+  // Content starts a little further in than the section title above it; the row still bleeds to the edge.
+  const pad = inset ?? page + CONTENT_INDENT;
+  const view = Math.min(useWindowDimensions().width, 430);
   const items = React.Children.toArray(children);
   // Native: snap each card to the centre; the first and last clamp to the row's edges.
   const offsets = items.map((_, i) => Math.max(0, pad + i * (itemWidth + gap) + itemWidth / 2 - view / 2));
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} decelerationRate="fast" snapToOffsets={web ? undefined : offsets}
-      style={[{ marginHorizontal: -pad, flexGrow: 0 }, web && ({ scrollSnapType: 'x mandatory', scrollPaddingInline: pad } as any)]}
+      style={[{ marginHorizontal: -page, flexGrow: 0 }, web && ({ scrollSnapType: 'x mandatory', scrollPaddingInline: pad } as any)]}
       contentContainerStyle={{ paddingHorizontal: pad, gap }}>
       {items.map((c, i) => <View key={i} style={[{ width: itemWidth }, web && ({ scrollSnapAlign: 'center' } as any)]}>{c}</View>)}
     </ScrollView>

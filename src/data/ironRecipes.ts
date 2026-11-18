@@ -91,6 +91,16 @@ export function ironTarget(answers: Record<string, any>) {
   return answers.gender === 'male' ? 8 : 18;
 }
 
+/**
+ * The daily iron-maxxing goal shown on scans and the iron bar: 22 mg, a little above the 18 mg most
+ * women need so absorption losses are covered; 27 mg in pregnancy. Men keep their 8 mg need, since
+ * extra iron isn't recommended for them without a doctor.
+ */
+export function ironGoal(answers: Record<string, any>) {
+  const need = ironTarget(answers);
+  return need === 8 ? 8 : Math.max(22, need);
+}
+
 export const IRON_TIPS = [
   'Pair plant iron with vitamin C in the same meal.',
   'Have tea and coffee an hour away from iron-rich meals.',

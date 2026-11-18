@@ -11,7 +11,7 @@ import { CoinProgress } from '../../components/TokenBag';
 import { BlueGlass } from '../../components/BlueGlass';
 import { useStore } from '../../state/store';
 import { SectionTitle } from '../../components/Tile';
-import { C, F, SPACE, surface } from '../../theme';
+import { C, CONTENT_INDENT, F, SPACE, surface } from '../../theme';
 
 const GOAL = 85;
 const RANGES = { '4W': 28, '12W': 84, '6M': 182, All: Infinity } as const;
@@ -102,7 +102,7 @@ export default function Progress() {
       <Title>Progress</Title>
 
       {/* Your numbers on Moi's blue glass: health, streak and coins together, like one dashboard. */}
-      <View style={{ marginTop: 24, borderRadius: 30, padding: 12, overflow: 'hidden' }}>
+      <View style={{ marginTop: 24, marginHorizontal: CONTENT_INDENT, borderRadius: 30, padding: 12, overflow: 'hidden' }}>
       <BlueGlass />
       <View style={{ flexDirection: 'row', gap: 12 }}>
         <View style={[card, { flex: 1, gap: 6 }]}>
@@ -128,7 +128,7 @@ export default function Progress() {
 
       <View style={{ marginTop: SPACE.section }}>
       <SectionTitle right={shown.length > 1 ? <Pill tone={change >= 0 ? 'green' : 'white'}>{change >= 0 ? '↑' : '↓'} {Math.abs(change)} pts</Pill> : undefined}>Hair health trend</SectionTitle>
-      <View style={[card, { gap: 16 }]}>
+      <View style={[card, { gap: 16, marginHorizontal: CONTENT_INDENT }]}>
         <Segmented options={Object.keys(RANGES) as Range[]} value={range} onChange={setRange} />
         <View>
           <Text style={{ position: 'absolute', right: 2, top: 0, fontFamily: F.medium, fontSize: 12, color: C.gold }}>Goal {GOAL}</Text>
