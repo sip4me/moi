@@ -5,12 +5,12 @@ import { HomeCalendar } from '../../components/HomeCalendar';
 import { Image, Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { icon3d } from '../../data/icons3d';
 import { HomeFeed } from '../../components/Feed';
-import { GlamourEntry } from '../../components/GlamourEntry';
 import { IronMaxxing } from '../../components/IronMaxxing';
 import { Trending } from '../../components/Trending';
 import { MomentCard } from '../../components/MomentCard';
 import { WashDayArt } from '../../components/WashDayArt';
-import { SegmentedTabs } from '../../components/SegmentedTabs';
+import { BrowseRow, CategoryPills, RecipeCards } from '../../components/Explore';
+import { SLOT_LABEL, type Slot } from '../../data/ironRecipes';
 import { ResetCountdown } from '../../components/ResetCountdown';
 import { CoinDrop, TokenBag } from '../../components/TokenBag';
 import { RecStack, type RecItem } from '../../components/RecStack';
@@ -59,7 +59,11 @@ const toRec = (c: Card, bedtime = false): RecItem => {
 };
 const ROW_W = 280;
 
-const TABS = ['Food recipes', 'Care', 'Style'];
+const TABS = [{ label: 'Food recipes', icon: 'cat_food' }, { label: 'Care', icon: 'cat_care' }, { label: 'Style', icon: 'cat_style' }];
+const MEALS: Slot[] = ['breakfast', 'lunch', 'dinner', 'snack'];
+const MEAL_ICON: Record<Slot, string> = { breakfast: 'meal_breakfast', lunch: 'meal_lunch', dinner: 'meal_dinner', snack: 'meal_snack' };
+/** The meal coming up next, so Food opens on something useful right now. */
+const nextMeal = (h: number): Slot => (h < 11 ? 'breakfast' : h < 15 ? 'lunch' : h < 17 ? 'snack' : 'dinner');
 
 const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -68,6 +72,7 @@ export default function Home() {
   const hour = useHour();
   const [selected, setSelected] = useState(todayKey);
   const [tab, setTab] = useState(0);
+  const [meal, setMeal] = useState<Slot | null>(null);
   const [routineY, setRoutineY] = useState(0);
   const { height } = useWindowDimensions();
   if (!plan) return null;
@@ -155,13 +160,25 @@ export default function Home() {
         ) : <Sub style={{ fontSize: 15, paddingVertical: 12 }}>Rest day. Nothing planned.</Sub>}
       </View>
 
-      {/* Everything else, sorted into three tabs: food, care and style. */}
+      {/* Everything else, Airbnb-style: raised 3D category pills, then rows of square tiles and big cards. */}
       <View style={{ marginTop: SPACE.section }}>
-        <SegmentedTabs tabs={TABS} value={tab} onChange={setTab} />
+        <CategoryPills items={TABS} value={tab} onChange={setTab} />
       </View>
       <View style={{ marginTop: 28, gap: SPACE.section }}>
-      {tab === 0 ? <IronMaxxing /> : null}
+      {tab === 0 ? <>
+        <BrowseRow title="Browse by meal" selected={meal ?? nextMeal(hour)} onPick={k => setMeal(k as Slot)}
+          items={MEALS.map(m => ({ key: m, label: SLOT_LABEL[m], icon: MEAL_ICON[m] }))} />
+        <RecipeCards slot={meal ?? nextMeal(hour)} />
+        <IronMaxxing />
+      </> : null}
       {tab === 1 ? <>
+        <BrowseRow title="Care essentials" items={[
+          { key: 'wash', label: 'Wash routine', icon: 'care_shower', onPress: () => router.push(washDay ? { pathname: '/wash-day', params: { day: washDay.key } } : '/wash-day') },
+          { key: 'products', label: 'My products', icon: 'cat_care', onPress: () => router.push('/(tabs)/products') },
+          { key: 'scan', label: 'Check a label', icon: 'leave_in', onPress: () => router.push('/scan-label') },
+          { key: 'glamour', label: 'Glamour', icon: 'mirror', onPress: () => router.push('/glamour') },
+          { key: 'saved', label: 'Saved', icon: 'satin', onPress: () => router.push('/saved') },
+        ]} />
         {plan.learn.length ? (
           <View>
             <SectionTitle>Worth knowing</SectionTitle>
@@ -180,7 +197,6 @@ export default function Home() {
             </PeekRow>
           </View>
         ) : null}
-        <GlamourEntry />
         <HomeFeed streakWeeks={streakWeeksN} only={['care', 'rituals']} />
       </> : null}
       {tab === 2 ? <>

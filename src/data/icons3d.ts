@@ -5,6 +5,15 @@ import type { ImageSourcePropType } from 'react-native';
  * Learn levers share the stethoscope; anything missing falls back to the water drop.
  */
 export const ICON3D: Record<string, ImageSourcePropType> = {
+  cat_food: require('../../assets/icons3d/cat_food.png'),
+  cat_care: require('../../assets/icons3d/cat_care.png'),
+  cat_style: require('../../assets/icons3d/cat_style.png'),
+  meal_breakfast: require('../../assets/icons3d/meal_breakfast.png'),
+  meal_lunch: require('../../assets/icons3d/meal_lunch.png'),
+  meal_dinner: require('../../assets/icons3d/meal_dinner.png'),
+  meal_snack: require('../../assets/icons3d/meal_snack.png'),
+  care_shower: require('../../assets/icons3d/care_shower.png'),
+  style_tools: require('../../assets/icons3d/style_tools.png'),
   anti_dandruff: require('../../assets/icons3d/anti_dandruff.png'),
   bond_repair: require('../../assets/icons3d/bond_repair.png'),
   calm: require('../../assets/icons3d/calm.png'),
