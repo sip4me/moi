@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
-import { Button } from '../../components/ui';
+import { BrandText, Button } from '../../components/ui';
 import { feed } from '../../data/feed';
 import { useStore } from '../../state/store';
 import { C, F } from '../../theme';
@@ -31,7 +31,7 @@ export default function FeedDetail() {
         <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 34, gap: 14 }}>
         <Text style={{ fontFamily: F.bold, fontSize: 24, letterSpacing: -0.4, color: C.ink }}>{card.title}</Text>
         {card.locked ? (
-          <Text style={{ fontFamily: F.regular, fontSize: 15, lineHeight: 22, color: C.gray2 }}>This one is part of Moi’s full plan. Unlocking isn’t switched on in the test build yet.</Text>
+          <BrandText text="This one is part of the full Moi plan. Unlocking isn’t switched on in the test build yet." size={15} weight="regular" color={C.gray2} lineHeight={1.47} />
         ) : (
           <>
             {card.why ? <Text style={{ fontFamily: F.regular, fontSize: 15, lineHeight: 22, color: C.gray2 }}>{card.why}</Text> : null}

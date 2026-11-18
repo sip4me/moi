@@ -3,7 +3,7 @@ import { YoungSerif_400Regular } from '@expo-google-fonts/young-serif';
 import { InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic } from '@expo-google-fonts/instrument-serif';
 import { Stack } from 'expo-router';
 import { Platform, Text, useWindowDimensions, View } from 'react-native';
-import { Logo } from '../components/ui';
+import { BrandText, Logo } from '../components/ui';
 import { C, F } from '../theme';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -58,7 +58,7 @@ function Frame({ children }: { children: React.ReactNode }) {
         <View style={{ width: 340, gap: 20 }}>
           <Logo size={56} />
           <Text style={{ fontFamily: F.bold, fontSize: 40, lineHeight: 46, letterSpacing: -1, color: C.ink }}>Your daily{'\n'}hair plan.</Text>
-          <Text style={{ fontFamily: F.regular, fontSize: 17, lineHeight: 25, color: C.gray2 }}>Moi is made for your phone. Open this page there and add it to your home screen for reminders.</Text>
+          <BrandText text="Moi is made for your phone. Open this page there and add it to your home screen for reminders." size={17} weight="regular" color={C.gray2} lineHeight={1.47} />
         </View>
       ) : null}
       <View style={{ width: 430, height: h, borderRadius: 44, overflow: 'hidden', backgroundColor: '#fff', borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)', shadowColor: '#2A221B', shadowOpacity: 0.14, shadowRadius: 48, shadowOffset: { width: 0, height: 24 } }}>

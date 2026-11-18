@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Image, Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { Screen, SectionCard, Sub } from '../../components/ui';
+import { BrandText, Screen, SectionCard, Sub } from '../../components/ui';
 import { washInterval } from '../../data/schedule';
 import { profileFromAnswers, useStore } from '../../state/store';
 import { C, F } from '../../theme';
@@ -21,7 +21,8 @@ function Row({ k, v, onPress, first }: { k: string; v?: string; onPress?: () => 
 }
 
 export default function Profile() {
-  const { answers, lifeChange, setLifeChange, reset, name, cloud, scans, saved, shelf, plan } = useStore();
+  const { answers, lifeChange, setLifeChange, reset, name, cloud, scans, saved, shelf, plan, done } = useStore();
+  const streak = Object.values(done).filter(v => v.length).length;
   const profile = profileFromAnswers(answers);
   const age = answers.birthDate ? Math.floor((Date.now() - new Date(answers.birthDate).getTime()) / (365.25 * 86400000)) : null;
   const activities = profile.lifestyle.map(x => ACTIVITY[x]).filter(Boolean).concat(profile.swims ? ['Swimming'] : []).join(', ');
@@ -31,20 +32,17 @@ export default function Profile() {
   return (
     <Screen scroll tab="profile">
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-        <View style={{ width: 68, height: 68, borderRadius: 34, backgroundColor: '#000', alignItems: 'center', justifyContent: 'flex-end', overflow: 'visible' }}>
-          <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: '#9AA', marginBottom: 4 }} />
-          <View style={{ width: 40, height: 18, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderWidth: 2, borderBottomWidth: 0, borderColor: '#9AA', marginBottom: 6 }} />
-          <Image source={require('../../../assets/crown-pink.png')} resizeMode="contain" style={{ position: 'absolute', top: -18, left: 2, width: 38, height: 38, transform: [{ rotate: '-14deg' }] }} />
-        </View>
+        {/* Figma 07 · Profile avatar: the scan silhouette wearing the pink crown. */}
+        <Image source={require('../../../assets/avatar.png')} resizeMode="contain" style={{ width: 76, height: 78 }} accessibilityLabel="Your profile picture" />
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: F.bold, fontSize: 26, color: C.ink }}>{name}</Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.gray }}>{[cap(answers.texture), answers.length, scans.length ? `${scans.length} scan${scans.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')}</Text>
+          <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.gray }}>{[cap(answers.texture), answers.thickness ?? answers.length, streak ? `${streak}-day streak` : scans.length ? `${scans.length} scan${scans.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')}</Text>
         </View>
         <Pressable onPress={() => router.push('/settings')} style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, backgroundColor: pressed ? '#E3E3E6' : '#F2F2F4', alignItems: 'center', justifyContent: 'center' })} accessibilityLabel="Settings">
           <Svg width={22} height={22} viewBox="0 0 24 24"><Path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z" stroke={C.ink} strokeWidth={1.9} fill="none" /><Path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.5A7.6 7.6 0 0 0 7 6.5l-2.4-1-2 3.4 2 1.6a7.6 7.6 0 0 0 0 3l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 0 0 2.6 1.5l.4 2.5h4l.4-2.5a7.6 7.6 0 0 0 2.6-1.5l2.4 1 2-3.4-2-1.6Z" stroke={C.ink} strokeWidth={1.9} strokeLinejoin="round" fill="none" /></Svg>
         </Pressable>
       </View>
-      <Sub style={{ marginTop: 14 }}>The more Moi knows, the better your plan</Sub>
+      <View style={{ marginTop: 14 }}><BrandText text="The more Moi knows, the better your plan" size={16} weight="regular" color={C.gray2} lineHeight={1.375} /></View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 }}>
         <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: cloud === 'saved' ? '#34A853' : cloud === 'saving' ? '#C9A227' : '#BDBDBD' }} />
         <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.gray }}>{cloud === 'saved' ? 'Backed up' : cloud === 'saving' ? 'Saving…' : 'Saved on this phone only'}</Text>

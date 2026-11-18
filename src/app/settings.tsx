@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Linking, Modal, Platform, Pressable, Share, Switch, Text, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
-import { Button, Screen } from '../components/ui';
+import { BrandText, Button, Screen } from '../components/ui';
 import { LINKS } from '../config';
 import { HEALTH_FULL, HEALTH_SHORT } from '../data/disclaimer';
 import { deleteAccount, signOut } from '../lib/auth';
@@ -33,7 +33,7 @@ function Row({ title, sub, value, first, onPress, right, muted }: RowProps) {
       style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: sub ? 62 : 50, paddingVertical: 8, marginHorizontal: -18, paddingHorizontal: 18, borderTopWidth: first ? 0 : 1, borderTopColor: '#E6E6E8', backgroundColor: pressed ? '#ECECEF' : 'transparent' })}>
       <View style={{ flex: 1 }}>
         <Text style={{ fontFamily: F.regular, fontSize: 16, color: muted ? C.gray : C.ink }}>{title}</Text>
-        {sub ? <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.gray, marginTop: 2 }}>{sub}</Text> : null}
+        {sub ? <View style={{ marginTop: 2 }}><BrandText text={sub} size={13} weight="regular" color={C.gray} /></View> : null}
       </View>
       {value ? <Text style={{ fontFamily: F.medium, fontSize: 15, color: C.ink }}>{value}</Text> : null}
       {right ?? (onPress ? <Chevron /> : null)}
@@ -55,7 +55,7 @@ function Sheet({ open, title, body, confirm, danger, busy, error, onConfirm, onC
         <Pressable onPress={() => {}} style={{ width: '100%', maxWidth: 430, backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: 32, gap: 12 }}>
           <View style={{ alignSelf: 'center', width: 36, height: 5, borderRadius: 3, backgroundColor: '#E3E3E6', marginBottom: 6 }} />
           <Text style={{ fontFamily: F.bold, fontSize: 22, color: C.ink }}>{title}</Text>
-          <Text style={{ fontFamily: F.regular, fontSize: 15, lineHeight: 22, color: C.gray2 }}>{body}</Text>
+          <BrandText text={body} size={15} weight="regular" color={C.gray2} lineHeight={1.47} />
           {error ? <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.red }}>{error}</Text> : null}
           <View style={{ gap: 4, marginTop: 8 }}>
             {onConfirm ? <Button label={confirm} loading={busy} onPress={onConfirm} style={danger ? { backgroundColor: C.red } : undefined} /> : null}
@@ -183,7 +183,7 @@ export default function Settings() {
 
       <Sheet open={sheet === 'delete'} danger busy={busy} error={error} onClose={close} onConfirm={confirmDelete}
         title="Delete your account?" confirm="Delete everything"
-        body="Your account, plan, check-ins, life changes and reminder settings will be erased from Moi’s servers and this device. This can’t be undone." />
+        body="Your account, plan, check-ins, life changes and reminder settings will be erased from our servers and this device. This can’t be undone." />
       <Sheet open={sheet === 'signout'} busy={busy} onClose={close} onConfirm={confirmSignOut}
         title="Sign out?" confirm="Sign out"
         body="Your plan stays saved to your account. Sign back in any time with your email or phone." />

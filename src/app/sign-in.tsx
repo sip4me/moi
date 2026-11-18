@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, Switch, Text, TextInput, View } from 'react-native';
-import { Button, Screen, Sub, Title, TopBar } from '../components/ui';
+import { BrandText, Button, Screen, Sub, Title, TopBar } from '../components/ui';
 import { type Method, type Mode, normalisePhone, sendCode, validate, verifyCode } from '../lib/auth';
 import { useStore } from '../state/store';
 import { C, F } from '../theme';
@@ -87,7 +87,7 @@ export default function SignIn() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 4, paddingTop: 4 }}>
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: F.medium, fontSize: 15, color: C.ink }}>Keep me signed in</Text>
-              <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.gray, marginTop: 2 }}>Stay signed in on this device after you close Moi.</Text>
+              <View style={{ marginTop: 2 }}><BrandText text="Stay signed in on this device after you close Moi." size={13} weight="regular" color={C.gray} /></View>
             </View>
             <Switch value={keep} onValueChange={setKeep} trackColor={{ true: C.ink, false: '#D9D9DE' }} thumbColor="#fff" {...({ activeThumbColor: '#fff' } as object)} />
           </View>

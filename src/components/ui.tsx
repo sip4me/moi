@@ -69,7 +69,9 @@ export function Button({ label, onPress, variant = 'primary', disabled, loading,
       {({ pressed }) => (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           {loading ? <ActivityIndicator color={variant === 'primary' ? '#fff' : C.ink} size="small" /> : null}
-          <Text style={[s.btnText, variant === 'primary' && { color: off ? '#9A9A9A' : '#fff' }, variant === 'secondary' && { color: off ? '#B5B5BA' : C.ink }, variant === 'ghost' && { color: pressed ? C.ink : C.gray2 }]}>{label}</Text>
+          {/\bMoi\b/.test(label)
+            ? <BrandText text={label} size={17} weight="semibold" color={variant === 'primary' ? (off ? '#9A9A9A' : '#fff') : variant === 'ghost' ? (pressed ? C.ink : C.gray2) : (off ? '#B5B5BA' : C.ink)} />
+            : <Text style={[s.btnText, variant === 'primary' && { color: off ? '#9A9A9A' : '#fff' }, variant === 'secondary' && { color: off ? '#B5B5BA' : C.ink }, variant === 'ghost' && { color: pressed ? C.ink : C.gray2 }]}>{label}</Text>}
         </View>
       )}
     </Pressable>
@@ -136,19 +138,26 @@ export function Logo({ size = 40, color = '#2F3D3B' }: { size?: number; color?: 
  * size, Inter's 0.727) and nudged so both share one baseline: Inter at lineHeight 1.16 sits
  * 0.217 × size above its box's bottom; the wordmark's baseline is 1.2/64 of its size above its own.
  */
-export function BrandLine({ parts, size = 30, weight = 'bold', color = C.ink, center }: { parts: (string | 'logo')[]; size?: number; weight?: 'bold' | 'semibold' | 'medium'; color?: string; center?: boolean }) {
+export function BrandLine({ parts, size = 30, weight = 'bold', color = C.ink, center, lineHeight = 1.16 }: { parts: (string | 'logo')[]; size?: number; weight?: 'bold' | 'semibold' | 'medium' | 'regular'; color?: string; center?: boolean; lineHeight?: number }) {
   const logo = size * 0.97;
-  const lift = 0.2167 * size - (1.2 / 64) * logo;
-  const font = weight === 'bold' ? F.bold : weight === 'semibold' ? F.semibold : F.medium;
+  // Inter's baseline sits 0.217 × size above the bottom of a 1.16 line box; taller lines add half the extra below it.
+  const lift = (0.2167 + (lineHeight - 1.16) / 2) * size - (1.2 / 64) * logo;
+  const font = weight === 'bold' ? F.bold : weight === 'semibold' ? F.semibold : weight === 'medium' ? F.medium : F.regular;
   return (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: center ? 'center' : 'flex-start', columnGap: size * 0.26 }}>
       {parts.flatMap((p, i) => p === 'logo'
         ? [<View key={i} style={{ marginBottom: lift }}><Logo size={logo} color={color} /></View>]
-        : p.split(' ').map((w, j) => (
-          <Text key={`${i}-${j}`} style={{ fontFamily: font, fontSize: size, lineHeight: size * 1.16, letterSpacing: weight === 'bold' ? -0.02 * size : 0, color }}>{w}</Text>
+        : p.split(' ').filter(Boolean).map((w, j) => (
+          <Text key={`${i}-${j}`} style={{ fontFamily: font, fontSize: size, lineHeight: size * lineHeight, letterSpacing: weight === 'bold' ? -0.02 * size : 0, color }}>{w}</Text>
         )))}
     </View>
   );
+}
+
+/** Any sentence that mentions Moi, with the wordmark in place of the word (e.g. "Open Moi in one tap"). */
+export function BrandText({ text, ...rest }: { text: string } & Omit<Parameters<typeof BrandLine>[0], 'parts'>) {
+  const parts = text.split(/\bMoi\b/).flatMap((t, i) => (i ? ['logo' as const, t] : [t])).filter(p => p === 'logo' || p.trim());
+  return <BrandLine parts={parts} {...rest} />;
 }
 
 export function Seal({ size = 24 }: { size?: number }) {

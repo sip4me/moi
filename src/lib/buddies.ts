@@ -11,7 +11,7 @@ export const TOKENS = [
   { id: 'pearl', days: 14, name: 'Pearl', color: ['#EEF3FD', '#5B8DEF'] },
   { id: 'rose', days: 30, name: 'Rose gold', color: ['#FBE6DF', '#C9735A'] },
   { id: 'velvet', days: 60, name: 'Velvet', color: ['#F7E1EA', '#A23B6B'] },
-  { id: 'crown', days: 100, name: 'Crown', color: ['#FFF4CC', '#C99A1E'] },
+  { id: 'crown', days: 100, name: 'Crown', color: ['#FDE3EC', '#D2638C'] },
 ] as const;
 export type Token = (typeof TOKENS)[number];
 

@@ -1,6 +1,6 @@
 import { Image, Text, View } from 'react-native';
 import { StepScreen } from '../../components/onboarding';
-import { Sub, Title } from '../../components/ui';
+import { BrandText, Sub, Title } from '../../components/ui';
 import { C, F } from '../../theme';
 
 export default function ThankYou() {
@@ -9,7 +9,7 @@ export default function ThankYou() {
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14 }}>
         <Image source={require('../../../assets/thanks.png')} style={{ width: 232, height: 232 }} resizeMode="contain" />
         <Title style={{ textAlign: 'center', marginTop: 12 }}>Thank you for{'\n'}trusting us</Title>
-        <Sub style={{ textAlign: 'center' }}>Now let’s personalize Moi for you…</Sub>
+        <BrandText text="Now let’s personalize Moi for you…" size={16} weight="regular" color={C.gray2} lineHeight={1.375} center />
       </View>
       <View style={{ backgroundColor: C.card, borderRadius: 20, padding: 18, paddingTop: 22, alignItems: 'center', gap: 6, marginBottom: 12 }}>
         <View style={{ position: 'absolute', top: -14, width: 28, height: 28, borderRadius: 14, backgroundColor: '#FFF4D6', alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontSize: 13 }}>🔒</Text></View>

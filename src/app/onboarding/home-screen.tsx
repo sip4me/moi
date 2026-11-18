@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Image, Platform, Text, useWindowDimensions, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
-import { BrandLine, Button, Screen, Sub, Title, TopBar } from '../../components/ui';
+import { BrandLine, BrandText, Button, Screen, Sub, Title, TopBar } from '../../components/ui';
 import { useStore } from '../../state/store';
 import { C, F } from '../../theme';
 
@@ -29,7 +29,7 @@ export default function AddToHomeScreen() {
             : <View key={i} style={{ width: 44, height: 44, borderRadius: 11, backgroundColor: 'rgba(255,255,255,0.45)' }} />)}
         </View>
         {standalone ? <Title style={{ textAlign: 'center' }}>You’re all set.</Title> : <BrandLine parts={['Add', 'logo', 'to your home screen.']} center />}
-        <Sub style={{ textAlign: 'center' }}>Open Moi in one tap and get your wash-day and routine reminders. Takes 10 seconds.</Sub>
+        <BrandText text="Open Moi in one tap and get your wash-day and routine reminders. Takes 10 seconds." size={16} weight="regular" color={C.gray2} lineHeight={1.375} center />
         {!standalone ? (
           <View style={{ backgroundColor: C.card, borderRadius: 20, borderWidth: 1, borderColor: C.line }}>
             {STEPS.map(([n, a, b, c], i) => (
