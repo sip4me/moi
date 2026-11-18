@@ -1,3 +1,4 @@
+import { LegalLine } from '../components/Legal';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, Switch, Text, TextInput, View } from 'react-native';
@@ -59,6 +60,7 @@ export default function SignIn() {
   return (
     <Screen footer={step === 'enter' ? <>
       <Button label="Send code" disabled={!!invalid} loading={busy} onPress={send} />
+      <LegalLine lead={mode === 'signup' ? 'By creating an account, you agree to our' : 'By signing in, you agree to our'} style={{ marginTop: 10 }} />
       {mode === 'signup'
         ? <Button label="Skip for now" variant="ghost" onPress={() => router.replace(next as any)} />
         : <Button label="New to Moi? Get started" variant="ghost" onPress={() => router.replace('/onboarding')} />}
@@ -87,7 +89,7 @@ export default function SignIn() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 4, paddingTop: 4 }}>
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: F.medium, fontSize: 15, color: C.ink }}>Keep me signed in</Text>
-              <View style={{ marginTop: 2 }}><BrandText text="Stay signed in on this device after you close Moi." size={13} weight="regular" color={C.gray} /></View>
+              <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.gray, marginTop: 2 }}>Stay signed in on this device after you close the app.</Text>
             </View>
             <Switch value={keep} onValueChange={setKeep} trackColor={{ true: C.ink, false: '#D9D9DE' }} thumbColor="#fff" {...({ activeThumbColor: '#fff' } as object)} />
           </View>

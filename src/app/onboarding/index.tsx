@@ -1,3 +1,4 @@
+import { LegalLine } from '../../components/Legal';
 import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { Button, Logo, Screen } from '../../components/ui';
@@ -8,6 +9,7 @@ export default function Welcome() {
   return (
     <Screen footer={<>
       <Button label="Get started" onPress={() => router.push(firstStep())} />
+      <LegalLine style={{ marginTop: 10 }} />
       <Pressable onPress={() => router.push('/sign-in')} hitSlop={12} style={{ alignSelf: 'center', marginTop: 12, paddingVertical: 6 }}>
         {({ pressed }) => (
           <Text style={{ fontFamily: F.regular, fontSize: 14, color: C.gray2, opacity: pressed ? 0.6 : 1 }}>

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Linking, Modal, Platform, Pressable, Share, Switch, Text, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 import { BrandText, Button, Screen } from '../components/ui';
-import { LINKS } from '../config';
+import { LINKS, openLink } from '../config';
 import { HEALTH_FULL, HEALTH_SHORT } from '../data/disclaimer';
 import { deleteAccount, signOut } from '../lib/auth';
 import { enablePush } from '../lib/push';
@@ -86,10 +86,10 @@ export default function Settings() {
 
   const signedIn = account && !account.anonymous;
   const who = account?.email ?? account?.phone ?? '';
-  const version = Constants.expoConfig?.version ?? '1.4.1';
+  const version = Constants.expoConfig?.version ?? '1.4.2';
   const hairProfile = [answers.texture, answers.length, answers.porosity && `${answers.porosity} porosity`].filter(Boolean).join(' · ');
 
-  const open = (url: string) => (url ? Linking.openURL(url) : setSheet('soon'));
+  const open = (url: string) => (url ? openLink(url) : setSheet('soon'));
 
   async function confirmDelete() {
     setBusy(true); setError(null);
@@ -162,7 +162,7 @@ export default function Settings() {
       </Group>
 
       <Group label="LEGAL">
-        <Row first title="Terms of Service" onPress={() => open(LINKS.terms)} />
+        <Row first title="Terms of Use" onPress={() => open(LINKS.terms)} />
         <Row title="Privacy Policy" onPress={() => open(LINKS.privacy)} />
         <Row title="Health disclaimer" sub={HEALTH_SHORT} onPress={() => setSheet('health')} />
         <Row title="Contact us" onPress={() => open(LINKS.contact)} right={<CopyIcon />} />

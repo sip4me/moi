@@ -1,3 +1,4 @@
+import { LegalLine } from '../../components/Legal';
 import { goNext } from '../../data/flow';
 import { router } from 'expo-router';
 import { Text, View } from 'react-native';
@@ -12,6 +13,7 @@ export default function Paywall() {
       <Text style={{ textAlign: 'center', fontFamily: F.semibold, fontSize: 14, color: C.ink, marginBottom: 10 }}>✓  No payment due now</Text>
       <Button label="Continue" onPress={() => goNext('paywall', answers)} />
       <Text style={{ textAlign: 'center', fontFamily: F.regular, fontSize: 12, color: C.gray, marginTop: 8 }}>Test build — payments aren’t connected yet.</Text>
+      <LegalLine lead="Subscriptions renew automatically until you cancel. See our" style={{ marginTop: 6 }} />
     </>}>
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16 }}>
         <BrandLine parts={['Unlock', 'logo', 'to reach your hair goals faster.']} size={27} center />
