@@ -72,13 +72,13 @@ export default function Home() {
   const washDay = day.wash.length ? day : days.find(d => d.wash.length);
   const weekday = (d: Day) => d.date.toLocaleDateString('en-US', { weekday: 'long' });
   const washLabel = !washDay ? '' : washDay.isToday
-    ? `Start wash routine · ${washDay.wash.filter(w => doneToday.includes(`wash:${w.id}`)).length}/${washDay.wash.length}`
-    : `See ${weekday(washDay)}’s wash routine`;
+    ? `Start routine · ${washDay.wash.filter(w => doneToday.includes(`wash:${w.id}`)).length}/${washDay.wash.length}`
+    : 'See routine';
   const nextWash = days.find(d => d.isWash && !d.isToday);
   const heroSub = pineapple ? 'Tie a loose pineapple before bed so your hair keeps its shape overnight.'
     : paused ? 'Your routine is adjusted while things change.'
     : daysLeft === 0 ? plan.washRoutine.headline
-    : nextWash ? `Next wash on ${weekday(nextWash)}. Keep up the daily steps until then.` : plan.target;
+    : nextWash ? `Next wash on ${weekday(nextWash)}. Keep up daily care until then.` : plan.target;
   const dayName = (d: Day) => (d.isToday ? 'Today' : d.date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }));
   return (
     <Screen scroll tab="index" overlay={<CoinDrop />} stops={routineY ? [0, routineY - 16] : undefined}>
@@ -98,21 +98,15 @@ export default function Home() {
       {/* The calendar: scrolls sideways through past and coming days, or opens the full month. */}
       <HomeCalendar days={cal} done={done} selected={selected} onSelect={setSelected} />
 
-      {/* Hero: a compact card so the calendar and routine stay in view. Art left, the headline and one
-          line of context right, then the wash routine button. */}
-      <View style={[surface, { marginTop: 24, borderRadius: 24, padding: 16 }]}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          <View style={{ width: 72, height: 72, borderRadius: 20, backgroundColor: '#F6F3FB', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-            {pineapple ? <TwoFrameArt spec={PINEAPPLE_ART} timing={PINEAPPLE_TIMING} width={64} /> : <WashDayArt width={62} />}
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: F.bold, fontSize: 20, lineHeight: 24, color: C.ink, letterSpacing: -0.4 }}>{paused ? 'Wash day paused' : daysLeft === 0 ? 'Wash day today' : `Wash hair in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`}</Text>
-            <Text numberOfLines={2} style={{ fontFamily: F.regular, fontSize: 13, lineHeight: 18, color: C.gray2, marginTop: 3 }}>{heroSub}</Text>
-          </View>
-        </View>
+      {/* Hero, right under the calendar: the wash-day animation, the countdown, one line of fine print
+          and a button into the wash routine (shown as notifications). No card, so it stays light. */}
+      <View style={{ marginTop: 18, alignItems: 'center' }}>
+        {pineapple ? <TwoFrameArt spec={PINEAPPLE_ART} timing={PINEAPPLE_TIMING} width={104} /> : <WashDayArt width={104} />}
+        <Text style={{ fontFamily: F.bold, fontSize: 24, lineHeight: 28, color: C.ink, letterSpacing: -0.5, textAlign: 'center', marginTop: 10 }}>{paused ? 'Wash day paused' : daysLeft === 0 ? 'Wash day today' : `Wash hair in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`}</Text>
+        <Text style={{ fontFamily: F.regular, fontSize: 13, lineHeight: 18, color: C.gray, textAlign: 'center', marginTop: 4, paddingHorizontal: 24 }}>{heroSub}</Text>
         {washDay ? (
           <Pressable onPress={subscribed ? () => router.push({ pathname: '/wash-day', params: { day: washDay.key } }) : openPaywall} accessibilityRole="button"
-            style={({ pressed }) => ({ height: 44, borderRadius: 999, marginTop: 14, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#2E2E2E' : C.ink, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
+            style={({ pressed }) => ({ height: 42, paddingHorizontal: 22, borderRadius: 999, marginTop: 14, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#2E2E2E' : C.ink, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
             {subscribed ? null : <LockIcon size={13} color="#fff" />}
             <Text style={{ fontFamily: F.semibold, fontSize: 15, color: '#fff' }}>{washLabel}</Text>
           </Pressable>
