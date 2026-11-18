@@ -79,7 +79,7 @@ export default function Welcome() {
     let speak: ReturnType<typeof setTimeout> | null = null;
     const t = (v: Animated.Value, to: number, ms: number, ease = Easing.out(Easing.cubic)) => Animated.timing(v, { toValue: to, duration: ms, easing: ease, useNativeDriver: true });
     // Slide up into the centre, hold, slide up and away.
-    const beat = (v: Animated.Value, hold: number) => Animated.sequence([t(v, 1, 450), Animated.delay(hold), t(v, 2, 380, Easing.in(Easing.cubic))]);
+    const beat = (v: Animated.Value, hold: number) => Animated.sequence([t(v, 1, 600), Animated.delay(hold), t(v, 2, 500, Easing.in(Easing.cubic))]);
     AccessibilityInfo.isReduceMotionEnabled().catch(() => false).then(reduce => {
       if (cancelled) return;
       if (reduce) { [...logo, dock, ready, cta].forEach(v => v.setValue(1)); [sound, ...props].forEach(v => v.setValue(2)); return; }
@@ -90,8 +90,9 @@ export default function Welcome() {
         Animated.delay(450),
         t(dock, 1, 650, Easing.inOut(Easing.cubic)),
         // How to say it; Get started fades in here so nobody has to wait for the whole story.
-        Animated.parallel([beat(sound, 1700), Animated.sequence([Animated.delay(400), t(cta, 1, 300)])]),
-        ...props.map((v, i) => beat(v, i === props.length - 1 ? 650 : 1150)),
+        Animated.parallel([beat(sound, 3000), Animated.sequence([Animated.delay(400), t(cta, 1, 300)])]),
+        // Each promise holds for 3 seconds so it can actually be read.
+        ...props.map(v => beat(v, 3000)),
         t(ready, 1, 500),
       ]).start();
       // Say it as the sound button arrives, if the browser allows speech without a tap.
@@ -123,32 +124,32 @@ export default function Welcome() {
     }>
       <View style={{ flex: 1 }} onLayout={e => setBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
         {/* Top bar: the docked logo lands on the left; the language pill stays on the right. */}
-        <View style={{ height: 40, alignItems: 'flex-end', justifyContent: 'center' }}><LanguagePill /></View>
+        <View style={{ height: 40, marginTop: 14, alignItems: 'flex-end', justifyContent: 'center', paddingRight: 4 }}><LanguagePill /></View>
 
         {/* Centre stage: one thing at a time. */}
         <View style={{ flex: 1 }}>
           <Animated.View style={[center, slide(sound)]} pointerEvents="box-none">
             <Pressable onPress={() => { haptic('tap'); sayMoi(); }} accessibilityRole="button" accessibilityLabel="Hear how to say Moi: mwa, French for me"
-              style={({ pressed }) => ({ width: 72, height: 72, borderRadius: 36, backgroundColor: pressed ? '#2E2E2E' : C.ink, alignItems: 'center', justifyContent: 'center', transform: [{ scale: pressed ? 0.95 : 1 }] })}>
+              style={({ pressed }) => ({ width: 64, height: 64, borderRadius: 32, backgroundColor: pressed ? '#2E2E2E' : C.ink, alignItems: 'center', justifyContent: 'center', transform: [{ scale: pressed ? 0.95 : 1 }] })}>
               <Speaker />
             </Pressable>
-            <Text style={{ fontFamily: F.serif, fontSize: 30, color: C.ink, marginTop: 18 }}>/mwa/</Text>
-            <Text style={{ fontFamily: F.regular, fontSize: 16, color: C.gray2, marginTop: 6 }}>French for “me”</Text>
+            <Text style={{ fontFamily: F.serif, fontSize: 24, color: C.ink, marginTop: 16 }}>/mwa/</Text>
+            <Text style={{ fontFamily: F.regular, fontSize: 15, color: C.gray2, marginTop: 6 }}>French for “me”</Text>
           </Animated.View>
 
           {PROPS.map((p, i) => (
             <Animated.View key={p.key} style={[center, slide(props[i])]} pointerEvents="none">
               {p.key === 'more' ? null : (
-                <View style={{ width: 88, height: 88, alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
-                  {p.key === 'coin' ? <Seal size={80} /> : p.key === 'goal' ? <GoalBullseye size={86} /> : <Image source={icon3d('cat_food')} style={{ width: 86, height: 86 }} resizeMode="contain" />}
+                <View style={{ width: 76, height: 76, alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                  {p.key === 'coin' ? <Seal size={68} /> : p.key === 'goal' ? <GoalBullseye size={72} /> : <Image source={icon3d('cat_food')} style={{ width: 72, height: 72 }} resizeMode="contain" />}
                 </View>
               )}
-              <Text style={{ fontFamily: F.bold, fontSize: p.key === 'more' ? 34 : 26, lineHeight: p.key === 'more' ? 40 : 32, letterSpacing: -0.5, color: C.ink, textAlign: 'center', paddingHorizontal: 24 }}>{p.text}</Text>
+              <Text style={{ fontFamily: F.bold, fontSize: p.key === 'more' ? 24 : 20, lineHeight: p.key === 'more' ? 30 : 27, letterSpacing: -0.3, color: C.ink, textAlign: 'center', paddingHorizontal: 24 }}>{p.text}</Text>
             </Animated.View>
           ))}
 
           <Animated.View style={[center, { opacity: ready, transform: [{ translateY: ready.interpolate({ inputRange: [0, 1], outputRange: [24, 0] }) }] }]} pointerEvents="none">
-            <Text style={{ fontFamily: F.bold, fontSize: 34, lineHeight: 40, letterSpacing: -0.6, color: C.ink, textAlign: 'center' }}>Ready when you are!</Text>
+            <Text style={{ fontFamily: F.bold, fontSize: 26, lineHeight: 32, letterSpacing: -0.4, color: C.ink, textAlign: 'center' }}>Ready when you are!</Text>
           </Animated.View>
         </View>
 
@@ -156,8 +157,8 @@ export default function Welcome() {
         {box.w ? (() => {
           const startX = box.w / 2 - LW / 2, startY = box.h * 0.42 - LH / 2;
           // Scaling happens around the logo's centre, so aim that centre at the docked spot (vertically centred in the top bar).
-          const dx = (LW * DOCK) / 2 - (startX + LW / 2);
-          const dy = 20 - (startY + LH / 2);
+          const dx = 12 + (LW * DOCK) / 2 - (startX + LW / 2);
+          const dy = 14 + 20 - (startY + LH / 2);
           return (
             <Animated.View pointerEvents="none" style={{ position: 'absolute', left: startX, top: startY, transform: [
               { translateX: dock.interpolate({ inputRange: [0, 1], outputRange: [0, dx] }) },
