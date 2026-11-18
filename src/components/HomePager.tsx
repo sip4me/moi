@@ -14,6 +14,7 @@ export type HomePage = { key: string; title: string; icon: string; summary: stri
  */
 export function HomePager({ pages }: { pages: HomePage[] }) {
   const [w, setW] = useState(0);
+  const [h, setH] = useState(0);
   const [page, setPage] = useState(0);
   const [overview, setOverview] = useState(false);
   const pager = useRef<ScrollViewInstance>(null);
@@ -35,14 +36,15 @@ export function HomePager({ pages }: { pages: HomePage[] }) {
   const hold = () => { haptic('select'); setOverview(true); };
 
   return (
-    <View style={{ flex: 1 }} onLayout={e => setW(e.nativeEvent.layout.width)}>
-      {w ? (
+    <View style={{ flex: 1 }} onLayout={e => { setW(e.nativeEvent.layout.width); setH(e.nativeEvent.layout.height); }}>
+      {w && h ? (
         <ScrollView ref={pager} horizontal pagingEnabled showsHorizontalScrollIndicator={false} scrollEventThrottle={32}
           onScroll={e => { const i = Math.round(e.nativeEvent.contentOffset.x / w); if (i !== pageRef.current) { setPage(i); haptic('tap'); } }}
-          style={{ flex: 1 }}>
+          style={{ flex: 1 }} contentContainerStyle={{ height: h }}>
           {pages.map((p, i) => (
-            <View key={p.key} style={{ width: w }}>
-              <ScrollView ref={r => { scrollers.current[i] = r; }} showsVerticalScrollIndicator={false}
+            // Each screen is exactly one screen tall, so its own content scrolls up and down inside it.
+            <View key={p.key} style={{ width: w, height: h }}>
+              <ScrollView ref={r => { scrollers.current[i] = r; }} showsVerticalScrollIndicator={false} style={{ flex: 1 }}
                 contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 28, paddingBottom: 150 }}>
                 {/* Press and hold any empty part of a screen to see them all. */}
                 <Pressable onLongPress={hold} delayLongPress={450} accessibilityHint="Press and hold to see all Home screens"
