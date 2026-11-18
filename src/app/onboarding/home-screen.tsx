@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Image, Platform, Text, useWindowDimensions, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
-import { Button, Screen, Sub, Title, TopBar } from '../../components/ui';
+import { BrandLine, Button, Screen, Sub, Title, TopBar } from '../../components/ui';
 import { useStore } from '../../state/store';
 import { C, F } from '../../theme';
 
@@ -28,7 +28,7 @@ export default function AddToHomeScreen() {
             ? <View key={i} style={{ alignItems: 'center', width: 44, height: 44 }}><Image source={require('../../../assets/icon.png')} style={{ width: 44, height: 44, borderRadius: 11 }} /><Text style={{ fontFamily: F.medium, fontSize: 10, color: '#2A221B', marginTop: 3 }}>Moi</Text></View>
             : <View key={i} style={{ width: 44, height: 44, borderRadius: 11, backgroundColor: 'rgba(255,255,255,0.45)' }} />)}
         </View>
-        <Title style={{ textAlign: 'center' }}>{standalone ? 'You’re all set.' : 'Add Moi to your home screen.'}</Title>
+        {standalone ? <Title style={{ textAlign: 'center' }}>You’re all set.</Title> : <BrandLine parts={['Add', 'logo', 'to your home screen.']} center />}
         <Sub style={{ textAlign: 'center' }}>Open Moi in one tap and get your wash-day and routine reminders. Takes 10 seconds.</Sub>
         {!standalone ? (
           <View style={{ backgroundColor: C.card, borderRadius: 20, borderWidth: 1, borderColor: C.line }}>

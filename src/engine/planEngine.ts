@@ -1,6 +1,8 @@
 // Moi plan engine — turns onboarding answers + first-scan metrics into a goal,
 // a target line ("Frizz 6 → 3 by Feb 8") and up to 4 daily recommendation cards.
 // Pure function, no network: works in React Native / Expo, a server, or a Supabase Edge Function.
+import { buildWashRoutine, WASH_LEVERS, type WashRoutine } from './washRoutine';
+
 // The rules live in rules.json (exported from the "Moi plan rules" Sheet), so they can change without code changes.
 
 export type Goal = 'repair' | 'grow' | 'keep' | 'balance';
@@ -58,6 +60,7 @@ export interface Plan {
   learn: LearnCard[];       // 'ask a dermatologist' / 'get tested' notes — never a dose
   ingredients: { lookFor: string[]; avoid: string[] }; // plain-language ingredient groups, no brands; also feeds Product fit
   flags: string[]; appliedRules: string[]; rulesVersion: string;
+  washRoutine: WashRoutine; // the ordered wash-day steps for this person's goals and hair
 }
 
 function matches(p: Profile, [field, op, v]: Cond): boolean {
@@ -129,15 +132,29 @@ export function buildPlan(p: Profile, R: Rules, start = new Date()): Plan {
     .map((l, i) => ({ l, i, score: rel(l) * (1 + 0.5 * l.need) * (W[l.evidence ?? 'early'] ?? 1) }))
     .sort((a, b) => b.score - a.score || a.i - b.i);
 
-  const cards: Card[] = [], extras: Card[] = [];
+  // Wash-day steps live in the wash routine, so the daily cards are things to do between washes too.
+  const washRoutine = buildWashRoutine(p, new Set(ranked.map(r => r.l.id)));
+  const daily = ranked.filter(({ l }) => !WASH_LEVERS.has(l.id));
+
+  // Three daily actions; one more for every extra half hour past 30 minutes (up to six).
+  // The wash cadence card rides along and doesn't take one of those slots.
+  const actions = dailyActionCount(p.timeBudget);
+  const toCard = (l: typeof ranked[number]['l'], score: number): Card => ({ id: l.id, label: l.label, value: l.value, unit: l.unit, why: l.why, evidence: l.evidence, ...(l.ingredients?.length ? { ingredients: l.ingredients } : {}), score: +score.toFixed(2), minutes: l.minutes,
+    ...(l.id === 'wash_interval' && washTarget !== undefined && washTarget !== l.value ? { target: washTarget } : {}) });
+  const cards: Card[] = [];
+  const count = () => cards.filter(c => c.id !== 'wash_interval').length;
   let minutes = 0;
-  for (const { l, score } of ranked) {
-    const fits = cards.length < R.maxCards && minutes + l.minutes <= p.timeBudget;
-    if (!fits) { if (extras.length < 3) extras.push({ id: l.id, label: l.label, value: l.value, unit: l.unit, why: l.why, evidence: l.evidence, ...(l.ingredients?.length ? { ingredients: l.ingredients } : {}), score: +score.toFixed(2), minutes: l.minutes }); continue; }
-    minutes += l.minutes;
-    cards.push({ id: l.id, label: l.label, value: l.value, unit: l.unit, why: l.why, evidence: l.evidence, ...(l.ingredients?.length ? { ingredients: l.ingredients } : {}), score: +score.toFixed(2), minutes: l.minutes,
-      ...(l.id === 'wash_interval' && washTarget !== undefined && washTarget !== l.value ? { target: washTarget } : {}) });
+  for (const { l, score } of daily) {
+    if (l.id === 'wash_interval') { cards.push(toCard(l, score)); continue; }
+    if (count() < actions && minutes + l.minutes <= p.timeBudget) { minutes += l.minutes; cards.push(toCard(l, score)); }
   }
+  // Short on time still gets three: fill with the quickest remaining habits, best first.
+  for (const { l, score } of [...daily].sort((a, b) => a.l.minutes - b.l.minutes || b.score - a.score)) {
+    if (count() >= Math.min(3, actions)) break;
+    if (!cards.some(c => c.id === l.id)) cards.push(toCard(l, score));
+  }
+  cards.sort((a, b) => b.score - a.score);
+  const extras = daily.filter(({ l }) => !cards.some(c => c.id === l.id)).slice(0, 3).map(({ l, score }) => toCard(l, score));
 
   // target line
   const t = R.targetOverrides?.find(o => o.goal === p.goal && o.when.every(c => matches(p, c)))?.target ?? R.targets[p.goal];
@@ -161,7 +178,7 @@ export function buildPlan(p: Profile, R: Rules, start = new Date()): Plan {
 
   for (const c of cards) for (const ing of c.ingredients ?? []) lookFor.add(ing);
   for (const s of skip) lookFor.delete(s); // e.g. natural-leaning users don't get silicones suggested
-  return { goal: p.goal, target, targetDate: date.toISOString().slice(0, 10), cards, extras, learn, ingredients: { lookFor: [...lookFor], avoid: [...avoid] }, flags, appliedRules: applied, rulesVersion: R.version };
+  return { goal: p.goal, target, targetDate: date.toISOString().slice(0, 10), cards, extras, learn, ingredients: { lookFor: [...lookFor], avoid: [...avoid] }, flags, appliedRules: applied, rulesVersion: R.version, washRoutine };
 }
 
 // Product fit helper: checks a scanned ingredient label against the plan's plain-language lists.
@@ -207,4 +224,9 @@ export function fitLabel(labelText: string, plan: Plan, R: Rules): Fit {
     ? `${n(watch, 'works', 'work')} against your plan${good ? `; ${good} ${good > 1 ? 'help' : 'helps'}` : ''}.`
     : good ? `${good} ingredient${good > 1 ? 's' : ''} your plan looks for, nothing to avoid.` : 'Nothing in this label stands out for your plan, good or bad.';
   return { score, verdict, summary, ingredients };
+}
+
+/** 3 a day up to 30 minutes; +1 per extra half hour after that, capped at 6. */
+export function dailyActionCount(timeBudget: number) {
+  return timeBudget > 30 ? Math.min(6, 3 + Math.ceil((timeBudget - 30) / 30)) : 3;
 }

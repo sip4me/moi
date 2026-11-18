@@ -1,8 +1,9 @@
 import { router } from 'expo-router';
-import { Text, View } from 'react-native';
+import { Image, Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { HEALTH_FULL, HEALTH_SHORT } from '../../data/disclaimer';
 import { goNext } from '../../data/flow';
+import { icon3d } from '../../data/icons3d';
 import { Button, CardGrid, DoctorNote, MoreRow, RecCard, Screen, SectionCard, Sub, Title, TopBar } from '../../components/ui';
 import { useStore } from '../../state/store';
 import { C, F, evidenceStyle } from '../../theme';
@@ -27,6 +28,19 @@ export default function PlanScreen() {
         <Sub style={{ fontSize: 13, marginTop: -6 }}>Built for {texture} hair · tap a card to see why</Sub>
         <CardGrid>{plan.cards.map(c => <RecCard key={c.id} id={c.id} label={c.label} value={c.value} unit={c.unit} onPress={() => router.push(`/why/${c.id}`)} />)}</CardGrid>
       </SectionCard>
+      <Pressable onPress={() => router.push('/wash-day')} style={({ pressed }) => ({ marginTop: 12, borderRadius: 24, padding: 16, backgroundColor: pressed ? '#E4ECFB' : '#EEF3FD' })}>
+        <Text style={{ fontFamily: F.semibold, fontSize: 17, color: C.ink }}>{plan.washRoutine.headline}</Text>
+        <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.gray2, marginTop: 2 }}>{plan.washRoutine.steps.length} steps · {plan.washRoutine.minutes} min hands-on</Text>
+        <View style={{ marginTop: 12, gap: 8 }}>
+          {plan.washRoutine.steps.map((w, i) => (
+            <View key={w.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Image source={icon3d(w.icon)} style={{ width: 30, height: 30 }} resizeMode="contain" />
+              <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.ink, flex: 1 }}>{i + 1}. {w.title}</Text>
+              {w.perWeek ? <Text style={{ fontFamily: F.regular, fontSize: 12, color: C.gray2 }}>{w.perWeek}× a week</Text> : null}
+            </View>
+          ))}
+        </View>
+      </Pressable>
       {plan.learn.length ? <View style={{ gap: 8, marginTop: 14 }}>{plan.learn.map(l => <DoctorNote key={l.id} id={l.id} label={l.label} why={l.why} onPress={() => router.push(`/why/${l.id}`)} />)}</View> : null}
       {plan.extras.length ? (
         <View style={{ gap: 8, marginTop: 16 }}>

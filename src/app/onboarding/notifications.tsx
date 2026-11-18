@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { enablePush } from '../../lib/push';
 import { StepScreen } from '../../components/onboarding';
-import { Logo, Title } from '../../components/ui';
+import { BrandLine, Title } from '../../components/ui';
 import { useStore } from '../../state/store';
 import { useStep } from '../../state/useStep';
 import { C, F } from '../../theme';
@@ -26,7 +26,7 @@ export default function Notifications() {
         <Title style={{ textAlign: 'center' }}>Reach your goals with{'\n'}notifications</Title>
         <View style={{ backgroundColor: '#E5E5E7', borderRadius: 16, overflow: 'hidden' }}>
           <View style={{ padding: 18, alignItems: 'center', gap: 2 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 6 }}><Logo size={16} color={C.ink} /><Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>would like to send you</Text></View>
+            <BrandLine parts={['logo', 'would like to send you']} size={15} weight="semibold" center />
             <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>Notifications</Text>
           </View>
           <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: '#CFCFD4' }}>

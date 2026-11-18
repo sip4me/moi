@@ -64,9 +64,10 @@ export function Button({ label, onPress, variant = 'primary', disabled, loading,
   );
 }
 
-export function OptionRow({ label, sub, selected, onPress, multi }: { label: string; sub?: string; selected: boolean; onPress: () => void; multi?: boolean }) {
+export function OptionRow({ label, sub, selected, onPress, multi, icon }: { label: string; sub?: string; selected: boolean; onPress: () => void; multi?: boolean; icon?: { xml: string; size: number } }) {
   return (
     <Pressable onPress={() => { haptic('select'); onPress(); }} style={({ pressed }) => [s.opt, { backgroundColor: selected ? (pressed ? '#2E2E2E' : C.ink) : pressed ? C.pressed : C.option }]}>
+      {icon ? <View style={s.optIcon}><SvgXml xml={icon.xml} width={icon.size} height={icon.size} /></View> : null}
       <View style={{ flex: 1 }}>
         <Text style={[s.optTitle, selected && { color: '#fff' }]}>{label}</Text>
         {sub ? <Text style={[s.optSub, selected && { color: '#fff', opacity: 0.8 }]}>{sub}</Text> : null}
@@ -111,6 +112,27 @@ export function Logo({ size = 40, color = '#2F3D3B' }: { size?: number; color?: 
         <Text key={ch} style={{ position: 'absolute', left: x * k, top: -3.7 * k, fontFamily: F.serif, fontSize: size, lineHeight: 90 * k, color }}>{ch}</Text>
       ))}
       <Image source={crown} resizeMode="contain" style={{ position: 'absolute', left: CROWN.left * k, top: CROWN.top * k, width: CROWN.w * k, height: CROWN.h * k, transform: [{ rotate: CROWN.rotate }] }} />
+    </View>
+  );
+}
+
+/**
+ * A sentence with the Moi wordmark inside it, e.g. ["Unlock", "logo", "to reach"].
+ * The wordmark is sized so its capitals match the text's (Young Serif caps are 0.75 of the
+ * size, Inter's 0.727) and nudged so both share one baseline: Inter at lineHeight 1.16 sits
+ * 0.217 × size above its box's bottom; the wordmark's baseline is 1.2/64 of its size above its own.
+ */
+export function BrandLine({ parts, size = 30, weight = 'bold', color = C.ink, center }: { parts: (string | 'logo')[]; size?: number; weight?: 'bold' | 'semibold' | 'medium'; color?: string; center?: boolean }) {
+  const logo = size * 0.97;
+  const lift = 0.2167 * size - (1.2 / 64) * logo;
+  const font = weight === 'bold' ? F.bold : weight === 'semibold' ? F.semibold : F.medium;
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: center ? 'center' : 'flex-start', columnGap: size * 0.26 }}>
+      {parts.flatMap((p, i) => p === 'logo'
+        ? [<View key={i} style={{ marginBottom: lift }}><Logo size={logo} color={color} /></View>]
+        : p.split(' ').map((w, j) => (
+          <Text key={`${i}-${j}`} style={{ fontFamily: font, fontSize: size, lineHeight: size * 1.16, letterSpacing: weight === 'bold' ? -0.02 * size : 0, color }}>{w}</Text>
+        )))}
     </View>
   );
 }
@@ -216,6 +238,7 @@ const s = StyleSheet.create({
   btn: { height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch' },
   btnText: { fontFamily: F.semibold, fontSize: 17 },
   opt: { flexDirection: 'row', alignItems: 'center', minHeight: 64, borderRadius: 16, paddingHorizontal: 20, paddingVertical: 14 },
+  optIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   optTitle: { fontFamily: F.semibold, fontSize: 16, color: C.ink },
   optSub: { fontFamily: F.regular, fontSize: 13, color: C.gray2, marginTop: 2 },
   check: { width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, borderColor: '#CFC9BD', alignItems: 'center', justifyContent: 'center' },

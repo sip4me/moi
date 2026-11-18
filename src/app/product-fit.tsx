@@ -29,11 +29,11 @@ function ScoreRing({ score, color }: { score: number; color: string }) {
 
 /** Product fit: one label scored against the plan, explained ingredient by ingredient. */
 export default function ProductFit() {
-  const { id, label: rawLabel } = useLocalSearchParams<{ id?: string; label?: string }>();
+  const { id, label: rawLabel, name: given } = useLocalSearchParams<{ id?: string; label?: string; name?: string }>();
   const { plan, shelf, addToShelf, removeFromShelf, addChecked } = useStore();
   const saved = shelf.find(x => x.id === id);
   const label = saved?.label ?? rawLabel ?? '';
-  const [name, setName] = useState('');
+  const [name, setName] = useState(given ?? '');
   useEffect(() => { if (!saved && label) addChecked(label); }, [label]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!plan || !label) return null;
   const fit = fitLabel(label, plan, rules);

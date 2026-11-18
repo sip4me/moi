@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { type Day, daysUntilWash, week } from '../../data/schedule';
-import { Pressable, Text, View } from 'react-native';
+import { Image, Pressable, Text, View } from 'react-native';
+import { icon3d } from '../../data/icons3d';
 import { HomeFeed } from '../../components/Feed';
 import { WashDayArt } from '../../components/WashDayArt';
 import { scanStreakWeeks } from '../../data/progress';
@@ -73,6 +74,23 @@ export default function Home() {
         <View><Text style={{ fontFamily: F.semibold, fontSize: 19, color: C.ink }}>{day.isToday ? 'Your routine' : dayName(day)}</Text><Sub style={{ fontSize: 12 }}>{day.isWash ? 'Wash day · ' : ''}{plan.target}</Sub></View>
         {day.isToday ? <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.gray2 }}>{day.items.filter(c => doneToday.includes(c.id)).length}/{day.items.length} today</Text> : null}
       </View>
+      {day.wash.length ? (
+        <Pressable onPress={() => router.push({ pathname: '/wash-day', params: { day: day.key } })}
+          style={({ pressed }) => ({ marginTop: 10, borderRadius: 24, padding: 16, backgroundColor: pressed ? '#E4ECFB' : '#EEF3FD' })}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink, flex: 1 }}>{plan.washRoutine.headline}</Text>
+            <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.gray2 }}>{day.isToday ? `${day.wash.filter(w => doneToday.includes(`wash:${w.id}`)).length}/${day.wash.length}` : `${day.wash.length} steps`} ›</Text>
+          </View>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
+            {day.wash.map(w => (
+              <View key={w.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#fff', borderRadius: 999, paddingLeft: 4, paddingRight: 10, paddingVertical: 3 }}>
+                <Image source={icon3d(w.icon)} style={{ width: 22, height: 22 }} resizeMode="contain" />
+                <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.ink, textDecorationLine: doneToday.includes(`wash:${w.id}`) ? 'line-through' : 'none' }}>{w.title}</Text>
+              </View>
+            ))}
+          </View>
+        </Pressable>
+      ) : null}
       <SectionCard style={{ marginTop: 10 }}>
         {day.items.length ? (
           <CardGrid>{day.items.map(c => <RecCard key={c.id} id={c.id} label={c.label} value={c.value} unit={c.unit} done={day.isToday && doneToday.includes(c.id)} onPress={() => router.push(`/why/${c.id}`)} />)}</CardGrid>

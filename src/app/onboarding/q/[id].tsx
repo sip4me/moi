@@ -1,6 +1,7 @@
 import { useLocalSearchParams } from 'expo-router';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { BRAND_LOGOS } from '../../../data/brandLogos';
 import { Button, Chip, OptionRow, Screen, Sub, Title, TopBar } from '../../../components/ui';
 import type { StepKey } from '../../../data/flow';
 import { type Option, QUESTIONS, questionById } from '../../../data/questions';
@@ -50,7 +51,7 @@ export default function QuestionScreen() {
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', gap: 10, paddingVertical: 16 }} showsVerticalScrollIndicator={false}>
         {q.kind === 'tiles' ? <Tiles options={q.options} isSel={isSel} pick={pick} />
           : q.kind === 'chips' ? <Chips options={q.options} isSel={isSel} pick={pick} />
-          : q.options.map(o => <OptionRow key={String(o.value)} label={o.label} sub={o.sub} selected={isSel(o.value)} multi={multi} onPress={() => pick(o.value)} />)}
+          : q.options.map(o => <OptionRow key={String(o.value)} label={o.label} sub={o.sub} selected={isSel(o.value)} multi={multi} icon={q.id === 'hearAbout' ? BRAND_LOGOS[String(o.value)] : undefined} onPress={() => pick(o.value)} />)}
         {q.writeIn ? (
           <TextInput value={answers[writeInKey] ?? ''} onChangeText={t => setAnswer(writeInKey, t)} placeholder={q.writeIn} placeholderTextColor="#ABABAB"
             style={{ marginTop: 6, height: 52, borderRadius: 16, borderWidth: 1, borderColor: C.line, paddingHorizontal: 16, fontFamily: F.regular, fontSize: 15, color: C.ink, outlineStyle: 'none' } as any} />

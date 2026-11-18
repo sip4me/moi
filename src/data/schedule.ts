@@ -1,4 +1,5 @@
 import type { Card, Plan } from '../engine/planEngine';
+import { stepsForWash, type WashStep } from '../engine/washRoutine';
 
 /**
  * Turns the plan into the next seven days, so the calendar shows what's coming and
@@ -6,14 +7,15 @@ import type { Card, Plan } from '../engine/planEngine';
  * editing a card's amount changes how often it appears, and new plans re-plan the week.
  */
 
-/** Steps that belong to wash day. */
+/** Steps that belong to wash day (old plans saved before the wash routine existed still carry these as cards). */
 const WASH_DAY = new Set(['leave_in', 'conditioner', 'gentle_wash', 'detangle', 'rinse', 'pre_wash_oil', 'tea_tree', 'flax_gel', 'deep_condition', 'anti_dandruff', 'keto_wash', 'bond_repair', 'scalp_scrub']);
 /** Steps for the days in between washes. */
 const BETWEEN_WASHES = new Set(['dry_shampoo']);
 /** Things to do on a cycle rather than on a weekday. */
 const EVERY_N_DAYS: Record<string, (v: number) => number> = { pillowcase: v => v, trim: v => v * 7 };
 
-export type Day = { key: string; date: Date; isToday: boolean; isWash: boolean; items: Card[] };
+/** `wash`: that day's wash routine (weekly treatments included only on the washes they fall on). */
+export type Day = { key: string; date: Date; isToday: boolean; isWash: boolean; items: Card[]; wash: WashStep[] };
 
 const DAY_MS = 86400000;
 const keyOf = (d: Date) => d.toISOString().slice(0, 10);
@@ -49,9 +51,10 @@ export function week(plan: Plan, lastWash: string | null, todayKey: string, paus
   const days: Day[] = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(today, i);
     const isWash = !paused && i >= firstWash && (i - firstWash) % every === 0;
-    return { key: keyOf(date), date, isToday: i === 0, isWash, items: [] };
+    return { key: keyOf(date), date, isToday: i === 0, isWash, items: [], wash: [] };
   });
   const washDays = days.filter(d => d.isWash);
+  if (plan.washRoutine) washDays.forEach((d, i) => { d.wash = stepsForWash(plan.washRoutine, i, washDays.length); });
 
   for (const card of plan.cards) {
     if (card.id === 'wash_interval') { washDays.forEach(d => d.items.push(card)); continue; }
@@ -78,6 +81,8 @@ export function week(plan: Plan, lastWash: string | null, todayKey: string, paus
     else if (BETWEEN_WASHES.has(card.id)) days.filter(d => !d.isWash).forEach(d => d.items.push(card));
     else days.forEach(d => d.items.push(card)); // daily habits
   }
+  // A habit that's also a wash step (scalp massage) shows once on wash day: inside the routine.
+  for (const d of days) if (d.wash.length) d.items = d.items.filter(c => !d.wash.some(w => w.id === c.id));
   return days;
 }
 
@@ -88,7 +93,7 @@ const NIGHT = new Set(['satin', 'scalp_massage', 'wind_down', 'ends_oil', 'loose
 export function planSummary(plan: Plan) {
   return {
     washEvery: washInterval(plan),
-    washSteps: plan.cards.filter(c => WASH_DAY.has(c.id)).map(c => c.label),
+    washSteps: plan.washRoutine?.steps.filter(s => !s.perWeek).map(s => s.title) ?? plan.cards.filter(c => WASH_DAY.has(c.id)).map(c => c.label),
     nightSteps: plan.cards.filter(c => NIGHT.has(c.id)).map(c => c.label),
   };
 }

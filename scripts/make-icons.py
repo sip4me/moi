@@ -8,8 +8,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 FONT = glob.glob('node_modules/@expo-google-fonts/young-serif/**/*.ttf', recursive=True)[0]
 CROWN = Image.open('assets/crown-pink.png').convert('RGBA')
-INK = (247, 241, 230, 255)            # cream wordmark
-TOP, BOTTOM = (166, 180, 171), (100, 118, 114)  # sage gradient, top-left → bottom-right
+INK = (10, 10, 10, 255)                # ink wordmark on white
+TOP, BOTTOM = (255, 255, 255), (255, 255, 255)  # white background
 
 # Same geometry as <Logo> in src/components/ui.tsx, 64px master: letter x positions, text box top,
 # and the tiara's size, centre and counter-clockwise tilt.

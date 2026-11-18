@@ -21,8 +21,8 @@ export const QUESTIONS: Question[] = [
     { label: 'Female', value: 'female' }, { label: 'Male', value: 'male' }, { label: 'Other', value: 'other' },
   ] },
   { id: 'washNow', title: 'How often do you wash your hair?', subtitle: CALIBRATE, kind: 'single', options: [
-    { label: 'Every day', value: 1 }, { label: 'Every 2–3 days', value: 2 }, { label: 'Twice a week', value: 3 },
-    { label: 'Once a week', value: 7 }, { label: 'Every 2–3 weeks', value: 14 }, { label: 'Less often than that', value: 21 },
+    { label: 'Every day', value: 1 }, { label: 'Every 2–3 days', value: 2 },
+    { label: 'Once a week', value: 7 }, { label: 'Every 2–3 weeks', value: 14 },
   ] },
   { id: 'hearAbout', title: 'Where did you hear about us?', kind: 'single', options: [
     { label: 'App Store', value: 'app_store' }, { label: 'TikTok', value: 'tiktok' }, { label: 'YouTube', value: 'youtube' },
