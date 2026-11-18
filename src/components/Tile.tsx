@@ -37,7 +37,7 @@ export function SectionTitle({ children, right, note }: { children: React.ReactN
     <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 16, gap: 12 }}>
       <View style={{ flex: 1 }}>
         <Text style={{ fontFamily: F.bold, fontSize: 22, letterSpacing: -0.4, color: C.ink }}>{children}</Text>
-        {note ? <Text style={{ fontFamily: F.regular, fontSize: 14, color: C.gray2, marginTop: 4 }}>{note}</Text> : null}
+        {note ? <Text style={{ fontFamily: F.regular, fontSize: 14, lineHeight: 20, color: C.gray2, marginTop: 6 }}>{note}</Text> : null}
       </View>
       {right}
     </View>

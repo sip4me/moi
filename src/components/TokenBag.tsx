@@ -7,6 +7,7 @@ import { TOKEN_BAG_SVG } from '../data/tokenBag';
 import { getFalling, onCoin, onFalling, setFalling, takeCoins } from '../lib/coinDrops';
 import { haptic } from '../lib/haptics';
 import { useStore } from '../state/store';
+import { Seal } from './ui';
 import { C, F, surface } from '../theme';
 
 const COIN = `<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 52 52">${coinSvg('crown')}</svg>`;
@@ -23,7 +24,7 @@ export function useCoins() {
 function Pill({ children, onPress, label }: { children: React.ReactNode; onPress?: () => void; label: string }) {
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} hitSlop={6}
-      style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: pressed ? '#F7F7F8' : '#fff', borderRadius: 999, paddingLeft: 6, paddingRight: 12, paddingVertical: 2, borderWidth: 1, borderColor: C.line, transform: [{ scale: pressed ? 0.96 : 1 }] })}>
+      style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: pressed ? '#F7F7F8' : '#fff', borderRadius: 999, paddingLeft: 6, paddingRight: 12, paddingVertical: 2, shadowColor: '#1E2430', shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, transform: [{ scale: pressed ? 0.96 : 1 }] })}>
       {children}
     </Pressable>
   );
@@ -101,7 +102,7 @@ export function CoinDrop() {
 
   return (
     <Animated.View pointerEvents="none" style={[{ position: 'absolute', top: 12, right: 16, zIndex: 50, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, borderRadius: 999 }, panel]}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fff', borderRadius: 999, paddingLeft: 8, paddingRight: 14, paddingVertical: 4, borderWidth: 1, borderColor: C.line }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fff', borderRadius: 999, paddingLeft: 8, paddingRight: 14, paddingVertical: 4, shadowColor: '#1E2430', shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } }}>
         <View style={{ width: 36, height: 36 }}>
           <Animated.View style={bag}><SvgXml xml={TOKEN_BAG_SVG} width={36} height={36} /></Animated.View>
           <Animated.View style={[{ position: 'absolute', left: 6, top: 4, width: 26, height: 26 }, coin]}><SvgXml xml={COIN} width={26} height={26} /></Animated.View>
@@ -133,7 +134,7 @@ export function CoinProgress() {
   return (
     <View style={[surface, { borderRadius: 22, padding: 16, gap: 12 }]} accessibilityLabel={`${shown} coins, level ${lvl.name}${next ? `, ${next.at - shown} to ${next.name}` : ''}`}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <SvgXml xml={COIN} width={40} height={40} />
+        <Seal size={40} />
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: F.bold, fontSize: 20, color: C.ink, letterSpacing: -0.3 }}>{shown} coins · {lvl.name}</Text>
           <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.gray2, marginTop: 2 }}>{next ? `${next.at - shown} more to reach ${next.name}` : 'Top level reached. Legendary.'}</Text>

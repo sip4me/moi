@@ -58,7 +58,7 @@ export default function ProductFit() {
       </View>
       <Text style={{ fontFamily: F.bold, fontSize: 17, color: C.ink, marginTop: 22, marginBottom: 8 }}>Key ingredients</Text>
       {fit.ingredients.length ? (
-        <View style={{ backgroundColor: C.card, borderRadius: 18, borderWidth: 1, borderColor: C.line }}>
+        <View style={{ backgroundColor: C.card, borderRadius: 18 }}>
           {fit.ingredients.map((x, i) => (
             <View key={x.name + i} style={{ flexDirection: 'row', gap: 12, padding: 14, borderTopWidth: i ? 1 : 0, borderTopColor: '#E6E6E8' }}>
               <View style={{ width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: x.status === 'good' ? C.greenSoft : C.amberSoft }}>

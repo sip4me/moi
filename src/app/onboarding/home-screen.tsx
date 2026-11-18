@@ -31,7 +31,7 @@ export default function AddToHomeScreen() {
         {standalone ? <Title style={{ textAlign: 'center' }}>You’re all set.</Title> : <BrandLine parts={['Add', 'logo', 'to your home screen.']} center />}
         <BrandText text="Open Moi in one tap and get your wash-day and routine reminders. Takes 10 seconds." size={16} weight="regular" color={C.gray2} lineHeight={1.375} center />
         {!standalone ? (
-          <View style={{ backgroundColor: C.card, borderRadius: 20, borderWidth: 1, borderColor: C.line }}>
+          <View style={{ backgroundColor: C.card, borderRadius: 20 }}>
             {STEPS.map(([n, a, b, c], i) => (
               <View key={n} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: i ? 1 : 0, borderTopColor: '#E6E6E8' }}>
                 <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: C.ink, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontFamily: F.semibold, fontSize: 12 }}>{n}</Text></View>

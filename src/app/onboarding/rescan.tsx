@@ -16,7 +16,7 @@ export default function Rescan() {
   return (
     <StepScreen step="rescan" title="Get reminded to rescan." sub="Same time, same light, every two weeks — so we can compare like with like."
       cta="Turn on reminders" onNext={turnOn} secondary={{ label: 'Maybe later', onPress: later }}>
-      <View style={{ marginTop: 22, flexDirection: 'row', backgroundColor: C.card, borderRadius: 18, borderWidth: 1, borderColor: C.line, paddingVertical: 14 }}>
+      <View style={{ marginTop: 22, flexDirection: 'row', backgroundColor: C.card, borderRadius: 18, paddingVertical: 14 }}>
         {MILESTONES.map(([t, s], k) => (
           <View key={t} style={{ flex: 1, alignItems: 'center', gap: 4 }}>
             <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: k === 0 ? C.ink : '#fff', borderWidth: 1.5, borderColor: k === 0 ? C.ink : '#CFCFD4' }} />

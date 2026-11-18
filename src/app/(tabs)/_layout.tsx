@@ -29,7 +29,7 @@ function TabBar({ state, navigation }: any) {
     <>
     <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 120 + insets.bottom }}>
       <Svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 10 10">
-        <Defs><LinearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><Stop offset="0" stopColor="#fff" stopOpacity="0" /><Stop offset="0.55" stopColor="#fff" stopOpacity="0.92" /><Stop offset="1" stopColor="#fff" stopOpacity="1" /></LinearGradient></Defs>
+        <Defs><LinearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><Stop offset="0" stopColor={C.bg} stopOpacity="0" /><Stop offset="0.55" stopColor={C.bg} stopOpacity="0.92" /><Stop offset="1" stopColor={C.bg} stopOpacity="1" /></LinearGradient></Defs>
         <Rect x="0" y="0" width="10" height="10" fill="url(#fade)" />
       </Svg>
     </View>
@@ -104,7 +104,7 @@ function ScanMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
 
 export default function TabsLayout() {
   return (
-    <Tabs tabBar={p => <TabBar {...p} />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: '#fff' } } as any}>
+    <Tabs tabBar={p => <TabBar {...p} />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: C.bg } } as any}>
       <Tabs.Screen name="index" />
       <Tabs.Screen name="progress" />
       <Tabs.Screen name="products" />

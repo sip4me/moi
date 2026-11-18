@@ -64,7 +64,7 @@ export function HomeCalendar({ days, done, selected, onSelect }: { days: Day[]; 
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink }}>{open ? '' : label}</Text>
         <Pressable onPress={() => { haptic('tap'); setOpen(o => !o); }} hitSlop={8} accessibilityRole="button" accessibilityLabel={open ? 'Show week' : 'Show full calendar'}
-          style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: pressed ? '#EDEDED' : '#F4F4F4' })}>
+          style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: pressed ? '#F1F2F4' : '#FFFFFF', shadowColor: '#1E2430', shadowOpacity: 0.05, shadowRadius: 6, shadowOffset: { width: 0, height: 2 } })}>
           <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.ink }}>{open ? 'Week' : 'Month'}</Text>
           <Chevron dir={open ? 'up' : 'down'} />
         </Pressable>

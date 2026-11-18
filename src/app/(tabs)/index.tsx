@@ -112,7 +112,7 @@ export default function Home() {
         <Logo size={36} />
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <TokenBag />
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: C.line }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6, shadowColor: '#1E2430', shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } }}>
           <Glyph name="flame" color="#F08A24" size={16} />
           <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink }}>{streakDays}</Text>
           <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.gray }}>{streakDays === 1 ? 'day' : 'days'}</Text>
@@ -148,14 +148,13 @@ export default function Home() {
       {/* Scrolling down settles here: Your goal and today's recs fill the screen and the top scrolls away. */}
       <View onLayout={e => setRoutineY(e.nativeEvent.layout.y)}
         style={{ marginTop: SPACE.section }}>
-        {/* Your goal: the 3D bullseye (its arrow keeps landing dead centre), the goal, and today's count. */}
+        {/* Your goal: the 3D bullseye (its arrow keeps landing dead centre) and the goal. */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: SPACE.head }} accessibilityRole="header" accessibilityLabel={`Your goal: ${plan.target}`}>
           <GoalBullseye size={46} />
           <View style={{ flex: 1 }}>
             <Text style={{ fontFamily: F.bold, fontSize: 22, letterSpacing: -0.4, color: C.ink }}>{day.isToday ? 'Your goal' : dayName(day)}</Text>
             <Text numberOfLines={1} style={{ fontFamily: F.regular, fontSize: 14, color: C.gray2, marginTop: 2 }}>{day.isWash ? 'Wash day · ' : ''}{plan.target}</Text>
           </View>
-          {day.isToday ? <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.gray2 }}>{routineItems.filter(c => doneToday.includes(c.id)).length}/{routineItems.length} today</Text> : null}
         </View>
         {routineItems.length ? (
           <Locked radius={30} label="Your daily recs" style={{ marginHorizontal: INDENT }}>

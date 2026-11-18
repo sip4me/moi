@@ -21,7 +21,7 @@ export default function Saved() {
       <Sub style={{ marginTop: 6 }}>Recipes and ideas you saved from Home.</Sub>
       <View style={{ gap: 10, marginTop: 18 }}>
         {cards.length ? cards.map(c => (
-          <Pressable key={c.id} onPress={() => router.push(c.href as never)} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 14, borderRadius: 18, padding: 10, backgroundColor: pressed ? C.pressed : C.card, borderWidth: 1, borderColor: C.line })}>
+          <Pressable key={c.id} onPress={() => router.push(c.href as never)} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 14, borderRadius: 18, padding: 10, backgroundColor: pressed ? C.pressed : C.card })}>
             <View style={{ width: 56, height: 56, borderRadius: 14, backgroundColor: c.bg, alignItems: 'center', justifyContent: 'center' }}>{c.image ? <Image source={c.image} resizeMode="contain" style={{ width: 46, height: 46 }} /> : null}</View>
             <Text style={{ flex: 1, fontFamily: F.semibold, fontSize: 15, color: C.ink }}>{c.title}</Text>
           </Pressable>

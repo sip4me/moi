@@ -50,7 +50,7 @@ export function Locked({ children, radius = 16, label, style }: { children: Reac
     <Pressable onPress={openPaywall} accessibilityRole="button" accessibilityLabel={`${label ?? 'Locked'}. Subscribe to unlock.`} style={style}>
       <View pointerEvents="none" importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>{children}</View>
       <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: radius, backgroundColor: 'rgba(255,255,255,0.5)', justifyContent: 'center', alignItems: 'center', padding: 10 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: C.line }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4, shadowColor: '#1E2430', shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } }}>
           <LockIcon /><Text style={{ fontFamily: F.semibold, fontSize: 11, color: C.ink }}>Unlock</Text>
         </View>
       </View>

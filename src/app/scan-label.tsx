@@ -179,7 +179,7 @@ export default function ScanLabel() {
         const tone = v.tone === 'green' ? { bg: C.greenSoft, fg: C.greenText } : v.tone === 'amber' ? { bg: C.amberSoft, fg: C.amberText } : { bg: '#F2F2F3', fg: C.gray2 };
         return (
           <View style={{ marginTop: 16, gap: 12 }}>
-            <View style={{ borderRadius: 22, padding: 18, backgroundColor: '#fff', borderWidth: 1, borderColor: C.line, gap: 10 }}>
+            <View style={{ borderRadius: 22, padding: 18, backgroundColor: C.card, gap: 10 }}>
               <View style={{ alignSelf: 'flex-start', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: tone.bg }}><Text style={{ fontFamily: F.semibold, fontSize: 12, color: tone.fg }}>{v.label}</Text></View>
               {s.food.brand ? <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.gray }}>{s.food.brand}</Text> : null}
               <Text style={{ fontFamily: F.bold, fontSize: 20, letterSpacing: -0.3, color: C.ink, marginTop: -6 }}>{s.food.name}</Text>

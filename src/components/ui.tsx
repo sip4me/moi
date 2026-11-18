@@ -53,7 +53,7 @@ export function Screen({ children, scroll, style, footer, tab, overlay, stops }:
         scrollEventThrottle={32} onScroll={stops ? e => settle(e.nativeEvent.contentOffset.y) : undefined}>{children}</ScrollView>
     : <View style={[s.pad, { paddingHorizontal: px, flex: 1 }, top, style]}>{children}</View>;
   return (
-    <SafeAreaView style={s.outer} edges={['top', 'bottom']}>
+    <SafeAreaView style={[s.outer, tab ? s.canvas : null]} edges={['top', 'bottom']}>
       <View style={s.col}>
         {body}
         {footer ? <View style={[s.footer, { paddingHorizontal: px }]}>{footer}</View> : null}
@@ -136,7 +136,7 @@ export function Title({ children, size = 30, style }: { children: React.ReactNod
   return <Text style={[{ fontFamily: F.bold, fontSize: size, color: C.ink, letterSpacing: -0.6, lineHeight: size * 1.16 }, style]}>{children}</Text>;
 }
 export function Sub({ children, style }: { children: React.ReactNode; style?: any }) {
-  return <Text style={[{ fontFamily: F.regular, fontSize: 16, color: C.gray2, lineHeight: 22 }, style]}>{children}</Text>;
+  return <Text style={[{ fontFamily: F.regular, fontSize: 16, color: C.gray2, lineHeight: 23 }, style]}>{children}</Text>;
 }
 
 // "Moi" in Young Serif with the 3D crown on the o, scaled from the Figma lockup (64 px master).
@@ -288,9 +288,11 @@ export function SectionCard({ label, children, style }: { label?: string; childr
 
 const s = StyleSheet.create({
   outer: { flex: 1, backgroundColor: '#fff', alignItems: 'center' },
+  canvas: { backgroundColor: C.bg },
   col: { flex: 1, width: '100%', maxWidth: 430 },
   pad: { paddingHorizontal: 24, paddingTop: 12 },
-  footer: { paddingHorizontal: 24, paddingBottom: 12, gap: 4 },
+  // The primary action gets an island of space: 24 px above and below.
+  footer: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24, gap: 4 },
   topbar: { flexDirection: 'row', alignItems: 'center', gap: 16, height: 44 },
   track: { flex: 1, height: 4, backgroundColor: '#EDEDED', borderRadius: 2, overflow: 'hidden' },
   trackFill: { height: 4, borderRadius: 2 },

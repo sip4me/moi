@@ -15,7 +15,7 @@ export default function PhotoGuide() {
     <StepScreen step="photo-guide" title="Three photos. Same way, every time." sub="Consistent shots are what make progress visible. Takes about a minute." cta="Start my first scan" scroll>
       <View style={{ gap: 10, marginTop: 22 }}>
         {ANGLES.map((a, i) => (
-          <View key={a.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: C.card, borderRadius: 18, borderWidth: 1, borderColor: C.line, padding: 12 }}>
+          <View key={a.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: C.card, borderRadius: 18, padding: 12 }}>
             <View style={{ width: 46, height: 46, borderRadius: 12, backgroundColor: '#EBEBEE', alignItems: 'center', justifyContent: 'center' }}><Svg width={24} height={24} viewBox="0 0 24 24">{ICON[a.id]}</Svg></View>
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: F.medium, fontSize: 15, color: C.ink }}>{i + 1} · {a.title}</Text>

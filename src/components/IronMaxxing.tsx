@@ -56,7 +56,7 @@ export function IronMaxxing() {
         ))}
       </PeekRow>
       <Pressable onPress={subscribed ? () => router.push({ pathname: '/scan-label', params: { mode: 'food' } }) : openPaywall} accessibilityRole="button"
-        style={({ pressed }) => ({ marginTop: 18, marginHorizontal: CONTENT_INDENT, height: 50, borderRadius: 14, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#E8E8EA' : '#F2F2F3' })}>
+        style={({ pressed }) => ({ marginTop: 18, marginHorizontal: CONTENT_INDENT, height: 50, borderRadius: 14, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#F1F2F4' : '#FFFFFF' })}>
         <Svg width={18} height={18} viewBox="0 0 24 24"><Path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 9v6M11 9v6M14 9v6M17 9v6" stroke={C.ink} strokeWidth={1.8} fill="none" strokeLinecap="round" /></Svg>
         <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink }}>Scan a food’s iron</Text>
       </Pressable>

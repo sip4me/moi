@@ -1,8 +1,13 @@
 export const C = {
-  ink: '#0A0A0A',
-  gray: '#8A8A8A',
-  gray2: '#6B6B6B',
-  line: '#EDEDED',
+  /** Off-black text: no pure black on pure white, less glare. */
+  ink: '#1E1E1E',
+  /** Muted metadata: timestamps, captions, secondary icons. */
+  gray: '#6E7175',
+  /** Secondary body text. */
+  gray2: '#5F6368',
+  line: '#F0F1F3',
+  /** The soft canvas the main tabs sit on, so white cards lift by tone instead of borders. */
+  bg: '#F8F9FA',
   card: '#F6F6F8',
   option: '#F5F5F5',
   pressed: '#E9E9EC',
@@ -37,13 +42,14 @@ export const evidenceStyle: Record<string, { label: string; bg: string; fg: stri
 };
 
 /**
- * Surfaces, in the Airbnb spirit: the page is white; content sits on white cards lifted by a soft
- * shadow (no grey boxes, no heavy borders); 3D objects sit on light-grey tiles with their label below.
+ * Surfaces, low cognitive load: the main tabs sit on a soft off-white canvas (C.bg); content sits on
+ * white cards separated by tone and a faint shadow, never by border lines; 3D objects sit on tonal
+ * grey tiles with their label below.
  */
-export const TILE = '#F7F7F7';
+export const TILE = '#EEF0F3';
 export const surface = {
-  backgroundColor: '#FFFFFF', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)',
-  shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 18, shadowOffset: { width: 0, height: 6 }, elevation: 3,
+  backgroundColor: '#FFFFFF', borderRadius: 24,
+  shadowColor: '#1E2430', shadowOpacity: 0.05, shadowRadius: 16, shadowOffset: { width: 0, height: 4 }, elevation: 2,
 } as const;
 /** Vertical rhythm: between sections, and from a section title to its content. */
 /** Calm, breathable spacing for a wellness app: 32 px between sections, 16 px from a title to its content. */
