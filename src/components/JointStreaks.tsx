@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, View } from 'react-native';
-import Svg, { Circle, Defs, Path, RadialGradient, Stop } from 'react-native-svg';
+import { SvgXml } from 'react-native-svg';
 import { type BuddyStreak, inviteByPhone, loadBuddyStreaks, nextToken, tokensFor } from '../lib/buddies';
 import { haptic } from '../lib/haptics';
 import { useStore } from '../state/store';
+import { coinSvg } from '../data/tokenArt';
 import { C, F, surface } from '../theme';
 import { Button, Glyph } from './ui';
 
@@ -17,19 +18,13 @@ function Avatar({ label, tone = C.ink, dashed }: { label: string; tone?: string;
   );
 }
 
-/** A collectible token: a glossy medallion when earned, a flat grey coin with its day count when not. */
-function TokenCoin({ name, days, color, earned }: { name: string; days: number; color: readonly [string, string]; earned: boolean }) {
-  const id = `tok-${name.replace(/\W/g, '')}`;
+/** A collectible token: its own picture on a glossy medallion when earned; a grey coin with a lock when not. */
+function TokenCoin({ id, name, days, color, earned }: { id: string; name: string; days: number; color: readonly [string, string]; earned: boolean }) {
+  const lock = earned ? '' : '<path d="M21 25v-3a5 5 0 0 1 10 0v3M19 25h14v9H19z" fill="none" stroke="#B5B5BA" stroke-width="1.8" stroke-linejoin="round"/>';
+  const xml = `<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 52 52">${coinSvg(id, color, earned)}${lock}</svg>`;
   return (
     <View style={{ alignItems: 'center', width: 74, gap: 4 }} accessibilityLabel={`${name} token, ${earned ? 'earned' : `unlocks at a ${days}-day joint streak`}`}>
-      <Svg width={52} height={52} viewBox="0 0 52 52">
-        <Defs><RadialGradient id={id} cx="35%" cy="30%" r="75%"><Stop offset="0" stopColor="#fff" /><Stop offset="0.45" stopColor={color[0]} /><Stop offset="1" stopColor={color[1]} /></RadialGradient></Defs>
-        <Circle cx={26} cy={26} r={24} fill={earned ? `url(#${id})` : '#EDEDEF'} stroke={earned ? color[1] : '#DDDDE0'} strokeWidth={1.5} />
-        <Circle cx={26} cy={26} r={17} fill="none" stroke={earned ? '#ffffffAA' : '#D5D5D8'} strokeWidth={1.2} strokeDasharray={earned ? undefined : '2 3'} />
-        {earned
-          ? <Path d="M16 31 l2-11 5 5 3-7 3 7 5-5 2 11z" fill="#fff" stroke={color[1]} strokeWidth={1.2} strokeLinejoin="round" />
-          : <Path d="M21 25v-3a5 5 0 0 1 10 0v3M19 25h14v9H19z" fill="none" stroke="#B5B5BA" strokeWidth={1.8} strokeLinejoin="round" />}
-      </Svg>
+      <SvgXml xml={xml} width={52} height={52} />
       <Text numberOfLines={2} style={{ fontFamily: F.semibold, fontSize: 11, lineHeight: 14, textAlign: 'center', color: earned ? C.ink : C.gray }}>{name}</Text>
       <Text style={{ fontFamily: F.regular, fontSize: 10, color: C.gray, marginTop: -2 }}>{days ? (days === 365 ? '1 year' : `${days} days`) : 'Pair up'}</Text>
     </View>
@@ -151,7 +146,7 @@ export function JointStreaks() {
           <Text style={{ fontFamily: F.regular, fontSize: 12, color: C.gray2 }}>{next ? `${next.days - best} more day${next.days - best === 1 ? '' : 's'} to ${next.name}` : streaks?.length ? 'All collected 👑' : 'Pair up to start'}</Text>
         </View>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', rowGap: 16, justifyContent: 'space-between' }}>
-          {tokens.map(t => <TokenCoin key={t.id} name={t.name} days={t.days} color={t.color} earned={t.earned} />)}
+          {tokens.map(t => <TokenCoin key={t.id} id={t.id} name={t.name} days={t.days} color={t.color} earned={t.earned} />)}
         </View>
       </View>
       <InviteSheet open={inviting} onClose={() => { setInviting(false); refresh(); }} />

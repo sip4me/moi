@@ -10,6 +10,7 @@ import { Trending } from '../../components/Trending';
 import { MomentCard } from '../../components/MomentCard';
 import { WashDayArt } from '../../components/WashDayArt';
 import { SegmentedTabs } from '../../components/SegmentedTabs';
+import { ResetCountdown } from '../../components/ResetCountdown';
 import { LockIcon, Locked, PeekRow, openPaywall } from '../../components/Peek';
 import { SectionTitle, Tile } from '../../components/Tile';
 import { currentMoment } from '../../data/moments';
@@ -76,7 +77,7 @@ export default function Home() {
       </View>
 
       {/* The next seven days. Each day shows a drop on wash days and how many steps are planned. */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 24 }}>
         {days.map((d, i) => {
           const on = i === selected;
           const did = (done[d.key] ?? []).length > 0;
@@ -98,13 +99,13 @@ export default function Home() {
       </View>
 
       {/* Hero: one centred card, like a feature card — object, headline, one line of context, one soft button. */}
-      <View style={[surface, { marginTop: 24, borderRadius: 28, paddingHorizontal: 22, paddingTop: 22, paddingBottom: 22, alignItems: 'center' }]}>
+      <View style={[surface, { marginTop: 36, borderRadius: 28, paddingHorizontal: 24, paddingTop: 32, paddingBottom: 28, alignItems: 'center' }]}>
         {pineapple ? <TwoFrameArt spec={PINEAPPLE_ART} timing={PINEAPPLE_TIMING} width={120} /> : <WashDayArt width={120} />}
-        <Text style={{ fontFamily: F.bold, fontSize: 28, lineHeight: 33, color: C.ink, letterSpacing: -0.7, textAlign: 'center', marginTop: 12 }}>{paused ? 'Wash day paused' : daysLeft === 0 ? 'Wash day today' : `Wash hair in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`}</Text>
-        <Text style={{ fontFamily: F.regular, fontSize: 15, lineHeight: 21, color: C.gray2, textAlign: 'center', marginTop: 6 }}>{heroSub}</Text>
+        <Text style={{ fontFamily: F.bold, fontSize: 28, lineHeight: 33, color: C.ink, letterSpacing: -0.7, textAlign: 'center', marginTop: 18 }}>{paused ? 'Wash day paused' : daysLeft === 0 ? 'Wash day today' : `Wash hair in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`}</Text>
+        <Text style={{ fontFamily: F.regular, fontSize: 15, lineHeight: 21, color: C.gray2, textAlign: 'center', marginTop: 8, paddingHorizontal: 6 }}>{heroSub}</Text>
         {washDay ? (
           <Pressable onPress={subscribed ? () => router.push({ pathname: '/wash-day', params: { day: washDay.key } }) : openPaywall} accessibilityRole="button"
-            style={({ pressed }) => ({ alignSelf: 'stretch', height: 50, borderRadius: 14, marginTop: 18, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#E8E8EA' : '#F2F2F3' })}>
+            style={({ pressed }) => ({ alignSelf: 'stretch', height: 50, borderRadius: 14, marginTop: 24, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#E8E8EA' : '#F2F2F3' })}>
             {subscribed ? null : <LockIcon size={14} />}
             <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink }}>{washLabel}</Text>
           </Pressable>
@@ -118,7 +119,7 @@ export default function Home() {
         </Pressable>
       ) : null}
 
-      <View style={{ marginTop: SPACE.section }}>
+      <View style={{ marginTop: SPACE.section + 8 }}>
         <SectionTitle note={`${day.isWash ? 'Wash day · ' : ''}${plan.target}`}
           right={day.isToday ? <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.gray2, marginBottom: 2 }}>{routineItems.filter(c => doneToday.includes(c.id)).length}/{routineItems.length} today</Text> : null}>
           {day.isToday ? 'Your routine' : dayName(day)}
@@ -175,6 +176,7 @@ export default function Home() {
         <HomeFeed streakWeeks={streakWeeksN} only={['styles']} withRecords />
       </> : null}
       </View>
+      <ResetCountdown />
     </Screen>
   );
 }
