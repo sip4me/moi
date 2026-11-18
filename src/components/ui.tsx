@@ -1,22 +1,26 @@
 import { router } from 'expo-router';
-import React from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View, type ViewStyle } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { ActivityIndicator, Image, Pressable, ScrollView, type ScrollViewInstance, StyleSheet, Text, useWindowDimensions, View, type ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path, SvgXml } from 'react-native-svg';
 import { glyphSvg, leverColor, leverSvg } from '../data/icons';
 import { icon3d } from '../data/icons3d';
 import { haptic } from '../lib/haptics';
+import { onScrollTop } from '../lib/scrollTop';
 import { C, evidenceStyle, F } from '../theme';
 
 const crown = require('../../assets/crown-pink.png');
 const seal = require('../../assets/seal.png');
 
 // Phone-width column on web so screens look like the Figma frames.
-export function Screen({ children, scroll, style, footer }: { children: React.ReactNode; scroll?: boolean; style?: ViewStyle; footer?: React.ReactNode }) {
+/** `tab`: the tab this screen belongs to, so tapping that tab again scrolls back to the top. */
+export function Screen({ children, scroll, style, footer, tab }: { children: React.ReactNode; scroll?: boolean; style?: ViewStyle; footer?: React.ReactNode; tab?: string }) {
   const narrow = useWindowDimensions().width < 360;
   const px = narrow ? 18 : 24;
+  const ref = useRef<ScrollViewInstance>(null);
+  useEffect(() => (tab ? onScrollTop(tab, () => ref.current?.scrollTo({ y: 0, animated: true })) : undefined), [tab]);
   const body = scroll
-    ? <ScrollView contentContainerStyle={[s.pad, { paddingHorizontal: px }, { paddingBottom: footer ? 24 : 120 }, style]} showsVerticalScrollIndicator={false}>{children}</ScrollView>
+    ? <ScrollView ref={ref} contentContainerStyle={[s.pad, { paddingHorizontal: px }, { paddingBottom: footer ? 24 : 120 }, style]} showsVerticalScrollIndicator={false}>{children}</ScrollView>
     : <View style={[s.pad, { paddingHorizontal: px, flex: 1 }, style]}>{children}</View>;
   return (
     <SafeAreaView style={s.outer} edges={['top', 'bottom']}>

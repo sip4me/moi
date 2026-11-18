@@ -1,4 +1,6 @@
 import { router, Tabs } from 'expo-router';
+import { haptic } from '../../lib/haptics';
+import { scrollTop } from '../../lib/scrollTop';
 import { useState } from 'react';
 import { Modal, Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { useStore } from '../../state/store';
@@ -35,7 +37,7 @@ function TabBar({ state, navigation }: any) {
           {state.routes.map((r: any, i: number) => {
             const on = state.index === i; const col = on ? C.ink : '#8F8F8F';
             return (
-              <Pressable key={r.key} onPress={() => go(r.name)} style={({ pressed }) => ({ flex: 1, minWidth: 0, alignItems: 'center', paddingVertical: 7, borderRadius: 999, backgroundColor: on ? '#F0F0F0' : pressed ? '#E6E6E6' : 'transparent' })}>
+              <Pressable key={r.key} onPress={() => { if (on) { haptic('select'); scrollTop(r.name); } else go(r.name); }} style={({ pressed }) => ({ flex: 1, minWidth: 0, alignItems: 'center', paddingVertical: 7, borderRadius: 999, backgroundColor: on ? '#F0F0F0' : pressed ? '#E6E6E6' : 'transparent' })}>
                 <Svg width={22} height={22} viewBox="0 0 24 24">{ICON[r.name]?.(col)}</Svg>
                 <Text style={{ fontFamily: on ? F.semibold : F.medium, fontSize: narrow ? 10 : 11, color: col, marginTop: 3 }}>{LABEL[r.name]}</Text>
               </Pressable>

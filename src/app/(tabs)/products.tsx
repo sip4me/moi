@@ -83,7 +83,7 @@ export default function Products() {
   const every = washInterval(plan);
 
   return (
-    <Screen scroll>
+    <Screen scroll tab="products">
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <Title>Products</Title>
         <Pressable onPress={() => router.push('/scan-label')} accessibilityRole="button" accessibilityLabel="Scan a product"

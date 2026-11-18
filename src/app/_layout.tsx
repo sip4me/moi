@@ -9,6 +9,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StoreProvider } from '../state/store';
 import React, { useEffect } from 'react';
 import { markOpened } from '../lib/push';
+import { useContentProtection } from '../lib/protect';
 
 /** A tapped reminder opens /?n=<id>; record it so the sender knows reminders are being read. */
 function useOpenedReminder() {
@@ -21,6 +22,7 @@ function useOpenedReminder() {
 
 export default function RootLayout() {
   useOpenedReminder();
+  useContentProtection();
   const [loaded] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, YoungSerif_400Regular });
   if (!loaded) return null;
   return (

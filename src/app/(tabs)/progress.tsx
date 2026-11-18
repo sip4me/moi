@@ -95,7 +95,7 @@ export default function Progress() {
   const first = withPhotos[0], last = withPhotos[withPhotos.length - 1];
 
   return (
-    <Screen scroll>
+    <Screen scroll tab="progress">
       <Title>Progress</Title>
 
       <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>

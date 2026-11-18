@@ -29,7 +29,7 @@ export default function Profile() {
   const total = lc?.endsAt ? Math.max(1, Math.round((new Date(lc.endsAt).getTime() - new Date(lc.startsAt).getTime()) / 86400000)) : 0;
   const left = lc?.endsAt ? Math.max(0, Math.ceil((new Date(lc.endsAt).getTime() - Date.now()) / 86400000)) : 0;
   return (
-    <Screen scroll>
+    <Screen scroll tab="profile">
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
         <View style={{ width: 68, height: 68, borderRadius: 34, backgroundColor: '#000', alignItems: 'center', justifyContent: 'flex-end', overflow: 'visible' }}>
           <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: '#9AA', marginBottom: 4 }} />

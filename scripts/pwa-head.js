@@ -8,6 +8,10 @@ const TAGS = [
   '<meta name="mobile-web-app-capable" content="yes"/>',
   '<meta name="theme-color" content="#FFFFFF"/>',
   '<meta name="apple-mobile-web-app-status-bar-style" content="default"/>',
+  // No selecting/copying page content, no long-press image previews or dragging; inputs still work normally.
+  '<style id="moi-protect">html,body,#root{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}' +
+    'img{-webkit-user-drag:none;user-drag:none;-webkit-touch-callout:none;pointer-events:none}' +
+    'input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}</style>',
 ].join('');
 const walk = d => fs.readdirSync(d, { withFileTypes: true }).flatMap(e => (e.isDirectory() ? walk(path.join(d, e.name)) : e.name.endsWith('.html') ? [path.join(d, e.name)] : []));
 let n = 0;
