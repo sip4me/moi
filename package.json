@@ -1,6 +1,6 @@
 {
   "name": "moi",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "main": "expo-router/entry",
   "dependencies": {
     "@expo-google-fonts/instrument-serif": "^0.4.1",

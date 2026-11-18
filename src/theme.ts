@@ -46,9 +46,10 @@ export const surface = {
   shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 18, shadowOffset: { width: 0, height: 6 }, elevation: 3,
 } as const;
 /** Vertical rhythm: between sections, and from a section title to its content. */
-export const SPACE = { section: 44, head: 16 } as const;
-/** Section content sits this much further in from the screen edge than its title. */
-export const CONTENT_INDENT = 8;
+/** Calm, breathable spacing for a wellness app: 32 px between sections, 16 px from a title to its content. */
+export const SPACE = { section: 32, head: 16 } as const;
+/** Section content sits this much further in than its title: titles at a 20 px margin, content at 24 px. */
+export const CONTENT_INDENT = 4;
 export const TYPE = {
   h1: { fontFamily: F.bold, fontSize: 32, letterSpacing: -0.8, color: C.ink },
   h2: { fontFamily: F.bold, fontSize: 22, letterSpacing: -0.4, color: C.ink },

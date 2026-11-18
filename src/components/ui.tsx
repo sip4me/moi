@@ -6,6 +6,7 @@ import Svg, { Circle, Path, SvgXml } from 'react-native-svg';
 import { glyphSvg, leverColor, leverSvg } from '../data/icons';
 import { icon3d } from '../data/icons3d';
 import { haptic } from '../lib/haptics';
+import { tapped } from '../lib/notify';
 import { onScrollTop } from '../lib/scrollTop';
 import { C, evidenceStyle, F, surface, TILE } from '../theme';
 
@@ -21,8 +22,7 @@ const seal = require('../../assets/seal.png');
  * it eases to the nearest one. Past the last stop, scrolling is free.
  */
 export function Screen({ children, scroll, style, footer, tab, overlay, stops }: { children: React.ReactNode; scroll?: boolean; style?: ViewStyle; footer?: React.ReactNode; tab?: string; overlay?: React.ReactNode; stops?: number[] }) {
-  const narrow = useWindowDimensions().width < 360;
-  const px = narrow ? 18 : 24;
+  const px = 20; // page margin (titles); section content adds CONTENT_INDENT → 24
   const ref = useRef<ScrollViewInstance>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const settling = useRef(false);
@@ -87,7 +87,7 @@ export function BackButton({ onPress }: { onPress?: () => void }) {
 export function Button({ label, onPress, variant = 'primary', disabled, loading, style }: { label: string; onPress?: () => void; variant?: 'primary' | 'secondary' | 'ghost'; disabled?: boolean; loading?: boolean; style?: ViewStyle }) {
   const off = disabled && !loading;
   return (
-    <Pressable disabled={disabled || loading} onPress={onPress ? () => { haptic(); onPress(); } : undefined}
+    <Pressable disabled={disabled || loading} onPress={onPress ? () => { haptic(); onPress(); tapped(); } : undefined}
       accessibilityRole="button" accessibilityState={{ disabled: !!(disabled || loading), busy: !!loading }}
       style={({ pressed }) => [
         s.btn,

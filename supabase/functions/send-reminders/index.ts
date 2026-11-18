@@ -1,7 +1,9 @@
 // Hourly reminder sender (called by pg_cron). For each person with notifications on, it works in
 // their own time zone and sends at most one reminder per slot:
-//   8 AM  — wash day ("Wash day: …steps") or, on their rescan Sunday, a scan check-in
+//   8 AM  — wash day, the Sunday check-in scan, or else a brief good-morning nudge
+//   1 PM  — a midday nudge, only if nothing is ticked yet today
 //   8 PM  — tonight's habits (bonnet, massage, wind down…)
+// Copy is brief, warm and never guilt-tripping. Every notification shows the pink crown (sw.js).
 // House rules: at most 2 a day, nothing 10 PM–7 AM, and after 3 unopened reminders in a row it
 // steps back to wash days only until they open one.
 import { createClient } from 'npm:@supabase/supabase-js@2';
@@ -20,16 +22,18 @@ function localParts(tz: string | null, now = new Date()) {
 const daysBetween = (a: string, b: string) => Math.round((Date.parse(b) - Date.parse(a)) / 86400000);
 const list = (xs: string[] = []) => xs.slice(0, 3).join(', ').toLowerCase();
 
-function pick(p: Profile, now = new Date()) {
+function pick(p: Profile, doneToday: number, now = new Date()) {
   const { date, hour, weekday } = localParts(p.timezone, now);
   const on = (k: string) => p.reminders?.[k] !== false;
   if (!on('all') || hour < 7 || hour >= 22) return null;
   const every = p.plan_summary?.washEvery ?? 3;
   const washDay = p.last_wash ? daysBetween(p.last_wash, date) >= every : false;
   if (hour === 8) {
-    if (washDay && on('wash_interval')) return { kind: 'wash', title: 'Wash day', body: p.plan_summary?.washSteps?.length ? `Today: ${list(p.plan_summary.washSteps)}.` : 'Your routine is ready in Moi.' };
-    if (weekday === 'Sun' && on('scan')) return { kind: 'scan', title: 'Check-in scan', body: 'Same light, same spot. Three photos, about a minute.' };
+    if (washDay && on('wash_interval')) return { kind: 'wash', title: 'Wash day 💧', body: p.plan_summary?.washSteps?.length ? `Today: ${list(p.plan_summary.washSteps)}.` : 'Your wash routine is ready.' };
+    if (weekday === 'Sun' && on('scan')) return { kind: 'scan', title: 'Check-in scan', body: 'Same light, same spot. About a minute.' };
+    return { kind: 'morning', title: 'Good morning', body: 'Your recs are ready. One small step toward your goal?' };
   }
+  if (hour === 13 && doneToday === 0) return { kind: 'midday', title: 'Midday check-in', body: 'Tick one rec, earn a coin.' };
   if (hour === 20 && p.plan_summary?.nightSteps?.length) return { kind: 'night', title: 'Tonight', body: `${list(p.plan_summary.nightSteps)}. Tap when done.` };
   return null;
 }
@@ -46,9 +50,10 @@ Deno.serve(async req => {
 
   let sent = 0;
   for (const p of (profiles ?? []) as Profile[]) {
-    const msg = pick(p);
-    if (!msg) continue;
     const { date } = localParts(p.timezone);
+    const { count: doneToday } = await admin.from('done_log').select('lever_id', { count: 'exact', head: true }).eq('user_id', p.id).eq('day', date);
+    const msg = pick(p, doneToday ?? 0);
+    if (!msg) continue;
     const { data: recent } = await admin.from('notification_log').select('kind, sent_at, opened_at').eq('user_id', p.id).order('sent_at', { ascending: false }).limit(5);
     const today = (recent ?? []).filter(r => localParts(p.timezone, new Date(r.sent_at)).date === date);
     if (today.length >= 2 || today.some(r => r.kind === msg.kind)) continue;

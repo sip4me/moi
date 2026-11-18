@@ -139,26 +139,23 @@ export default function Home() {
       </View>
       {moment && !pineapple ? <MomentCard moment={moment} onDone={() => toggleDone(moment.doneId)} /> : null}
       {lifeChange ? (
-        <Pressable onPress={() => router.push('/(tabs)/profile')} style={{ marginTop: 24, backgroundColor: C.goldSoft, borderRadius: 18, padding: 14, borderWidth: 1, borderColor: '#F1DDAA' }}>
+        <Pressable onPress={() => router.push('/(tabs)/profile')} style={{ marginTop: 24, marginHorizontal: INDENT, backgroundColor: C.goldSoft, borderRadius: 18, padding: 14, borderWidth: 1, borderColor: '#F1DDAA' }}>
           <Text style={{ fontFamily: F.semibold, fontSize: 14, color: C.ink }}>{lifeChange.label}</Text>
           <Text style={{ fontFamily: F.regular, fontSize: 12, color: '#7A6A4A', marginTop: 2 }}>{lifeChange.endsAt ? `Until ${new Date(lifeChange.endsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : 'Until you end it'} · your routine is adjusted</Text>
         </Pressable>
       ) : null}
 
-      {/* Scrolling down settles here: Your routine fills the screen and the top scrolls away. */}
+      {/* Scrolling down settles here: Your goal and today's recs fill the screen and the top scrolls away. */}
       <View onLayout={e => setRoutineY(e.nativeEvent.layout.y)}
-        style={{ marginTop: SPACE.section + 8 }}>
-        <SectionTitle
-          right={day.isToday ? <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.gray2, marginBottom: 2 }}>{routineItems.filter(c => doneToday.includes(c.id)).length}/{routineItems.length} today</Text> : null}>
-          {day.isToday ? 'Your routine' : dayName(day)}
-        </SectionTitle>
-        {/* Your goal, marked by a 3D bullseye whose arrow keeps landing dead centre. */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: -4, marginBottom: 16 }} accessibilityLabel={`Your goal: ${plan.target}`}>
-          <GoalBullseye size={38} />
+        style={{ marginTop: SPACE.section }}>
+        {/* Your goal: the 3D bullseye (its arrow keeps landing dead centre), the goal, and today's count. */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: SPACE.head }} accessibilityRole="header" accessibilityLabel={`Your goal: ${plan.target}`}>
+          <GoalBullseye size={46} />
           <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: F.semibold, fontSize: 14, color: C.ink }}>Your goal{day.isWash ? ' · Wash day' : ''}</Text>
-            <Text numberOfLines={1} style={{ fontFamily: F.regular, fontSize: 13, color: C.gray2, marginTop: 1 }}>{plan.target}</Text>
+            <Text style={{ fontFamily: F.bold, fontSize: 22, letterSpacing: -0.4, color: C.ink }}>{day.isToday ? 'Your goal' : dayName(day)}</Text>
+            <Text numberOfLines={1} style={{ fontFamily: F.regular, fontSize: 14, color: C.gray2, marginTop: 2 }}>{day.isWash ? 'Wash day · ' : ''}{plan.target}</Text>
           </View>
+          {day.isToday ? <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.gray2 }}>{routineItems.filter(c => doneToday.includes(c.id)).length}/{routineItems.length} today</Text> : null}
         </View>
         {routineItems.length ? (
           <Locked radius={30} label="Your daily recs" style={{ marginHorizontal: INDENT }}>
@@ -171,13 +168,13 @@ export default function Home() {
 
       {/* Search right under the routine, then everything else Airbnb-style: raised 3D category pills,
           rows of square tiles and big cards. */}
-      <View style={{ marginTop: 32, marginHorizontal: INDENT }}>
+      <View style={{ marginTop: SPACE.section, marginHorizontal: INDENT }}>
         <SearchBar />
       </View>
-      <View style={{ marginTop: 22 }}>
+      <View style={{ marginTop: 20 }}>
         <CategoryPills items={TABS} value={tab} onChange={setTab} />
       </View>
-      <View style={{ marginTop: 28, gap: SPACE.section }}>
+      <View style={{ marginTop: SPACE.section, gap: SPACE.section }}>
       {tab === 0 ? <>
         <BrowseRow title="Browse by meal" selected={meal ?? nextMeal(hour)} onPick={k => setMeal(k as Slot)}
           items={MEALS.map(m => ({ key: m, label: SLOT_LABEL[m], icon: MEAL_ICON[m] }))} />

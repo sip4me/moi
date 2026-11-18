@@ -7,6 +7,7 @@ import { BrandText, Logo } from '../components/ui';
 import { C, F } from '../theme';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { MoiNotifications } from '../components/MoiNotifications';
 import { StoreProvider, useStore } from '../state/store';
 import { isActive, loadSubscription } from '../lib/billing';
 import React, { useEffect } from 'react';
@@ -60,6 +61,7 @@ export default function RootLayout() {
           <Stack.Screen name="glamour" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
           <Stack.Screen name="reminders" options={{ presentation: 'modal' }} />
         </Stack>
+        <MoiNotifications />
         </Frame>
       </StoreProvider>
     </SafeAreaProvider>

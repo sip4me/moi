@@ -8,7 +8,8 @@ import { C, CONTENT_INDENT, F } from '../theme';
 const web = Platform.OS === 'web';
 
 /** The page's side padding (matches Screen), so rows can bleed to the edge and still start in line. */
-export const usePageInset = () => (useWindowDimensions().width < 360 ? 18 : 24);
+/** Page margin for titles: 20 px (the consumer/wellness range is 20–24). Content sits CONTENT_INDENT further in. */
+export const usePageInset = () => 20;
 
 /**
  * A horizontal row that bleeds to the edges: the first card starts at the page margin, cards snap to the

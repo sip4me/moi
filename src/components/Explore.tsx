@@ -6,6 +6,7 @@ import { IRON_RECIPES, SLOT_LABEL, type Slot } from '../data/ironRecipes';
 import * as ImagePicker from 'expo-image-picker';
 import { haptic } from '../lib/haptics';
 import { handOffPhoto } from '../lib/photoHandoff';
+import { tapped } from '../lib/notify';
 import { useStore } from '../state/store';
 import { C, CONTENT_INDENT, F, TILE } from '../theme';
 import { Locked, PeekRow, usePageInset } from './Peek';
@@ -24,7 +25,7 @@ export function CategoryPills({ items, value, onChange }: { items: { label: stri
       {items.map((t, i) => {
         const on = i === value;
         return (
-          <Pressable key={t.label} onPress={() => { if (!on) { haptic('select'); onChange(i); } }} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={t.label}
+          <Pressable key={t.label} onPress={() => { if (!on) { haptic('select'); onChange(i); tapped(); } }} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={t.label}
             style={({ pressed }) => ({
               flexDirection: 'row', alignItems: 'center', gap: 5, height: 50, paddingLeft: 7, paddingRight: 13, borderRadius: 999,
               backgroundColor: pressed ? '#F7F7F7' : '#fff', borderWidth: on ? 1.5 : 1, borderBottomWidth: on ? 1.5 : 3,
@@ -52,7 +53,7 @@ export function BrowseRow({ title, items, selected, onPick }: {
         {items.map(it => {
           const on = it.key === selected;
           return (
-            <Pressable key={it.key} onPress={() => { haptic('tap'); (it.onPress ?? (() => onPick?.(it.key)))(); }} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={it.label}>
+            <Pressable key={it.key} onPress={() => { haptic('tap'); (it.onPress ?? (() => onPick?.(it.key)))(); tapped(); }} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={it.label}>
               {({ pressed }) => (
                 <View style={{ transform: [{ scale: pressed ? 0.97 : 1 }] }}>
                   <View style={{ height: 112, borderRadius: 22, backgroundColor: pressed ? '#EFEFF0' : TILE, alignItems: 'center', justifyContent: 'center', borderWidth: on ? 2 : 0, borderColor: C.ink }}>
@@ -99,7 +100,7 @@ export function RecipeCards({ slot }: { slot: Slot }) {
                       <View style={{ position: 'absolute', top: 12, left: 12, backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 }}>
                         <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.ink }}>{r.plant ? 'Plant-based' : 'Heme iron'}</Text>
                       </View>
-                      <Pressable onPress={() => { haptic(on ? 'tap' : 'success'); toggleSaved(key); }} hitSlop={10} accessibilityRole="button" accessibilityLabel={on ? 'Remove from saved' : 'Save recipe'}
+                      <Pressable onPress={() => { haptic(on ? 'tap' : 'success'); toggleSaved(key); tapped(); }} hitSlop={10} accessibilityRole="button" accessibilityLabel={on ? 'Remove from saved' : 'Save recipe'}
                         style={{ position: 'absolute', top: 12, right: 12 }}>
                         <Heart on={on} />
                       </Pressable>
