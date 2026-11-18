@@ -10,7 +10,7 @@ import { tapped } from '../lib/notify';
 import { onScrollTop } from '../lib/scrollTop';
 import { C, evidenceStyle, F, surface, TILE } from '../theme';
 
-const crown = require('../../assets/crown-pink.png');
+export const crown = require('../../assets/crown-pink.png');
 const seal = require('../../assets/seal.png');
 
 // Phone-width column on web so screens look like the Figma frames.
@@ -146,10 +146,10 @@ export function Sub({ children, style }: { children: React.ReactNode; style?: an
  * head: as wide as the letter (ink 65.8–98.5 × 30.2–63.7), its band hugging the top curve, tipped 14° left.
  * The box is the text height, so inline baselines line up with the sentence around it.
  */
-const LETTERS: [string, number][] = [['M', -1.9], ['o', 63.8], ['i', 99.5]];
+export const LETTERS: [string, number][] = [['M', -1.9], ['o', 63.8], ['i', 99.5]];
 // Brand reference: the crown sits over the o's top-left, tilted 14° to the left, band covering the top of the o.
 // scripts/make-icons.py renders the app icon from these same numbers.
-const CROWN = { w: 32.3, h: 32.8, left: 59.85, top: 6.6, rotate: '-14deg' }; // 852×865 artwork, centred at (76, 23)
+export const CROWN = { w: 32.3, h: 32.8, left: 59.85, top: 6.6, rotate: '-14deg' }; // 852×865 artwork, centred at (76, 23)
 
 export function Logo({ size = 40, color = '#2F3D3B' }: { size?: number; color?: string }) {
   const k = size / 64;
