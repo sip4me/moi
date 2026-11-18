@@ -44,7 +44,7 @@ export default function Search() {
       .map(x => ({ key: `p${x.id}`, title: x.name, sub: 'On your shelf', icon: 'cat_care', href: `/product-fit?id=${x.id}` }));
     // Title matches first, then ones that only match in the details.
     const rank = (h: Hit[]) => [...h].sort((a, b) => Number(!matches(q, a.title)) - Number(!matches(q, b.title)));
-    return ([['Your goal', rank([...routine, ...learn])], ['Recipes', rank(recipes)], ['Styles', rank(styles)], ['Ideas', rank(ideas)], ['Your products', rank(products)]] as [string, Hit[]][])
+    return ([['My goals', rank([...routine, ...learn])], ['Recipes', rank(recipes)], ['Styles', rank(styles)], ['Ideas', rank(ideas)], ['Your products', rank(products)]] as [string, Hit[]][])
       .filter(([, h]) => h.length);
   }, [q, plan, shelf]);
 

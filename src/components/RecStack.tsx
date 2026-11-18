@@ -10,7 +10,6 @@ import { icon3d } from '../data/icons3d';
 import * as ImagePicker from 'expo-image-picker';
 import { haptic } from '../lib/haptics';
 import { BreathRecorder } from './BreathRecorder';
-import { BlueGlass } from './BlueGlass';
 import { C, F } from '../theme';
 import { TwoFrameArt } from './TwoFrameArt';
 import { Seal } from './ui';
@@ -160,15 +159,14 @@ export function RecStack({ items, done, canCheck, onToggle, dayLabel, defaultOpe
 
   return (
     <Uid.Provider value={u}>
-    <View style={{ borderRadius: 30, padding: 12, paddingTop: 14, overflow: 'hidden' }}>
-      {/* Moi's blue glass behind the recs, so the white cards lift off it like notifications on a wallpaper. */}
-      <BlueGlass />
+    <View>
+      {/* No panel behind the stack: the notifications sit straight on the page, like a phone's lock screen. */}
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 6, marginBottom: 10 }}>
-        <Text style={{ fontFamily: F.semibold, fontSize: 13, color: '#3E5480' }}>{left ? `${left} ${noun}${left > 1 ? 's' : ''} ${canCheck ? 'left today' : `for ${dayLabel}`}` : canCheck ? 'All done. Nice work.' : 'Nothing left'}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 2, marginBottom: 12 }}>
+        <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.gray }}>{left ? `${left} ${noun}${left > 1 ? 's' : ''} ${canCheck ? 'left today' : `for ${dayLabel}`}` : canCheck ? 'All done. Nice work.' : 'Nothing left'}</Text>
         {n > 1 ? (
           <Pressable onPress={() => { haptic('tap'); setOpen(o => !o); }} hitSlop={8} accessibilityRole="button"
-            style={({ pressed }) => [shadow, { shadowOpacity: 0.08, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999, backgroundColor: pressed ? '#F0F0F2' : '#FAFAFB', borderWidth: 1, borderColor: '#fff' }]}>
+            style={({ pressed }) => [shadow, { shadowOpacity: 0.08, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999, backgroundColor: pressed ? '#F0F0F2' : '#FFFFFF' }]}>
             <Text style={{ fontFamily: F.semibold, fontSize: 12, color: '#55555C' }}>{open ? 'Show less' : `View all ${n}`}</Text>
           </Pressable>
         ) : null}
@@ -194,7 +192,7 @@ export function RecStack({ items, done, canCheck, onToggle, dayLabel, defaultOpe
         })}
       </Animated.View>
 
-      <Text style={{ fontFamily: F.regular, fontSize: 12, color: '#6A7BA0', textAlign: 'center', marginTop: 12 }}>
+      <Text style={{ fontFamily: F.regular, fontSize: 12, color: C.gray, textAlign: 'center', marginTop: 14 }}>
         {canCheck ? `Press and hold a ${noun} to open it. Tick it off for a coin.` : `Press and hold a ${noun} to see what’s planned.`}
       </Text>
 

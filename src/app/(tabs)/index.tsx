@@ -122,11 +122,13 @@ export default function Home() {
 
       {/* Hero, right under the calendar: the wash-day animation, the countdown and one line of fine print.
           No card and no button, so it stays light; the wash routine opens from Your goal on wash day. */}
-      <View style={{ marginTop: 18, alignItems: 'center' }}>
-        {pineapple ? <TwoFrameArt spec={PINEAPPLE_ART} timing={PINEAPPLE_TIMING} width={104} /> : <WashDayArt width={104} />}
-        <Text style={{ fontFamily: F.bold, fontSize: 24, lineHeight: 28, color: C.ink, letterSpacing: -0.5, textAlign: 'center', marginTop: 10 }}>{paused ? 'Wash day paused' : daysLeft === 0 ? 'Wash day today' : `Wash hair in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`}</Text>
-        <Text style={{ fontFamily: F.regular, fontSize: 13, lineHeight: 18, color: C.gray, textAlign: 'center', marginTop: 4, paddingHorizontal: 24 }}>{heroSub}</Text>
+      {/* Flo-like air: a big gap under the calendar, a large headline, then room before the next chunk. */}
+      <View style={{ marginTop: 48, alignItems: 'center' }}>
+        {pineapple ? <TwoFrameArt spec={PINEAPPLE_ART} timing={PINEAPPLE_TIMING} width={96} /> : <WashDayArt width={96} />}
+        <Text style={{ fontFamily: F.bold, fontSize: 38, lineHeight: 44, color: C.ink, letterSpacing: -1, textAlign: 'center', marginTop: 16, paddingHorizontal: 16 }}>{paused ? 'Wash day paused' : daysLeft === 0 ? 'Wash day today' : `Wash hair in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`}</Text>
+        <Text style={{ fontFamily: F.regular, fontSize: 16, lineHeight: 23, color: C.gray2, textAlign: 'center', marginTop: 14, paddingHorizontal: 28 }}>{heroSub}</Text>
       </View>
+      <View style={{ height: 24 }} />
       {moment && !pineapple ? <MomentCard moment={moment} onDone={() => toggleDone(moment.doneId)} /> : null}
       {lifeChange ? (
         <Pressable onPress={() => router.push('/(tabs)/profile')} style={{ marginTop: 24, marginHorizontal: INDENT, backgroundColor: C.goldSoft, borderRadius: 18, padding: 14, borderWidth: 1, borderColor: '#F1DDAA' }}>
@@ -137,12 +139,12 @@ export default function Home() {
 
       {/* Scrolling down settles here: Your goal and today's recs fill the screen and the top scrolls away. */}
       <View onLayout={e => setRoutineY(e.nativeEvent.layout.y)}
-        style={{ marginTop: SPACE.section }}>
-        {/* Your goal: the 3D bullseye (its arrow keeps landing dead centre) and the goal. */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: SPACE.head }} accessibilityRole="header" accessibilityLabel={`Your goal: ${plan.target}`}>
+        style={{ marginTop: 56 }}>
+        {/* My goals · Today: the 3D bullseye (its arrow keeps landing dead centre) and the goal. */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 }} accessibilityRole="header" accessibilityLabel={`My goals, ${day.isToday ? 'today' : dayName(day)}: ${plan.target}`}>
           <GoalBullseye size={46} />
           <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: F.bold, fontSize: 22, letterSpacing: -0.4, color: C.ink }}>{day.isToday ? 'Your goal' : dayName(day)}</Text>
+            <Text style={{ fontFamily: F.bold, fontSize: 24, letterSpacing: -0.5, color: C.ink }}>My goals · {day.isToday ? 'Today' : day.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</Text>
             <Text numberOfLines={1} style={{ fontFamily: F.regular, fontSize: 14, color: C.gray2, marginTop: 2 }}>{day.isWash ? 'Wash day · ' : ''}{plan.target}</Text>
           </View>
         </View>
