@@ -1,4 +1,4 @@
-// The picture on each token coin: line drawings in a deep shade of the coin's own colour (52 × 52 coin, art
+// The picture embossed on each gold token coin (52 × 52 coin, art
 // kept inside the inner ring). Shared by the app and the Figma sheet so they never drift apart.
 
 export type Glyph = { paths?: string[]; fills?: string[]; solid?: string[]; circles?: [number, number, number][]; dots?: [number, number, number][] };
@@ -39,26 +39,51 @@ export const TOKEN_ART: Record<string, Glyph> = {
 };
 
 /** The coin as an SVG string (used for the Figma sheet). */
-/** A deeper shade of a hex colour, for line art that reads on the light middle of the coin. */
+/** A deeper shade of a hex colour. */
 export function deepen(hex: string, k = 0.35): string {
   const n = parseInt(hex.slice(1), 16);
   const ch = (v: number) => Math.round(v * (1 - k)).toString(16).padStart(2, '0');
   return `#${ch(n >> 16)}${ch((n >> 8) & 255)}${ch(n & 255)}`;
 }
 
-export function coinSvg(id: string, color: readonly [string, string], earned = true, x = 0, y = 0): string {
-  const g = TOKEN_ART[id] ?? TOKEN_ART.crown;
-  const ink = deepen(color[1]);
-  const grad = `g-${id}`;
-  const art = [
-    ...(g.paths ?? []).map(d => `<path d="${d}" fill="none" stroke="${ink}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`),
-    ...(g.fills ?? []).map(d => `<path d="${d}" fill="#fff" stroke="${ink}" stroke-width="1.8" stroke-linejoin="round"/>`),
-    ...(g.solid ?? []).map(d => `<path d="${d}" fill="${ink}" stroke="${ink}" stroke-width="1.2" stroke-linejoin="round"/>`),
-    ...(g.circles ?? []).map(([cx, cy, r]) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${ink}" stroke-width="2.4"/>`),
-    ...(g.dots ?? []).map(([cx, cy, r]) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${ink}"/>`),
+/** The art drawn once in a given colour, nudged by (dx, dy): stacked three times it reads as embossed. */
+function art(g: Glyph, ink: string, dx: number, dy: number, w: number) {
+  const t = `transform="translate(${dx} ${dy})"`;
+  return [
+    ...(g.paths ?? []).map(d => `<path ${t} d="${d}" fill="none" stroke="${ink}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`),
+    ...[...(g.fills ?? []), ...(g.solid ?? [])].map(d => `<path ${t} d="${d}" fill="${ink}" stroke="${ink}" stroke-width="${w * 0.5}" stroke-linejoin="round"/>`),
+    ...(g.circles ?? []).map(([cx, cy, r]) => `<circle ${t} cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${ink}" stroke-width="${w}"/>`),
+    ...(g.dots ?? []).map(([cx, cy, r]) => `<circle ${t} cx="${cx}" cy="${cy}" r="${r}" fill="${ink}"/>`),
   ].join('');
-  return `<g transform="translate(${x} ${y})"><defs><radialGradient id="${grad}" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#fff"/><stop offset="0.45" stop-color="${color[0]}"/><stop offset="1" stop-color="${color[1]}"/></radialGradient></defs>`
-    + `<circle cx="26" cy="26" r="24" fill="${earned ? `url(#${grad})` : '#EDEDEF'}" stroke="${earned ? color[1] : '#DDDDE0'}" stroke-width="1.5"/>`
-    + `<circle cx="26" cy="26" r="19" fill="none" stroke="${earned ? '#ffffff99' : '#D5D5D8'}" stroke-width="1"/>`
-    + (earned ? art : '') + '</g>';
+}
+
+/** Pearls around the rim, like Moi's gold seal. */
+const PEARLS = Array.from({ length: 30 }, (_, i) => {
+  const a = (i / 30) * Math.PI * 2;
+  return [26 + Math.cos(a) * 21.6, 26 + Math.sin(a) * 21.6];
+});
+
+/**
+ * The token as an SVG string: a 3D gold coin with a pearl rim (the same family as the gold seal for
+ * finished steps), the token's picture embossed in the middle. Locked tokens are a flat grey coin.
+ */
+export function coinSvg(id: string, _color?: readonly [string, string], earned = true, x = 0, y = 0): string {
+  const g = TOKEN_ART[id] ?? TOKEN_ART.crown;
+  const u = id.replace(/\W/g, '');
+  if (!earned) {
+    return `<g transform="translate(${x} ${y})"><circle cx="26" cy="26" r="24" fill="#EDEDEF" stroke="#DDDDE0" stroke-width="1.5"/>`
+      + PEARLS.map(([cx, cy]) => `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="1.1" fill="#E2E2E5"/>`).join('')
+      + `<circle cx="26" cy="26" r="18.6" fill="#F1F1F3" stroke="#DADADE" stroke-width="1"/></g>`;
+  }
+  return `<g transform="translate(${x} ${y})"><defs>`
+    + `<linearGradient id="rim-${u}" x1="0.15" y1="0.1" x2="0.85" y2="0.95"><stop offset="0" stop-color="#FBEAB4"/><stop offset="0.45" stop-color="#D8B25A"/><stop offset="1" stop-color="#8E6A22"/></linearGradient>`
+    + `<radialGradient id="face-${u}" cx="38%" cy="32%" r="78%"><stop offset="0" stop-color="#FFF1C2"/><stop offset="0.55" stop-color="#E2BE68"/><stop offset="1" stop-color="#B8903E"/></radialGradient>`
+    + `<radialGradient id="pearl-${u}" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E6DCC6"/></radialGradient>`
+    + `</defs>`
+    + `<circle cx="26" cy="26" r="24.2" fill="url(#rim-${u})" stroke="#86621E" stroke-width="0.9"/>`
+    + PEARLS.map(([cx, cy]) => `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="1.25" fill="url(#pearl-${u})" stroke="#A7863F" stroke-width="0.3"/>`).join('')
+    + `<circle cx="26" cy="26" r="19" fill="url(#face-${u})" stroke="#9C7A2E" stroke-width="0.9"/>`
+    + `<circle cx="26" cy="26" r="17.6" fill="none" stroke="#FFF4CC" stroke-opacity="0.55" stroke-width="0.7"/>`
+    + art(g, '#7D5A17', 0.7, 0.9, 2.6) + art(g, '#FFF6D2', -0.5, -0.6, 2.4) + art(g, '#CFA650', 0, 0, 2.2)
+    + `</g>`;
 }

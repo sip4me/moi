@@ -11,6 +11,7 @@ import { MomentCard } from '../../components/MomentCard';
 import { WashDayArt } from '../../components/WashDayArt';
 import { SegmentedTabs } from '../../components/SegmentedTabs';
 import { ResetCountdown } from '../../components/ResetCountdown';
+import { TokenBag } from '../../components/TokenBag';
 import { LockIcon, Locked, PeekRow, openPaywall } from '../../components/Peek';
 import { SectionTitle, Tile } from '../../components/Tile';
 import { currentMoment } from '../../data/moments';
@@ -69,10 +70,13 @@ export default function Home() {
     <Screen scroll tab="index">
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <Logo size={36} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <TokenBag />
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: C.line }}>
           <Glyph name="flame" color="#F08A24" size={16} />
           <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink }}>{streakDays}</Text>
           <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.gray }}>{streakDays === 1 ? 'day' : 'days'}</Text>
+        </View>
         </View>
       </View>
 
