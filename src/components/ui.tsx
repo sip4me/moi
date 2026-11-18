@@ -19,9 +19,11 @@ export function Screen({ children, scroll, style, footer, tab }: { children: Rea
   const px = narrow ? 18 : 24;
   const ref = useRef<ScrollViewInstance>(null);
   useEffect(() => (tab ? onScrollTop(tab, () => ref.current?.scrollTo({ y: 0, animated: true })) : undefined), [tab]);
+  // Tab pages (Home, Progress, Products, Profile) get more air above their first row.
+  const top = tab ? { paddingTop: 28 } : null;
   const body = scroll
-    ? <ScrollView ref={ref} contentContainerStyle={[s.pad, { paddingHorizontal: px }, { paddingBottom: footer ? 24 : 120 }, style]} showsVerticalScrollIndicator={false}>{children}</ScrollView>
-    : <View style={[s.pad, { paddingHorizontal: px, flex: 1 }, style]}>{children}</View>;
+    ? <ScrollView ref={ref} contentContainerStyle={[s.pad, { paddingHorizontal: px }, top, { paddingBottom: footer ? 24 : 120 }, style]} showsVerticalScrollIndicator={false}>{children}</ScrollView>
+    : <View style={[s.pad, { paddingHorizontal: px, flex: 1 }, top, style]}>{children}</View>;
   return (
     <SafeAreaView style={s.outer} edges={['top', 'bottom']}>
       <View style={s.col}>

@@ -156,7 +156,8 @@ Deno.serve(async req => {
     if (web && !products.length && q.length >= 4 && (await mayFetchWeb(q))) {
       try { const row = await fetchWeb(q); products = await local(q); if (row && !products.length) products = [row]; } catch { /* Firecrawl down: the app offers to paste the label */ }
     }
-    return json({ products, attribution: 'Product data © Open Beauty Facts contributors, ODbL' });
+    // canLookUp tells the app whether to offer "Find it online" (only once a Firecrawl key is set).
+    return json({ products, canLookUp: !!FIRECRAWL_KEY, attribution: 'Product data © Open Beauty Facts contributors, ODbL' });
   } catch (e) {
     return json({ error: String(e) }, 500);
   }

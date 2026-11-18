@@ -12,10 +12,15 @@ export const PRODUCT_DATA_URL = 'https://world.openbeautyfacts.org';
 /** Searches the shared catalog; the function fills gaps from Open Beauty Facts, then the brand's own site. */
 /** `web` asks the server to look the product up on its brand's site when nothing else has it (slower, rate-limited). */
 export async function searchProducts(q: string, signal?: AbortSignal, web = false): Promise<CatalogProduct[]> {
+  return (await searchCatalog(q, signal, web)).products;
+}
+
+/** Same search, plus whether the server can look products up online right now. */
+export async function searchCatalog(q: string, signal?: AbortSignal, web = false): Promise<{ products: CatalogProduct[]; canLookUp: boolean }> {
   const sb = supabase();
-  if (!sb || q.trim().length < 2) return [];
+  if (!sb || q.trim().length < 2) return { products: [], canLookUp: false };
   await ensureUser();
-  const { data, error } = await sb.functions.invoke<{ products: CatalogProduct[] }>(`product-search?q=${encodeURIComponent(q.trim())}${web ? '&web=1' : ''}`, { method: 'GET', signal } as any);
+  const { data, error } = await sb.functions.invoke<{ products: CatalogProduct[]; canLookUp?: boolean }>(`product-search?q=${encodeURIComponent(q.trim())}${web ? '&web=1' : ''}`, { method: 'GET', signal } as any);
   if (error) throw error;
-  return data?.products ?? [];
+  return { products: data?.products ?? [], canLookUp: !!data?.canLookUp };
 }

@@ -109,7 +109,7 @@ export default function Progress() {
           <Text style={{ fontFamily: F.regular, fontSize: 14, color: C.gray2 }}>Scan streak</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Image source={CROWN} style={{ width: 30, height: 30 }} resizeMode="contain" />
-            <Text style={{ fontFamily: F.bold, fontSize: 24, letterSpacing: -0.5, color: C.ink }}>{streak} {streak === 1 ? 'week' : 'weeks'}</Text>
+            <Text numberOfLines={1} style={{ fontFamily: F.bold, fontSize: 30, letterSpacing: -0.6, color: C.ink }}>{streak}<Text style={{ fontFamily: F.regular, fontSize: 15, letterSpacing: 0, color: C.gray }}> {streak === 1 ? 'week' : 'weeks'}</Text></Text>
           </View>
           <Pill>Next scan: Sun</Pill>
         </View>

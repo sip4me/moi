@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Linking, Pressable, Text, TextInput, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { Button, Screen, SectionCard, Sub, TopBar } from '../components/ui';
-import { type CatalogProduct, PRODUCT_DATA_CREDIT, PRODUCT_DATA_URL, fromOpenBeautyFacts, searchProducts } from '../lib/products';
+import { type CatalogProduct, PRODUCT_DATA_CREDIT, PRODUCT_DATA_URL, fromOpenBeautyFacts, searchCatalog, searchProducts } from '../lib/products';
 import { useStore } from '../state/store';
 import { C, F } from '../theme';
 
@@ -14,7 +14,7 @@ const SAMPLE = 'Water, Alcohol Denat., Polyquaternium-11, Glycerin, Dimethicone,
  * `lookUp()` asks the server to read it from the brand's own site (slower, so only on request).
  */
 function useProductSearch(q: string) {
-  const [state, setState] = useState<{ results: CatalogProduct[]; loading: boolean; failed: boolean }>({ results: [], loading: false, failed: false });
+  const [state, setState] = useState<{ results: CatalogProduct[]; loading: boolean; failed: boolean; canLookUp?: boolean }>({ results: [], loading: false, failed: false });
   const [web, setWeb] = useState<'idle' | 'looking' | 'none'>('idle');
   useEffect(() => {
     setWeb('idle');
@@ -22,17 +22,17 @@ function useProductSearch(q: string) {
     const ctrl = new AbortController();
     setState(s => ({ ...s, loading: true, failed: false }));
     const t = setTimeout(() => {
-      searchProducts(q, ctrl.signal)
-        .then(results => setState({ results, loading: false, failed: false }))
+      searchCatalog(q, ctrl.signal)
+        .then(r => setState({ results: r.products, canLookUp: r.canLookUp, loading: false, failed: false }))
         .catch(() => { if (!ctrl.signal.aborted) setState({ results: [], loading: false, failed: true }); });
     }, 350);
     return () => { clearTimeout(t); ctrl.abort(); };
   }, [q]);
   const lookUp = () => {
-    if (web === 'looking' || q.trim().length < 4) return;
+    if (web === 'looking' || q.trim().length < 4 || !state.canLookUp) return;
     setWeb('looking');
     searchProducts(q, undefined, true)
-      .then(results => { setState({ results, loading: false, failed: false }); setWeb(results.length ? 'idle' : 'none'); })
+      .then(results => { setState(s => ({ ...s, results, loading: false, failed: false })); setWeb(results.length ? 'idle' : 'none'); })
       .catch(() => setWeb('none'));
   };
   return { ...state, web, lookUp };
@@ -44,7 +44,7 @@ export default function AddProduct() {
   const { plan } = useStore();
   const [q, setQ] = useState(initial ?? '');
   const [label, setLabel] = useState('');
-  const { results, loading, failed, web, lookUp } = useProductSearch(q);
+  const { results, loading, failed, web, lookUp, canLookUp } = useProductSearch(q);
   const searching = q.trim().length >= 2;
   const check = (text: string, name?: string) => router.push({ pathname: '/product-fit', params: { label: text, ...(name ? { name } : {}) } });
   if (!plan) return null;
@@ -84,7 +84,10 @@ export default function AddProduct() {
           {!results.length && failed ? (
             <Text style={{ fontFamily: F.regular, fontSize: 14, lineHeight: 20, color: C.gray2, paddingVertical: 4 }}>Search isn’t reachable right now. You can still paste the ingredient list below.</Text>
           ) : null}
-          {!results.length && !failed && web === 'idle' ? (
+          {!results.length && !failed && web === 'idle' && !canLookUp ? (
+            <Text style={{ fontFamily: F.regular, fontSize: 14, lineHeight: 20, color: C.gray2, paddingVertical: 4 }}>No match yet. Paste the ingredient list from the bottle below — it works for any product.</Text>
+          ) : null}
+          {!results.length && !failed && web === 'idle' && canLookUp ? (
             <View style={{ gap: 10, paddingVertical: 4 }}>
               <Text style={{ fontFamily: F.regular, fontSize: 14, lineHeight: 20, color: C.gray2 }}>Not in Moi yet. We can look it up on the brand’s own site and read the full ingredient list.</Text>
               <Button label={`Find “${q.trim()}” online`} variant="secondary" onPress={lookUp} disabled={q.trim().length < 4} />
