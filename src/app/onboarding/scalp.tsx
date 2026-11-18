@@ -5,23 +5,25 @@ import { useStore } from '../../state/store';
 import { C, F } from '../../theme';
 
 const GROUPS = [
+  { key: 'thickness', label: 'STRAND THICKNESS', options: [['Fine', 'fine'], ['Medium', 'medium'], ['Coarse', 'coarse']], hint: 'Roll one strand between your fingers. Can you barely feel it?' },
   { key: 'scalpFeel', label: 'SCALP BY DAY 2', options: [['Dry or tight', 'dry'], ['Balanced', 'normal'], ['Oily', 'oily']] },
   { key: 'flakes', label: 'ANY FLAKES OR ITCH?', options: [['Never', 'never'], ['Sometimes', 'sometimes'], ['Often', 'often']] },
-] as const;
+] as { key: string; label: string; options: string[][]; hint?: string }[];
 
-/** Figma 11 · Strands & scalp. Strand thickness is measured by the first scan instead of asked. */
+/** Figma 11 · Strands & scalp: strand thickness, then two scalp questions. The first scan refines thickness. */
 export default function Scalp() {
   const { answers, setAnswer } = useStore();
   const done = GROUPS.every(g => answers[g.key]);
   return (
-    <StepScreen step="scalp" title="Your scalp" sub="This will be used to calibrate your custom plan." disabled={!done}>
-      <View style={{ flex: 1, justifyContent: 'center', gap: 26 }}>
+    <StepScreen step="scalp" title="Strands & scalp" sub="This will be used to calibrate your custom plan." disabled={!done}>
+      <View style={{ flex: 1, justifyContent: 'center', gap: 24 }}>
         {GROUPS.map(g => (
           <View key={g.key} style={{ gap: 10 }}>
             <Text style={{ fontFamily: F.semibold, fontSize: 11, letterSpacing: 1.3, color: C.gray2 }}>{g.label}</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {g.options.map(([label, value]) => <Chip key={value} label={label} on={answers[g.key] === value} onPress={() => setAnswer(g.key, value)} />)}
             </View>
+            {g.hint ? <Text style={{ fontFamily: F.regular, fontSize: 13, lineHeight: 18, color: C.gray }}>{g.hint}</Text> : null}
           </View>
         ))}
       </View>

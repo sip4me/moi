@@ -39,7 +39,7 @@ export default function LongTermResults() {
             <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.ink }}>Month 1</Text>
             <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.ink }}>Month 6</Text>
           </View>
-          <Text style={{ fontFamily: F.regular, fontSize: 13, lineHeight: 19, color: C.gray2, textAlign: 'center', marginTop: 12 }}>Routines you track keep working — routines you guess at fade after a few weeks.</Text>
+          <Text style={{ fontFamily: F.regular, fontSize: 13, lineHeight: 19, color: C.gray2, textAlign: 'center', marginTop: 12 }}>Routines you track keep working. Routines you guess at fade after a few weeks.</Text>
         </InfoCard>
       </View>
     </StepScreen>

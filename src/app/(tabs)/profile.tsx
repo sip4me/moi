@@ -32,8 +32,8 @@ export default function Profile() {
   return (
     <Screen scroll tab="profile">
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-        {/* Figma 07 · Profile avatar: the scan silhouette wearing the pink crown. */}
-        <Image source={require('../../../assets/avatar.png')} resizeMode="contain" style={{ width: 76, height: 78 }} accessibilityLabel="Your profile picture" />
+        {/* Figma 07 · Profile avatar: the scan silhouette (no crown). */}
+        <Image source={require('../../../assets/avatar.png')} resizeMode="contain" style={{ width: 76, height: 79 }} accessibilityLabel="Your profile picture" />
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: F.bold, fontSize: 26, color: C.ink }}>{name}</Text>
           <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.gray }}>{[cap(answers.texture), answers.thickness ?? answers.length, streak ? `${streak}-day streak` : scans.length ? `${scans.length} scan${scans.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')}</Text>
