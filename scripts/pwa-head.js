@@ -1,8 +1,8 @@
 // Adds the home-screen (PWA) tags to every exported page. Run after `npx expo export -p web`.
 const fs = require('fs'), path = require('path');
 const TAGS = [
-  '<link rel="manifest" href="/manifest.json?v=2"/>',
-  '<link rel="apple-touch-icon" sizes="180x180" href="/icons/v2/apple-touch-icon.png"/>',
+  '<link rel="manifest" href="/manifest.json?v=3"/>',
+  '<link rel="apple-touch-icon" sizes="180x180" href="/icons/v3/apple-touch-icon.png"/>',
   '<meta name="apple-mobile-web-app-title" content="Moi"/>',
   '<meta name="apple-mobile-web-app-capable" content="yes"/>',
   '<meta name="mobile-web-app-capable" content="yes"/>',
