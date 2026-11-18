@@ -5,7 +5,9 @@ import { Linking, Modal, Platform, Pressable, Share, Switch, Text, View } from '
 import Svg, { Path, Rect } from 'react-native-svg';
 import { Button, Screen } from '../components/ui';
 import { LINKS } from '../config';
+import { HEALTH_FULL, HEALTH_SHORT } from '../data/disclaimer';
 import { deleteAccount, signOut } from '../lib/auth';
+import { enablePush } from '../lib/push';
 import { useStore } from '../state/store';
 import { C, F } from '../theme';
 
@@ -65,7 +67,7 @@ function Sheet({ open, title, body, confirm, danger, busy, error, onConfirm, onC
   );
 }
 
-type SheetKind = 'delete' | 'subscription' | 'signout' | 'soon' | null;
+type SheetKind = 'delete' | 'subscription' | 'signout' | 'soon' | 'health' | null;
 
 export default function Settings() {
   const { answers, name, reminders, setReminder, account, reset } = useStore();
@@ -73,6 +75,13 @@ export default function Settings() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const close = () => { setSheet(null); setError(null); };
+  const [pushNote, setPushNote] = useState('Max 2 a day, never 10 PM–7 AM');
+  const togglePush = async (v: boolean) => {
+    if (!v) { setReminder('all', false); return; }
+    const r = await enablePush().catch(() => 'unsupported' as const);
+    setReminder('all', r === 'on');
+    setPushNote(r === 'on' ? 'On · max 2 a day, never 10 PM–7 AM' : r === 'needs-home-screen' ? 'Add Moi to your home screen first, then turn this on there' : r === 'denied' ? 'Blocked in your browser settings' : 'Not supported in this browser');
+  };
   const on = (id: string) => reminders[id] ?? true;
 
   const signedIn = account && !account.anonymous;
@@ -120,7 +129,8 @@ export default function Settings() {
       </Group>
 
       <Group label="REMINDERS">
-        <Row first title="Wash day reminder" sub="8:00 AM on wash days" right={<Toggle value={on('wash_interval')} onChange={v => setReminder('wash_interval', v)} />} />
+        <Row first title="Notifications on this device" sub={pushNote} right={<Toggle value={reminders.all ?? false} onChange={togglePush} />} />
+        <Row title="Wash day reminder" sub="8:00 AM on wash days" right={<Toggle value={on('wash_interval')} onChange={v => setReminder('wash_interval', v)} />} />
         <Row title="Scan check-ins" sub="Every other Sunday" right={<Toggle value={on('scan')} onChange={v => setReminder('scan', v)} />} />
         <Row title="Product tips" sub="Ingredient alerts for your shelf" right={<Toggle value={reminders.tips ?? false} onChange={v => setReminder('tips', v)} />} />
         <Row title="All routine reminders" onPress={() => router.push('/reminders')} />
@@ -154,6 +164,7 @@ export default function Settings() {
       <Group label="LEGAL">
         <Row first title="Terms of Service" onPress={() => open(LINKS.terms)} />
         <Row title="Privacy Policy" onPress={() => open(LINKS.privacy)} />
+        <Row title="Health disclaimer" sub={HEALTH_SHORT} onPress={() => setSheet('health')} />
         <Row title="Contact us" onPress={() => open(LINKS.contact)} right={<CopyIcon />} />
       </Group>
 
@@ -179,6 +190,7 @@ export default function Settings() {
       <Sheet open={sheet === 'subscription'} onClose={close} confirm="Got it"
         title="No active subscription"
         body="This is a test build, so payments aren’t switched on and nothing is being charged. Once Moi launches, you’ll be able to change or cancel your plan here at any time." />
+      <Sheet open={sheet === 'health'} onClose={close} confirm="Got it" title="Health disclaimer" body={HEALTH_FULL.join('\n\n')} />
       <Sheet open={sheet === 'soon'} onClose={close} confirm="Got it"
         title="Coming soon" body="This page isn’t published yet. It will be ready before Moi launches." />
     </Screen>

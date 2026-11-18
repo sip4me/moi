@@ -2,10 +2,13 @@ import { router } from 'expo-router';
 import { Image, Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { Screen, SectionCard, Sub } from '../../components/ui';
-import { useStore } from '../../state/store';
+import { washInterval } from '../../data/schedule';
+import { profileFromAnswers, useStore } from '../../state/store';
 import { C, F } from '../../theme';
 
 const Chev = () => <Svg width={8} height={13} viewBox="0 0 8 14"><Path d="M1.5 1.5 6.5 7l-5 5.5" stroke="#9A9A9A" strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>;
+const ACTIVITY: Record<string, string> = { sports: 'Sports', demanding_job: 'Demanding job', student: 'Student', pregnant: 'Pregnant', caregiver: 'Caring for a child' };
+const cap = (v?: string) => (v ? v.charAt(0).toUpperCase() + v.slice(1) : '');
 const GOAL: Record<string, string> = { repair: 'Less frizz & breakage', grow: 'Longer, fuller hair', keep: 'Stop thinning', balance: 'Calmer scalp' };
 
 function Row({ k, v, onPress, first }: { k: string; v?: string; onPress?: () => void; first?: boolean }) {
@@ -18,7 +21,10 @@ function Row({ k, v, onPress, first }: { k: string; v?: string; onPress?: () => 
 }
 
 export default function Profile() {
-  const { answers, lifeChange, setLifeChange, reset, name, cloud } = useStore();
+  const { answers, lifeChange, setLifeChange, reset, name, cloud, scans, saved, shelf, plan } = useStore();
+  const profile = profileFromAnswers(answers);
+  const age = answers.birthDate ? Math.floor((Date.now() - new Date(answers.birthDate).getTime()) / (365.25 * 86400000)) : null;
+  const activities = profile.lifestyle.map(x => ACTIVITY[x]).filter(Boolean).concat(profile.swims ? ['Swimming'] : []).join(', ');
   const lc = lifeChange;
   const total = lc?.endsAt ? Math.max(1, Math.round((new Date(lc.endsAt).getTime() - new Date(lc.startsAt).getTime()) / 86400000)) : 0;
   const left = lc?.endsAt ? Math.max(0, Math.ceil((new Date(lc.endsAt).getTime() - Date.now()) / 86400000)) : 0;
@@ -28,11 +34,11 @@ export default function Profile() {
         <View style={{ width: 68, height: 68, borderRadius: 34, backgroundColor: '#000', alignItems: 'center', justifyContent: 'flex-end', overflow: 'visible' }}>
           <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: '#9AA', marginBottom: 4 }} />
           <View style={{ width: 40, height: 18, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderWidth: 2, borderBottomWidth: 0, borderColor: '#9AA', marginBottom: 6 }} />
-          <Image source={require('../../../assets/crown.png')} style={{ position: 'absolute', top: -14, width: 34, height: 36, transform: [{ rotate: '-20deg' }] }} />
+          <Image source={require('../../../assets/crown-pink.png')} resizeMode="contain" style={{ position: 'absolute', top: -18, left: 2, width: 38, height: 38, transform: [{ rotate: '-14deg' }] }} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: F.bold, fontSize: 26, color: C.ink }}>{name}</Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.gray }}>{[answers.texture, answers.length].filter(Boolean).join(' · ')}</Text>
+          <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.gray }}>{[cap(answers.texture), answers.length, scans.length ? `${scans.length} scan${scans.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')}</Text>
         </View>
         <Pressable onPress={() => router.push('/settings')} style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, backgroundColor: pressed ? '#E3E3E6' : '#F2F2F4', alignItems: 'center', justifyContent: 'center' })} accessibilityLabel="Settings">
           <Svg width={22} height={22} viewBox="0 0 24 24"><Path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z" stroke={C.ink} strokeWidth={1.9} fill="none" /><Path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.5A7.6 7.6 0 0 0 7 6.5l-2.4-1-2 3.4 2 1.6a7.6 7.6 0 0 0 0 3l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 0 0 2.6 1.5l.4 2.5h4l.4-2.5a7.6 7.6 0 0 0 2.6-1.5l2.4 1 2-3.4-2-1.6Z" stroke={C.ink} strokeWidth={1.9} strokeLinejoin="round" fill="none" /></Svg>
@@ -63,18 +69,27 @@ export default function Profile() {
         </Pressable>
       )}
 
-      <SectionCard label="THE BASICS" style={{ marginTop: 22, paddingBottom: 4 }}>
+      <SectionCard label="MY CROWN" style={{ marginTop: 22, paddingBottom: 4 }}>
         <View>
-          <Row first k={goalList(answers.goal).length > 1 ? 'Goals' : 'Goal'} v={goalList(answers.goal).map(g => GOAL[g]).filter(Boolean).join(', ') || '—'} />
-          <Row k="Texture" v={answers.texture ?? '—'} />
-          <Row k="Scalp" v={answers.scalp ?? '—'} />
-          <Row k="Porosity" v={answers.porosity ?? '—'} />
-          <Row k="Time a day" v={answers.timeBudget ? `${answers.timeBudget} min` : '—'} />
+          <Row first k="Scan history" v={scans.length ? `${scans.length}` : undefined} onPress={() => router.push('/(tabs)/progress')} />
+          <Row k="Saved styles" v={saved.length ? `${saved.length}` : undefined} onPress={() => router.push('/saved')} />
+          <Row k="Product shelf" v={shelf.length ? `${shelf.length}` : undefined} onPress={() => router.push('/(tabs)/products')} />
+        </View>
+      </SectionCard>
+      <SectionCard label="THE BASICS" style={{ marginTop: 14, paddingBottom: 4 }}>
+        <View>
+          <Row first k="Name" v={name} />
+          <Row k="Age" v={age ? String(age) : '—'} />
+          <Row k="Hair type" v={[cap(answers.texture), answers.length].filter(Boolean).join(' · ') || '—'} />
+          <Row k="Porosity" v={cap(profile.porosity)} />
+          <Row k={goalList(answers.goal).length > 1 ? 'Goals' : 'Goal'} v={goalList(answers.goal).map(g => GOAL[g]).filter(Boolean).join(', ') || '—'} />
         </View>
       </SectionCard>
       <SectionCard label="MY ROUTINE" style={{ marginTop: 14, paddingBottom: 4 }}>
         <View>
-          <Row first k="Reminders" onPress={() => router.push('/reminders')} />
+          <Row first k="Wash" v={plan ? `Every ${washInterval(plan)} days` : '—'} />
+          <Row k="Activities" v={activities || 'None'} />
+          <Row k="Reminders" onPress={() => router.push('/reminders')} />
           <Row k="Retake the questions" onPress={() => { reset(); router.replace('/onboarding'); }} />
         </View>
       </SectionCard>

@@ -984,9 +984,9 @@
       "id": "R13",
       "when": [
         [
-          "lifestyle",
-          "has",
-          "sports"
+          "swims",
+          "eq",
+          true
         ]
       ],
       "then": [
@@ -998,10 +998,10 @@
         [
           "swim_prep",
           "need",
-          1
+          2
         ]
       ],
-      "reason": "Sports often means swimming; chlorine dries and roughens the cuticle."
+      "reason": "Chlorine and hard water dry and roughen the cuticle."
     },
     {
       "id": "R14",

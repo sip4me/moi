@@ -7,14 +7,15 @@ import glob, math
 from PIL import Image, ImageDraw, ImageFont
 
 FONT = glob.glob('node_modules/@expo-google-fonts/young-serif/**/*.ttf', recursive=True)[0]
-CROWN = Image.open('assets/crown.png').convert('RGBA')
+CROWN = Image.open('assets/crown-pink.png').convert('RGBA')
 INK = (247, 241, 230, 255)            # cream wordmark
 TOP, BOTTOM = (166, 180, 171), (100, 118, 114)  # sage gradient, top-left → bottom-right
 
-# Figma lockup, 64px master: letter x positions, text box top, crown rect + CCW rotation about its top-left.
+# Same geometry as <Logo> in src/components/ui.tsx, 64px master: letter x positions, text box top,
+# and the tiara's size, centre and counter-clockwise tilt.
 LETTERS = [('M', -1.9), ('o', 63.8), ('i', 99.5)]
 TEXT_TOP, LINE_H = -3.7, 90
-CROWN_X, CROWN_Y, CROWN_W, CROWN_H, CROWN_ROT = 53.8, 14.6, 32.2, 34, 27
+CROWN_W, CROWN_H, CROWN_CX, CROWN_CY, CROWN_ROT = 33, 33.5, 80, 24, 14
 
 
 def background(n):
@@ -40,9 +41,7 @@ def lockup(k):
     for ch, x in LETTERS:
         d.text((pad + x * k, y0), ch, font=font, fill=INK)
     c = CROWN.resize((round(CROWN_W * k), round(CROWN_H * k)), Image.LANCZOS)
-    r = math.radians(CROWN_ROT)
-    cx = CROWN_X + math.cos(r) * CROWN_W / 2 + math.sin(r) * CROWN_H / 2
-    cy = CROWN_Y - math.sin(r) * CROWN_W / 2 + math.cos(r) * CROWN_H / 2
+    cx, cy = CROWN_CX, CROWN_CY
     c = c.rotate(CROWN_ROT, expand=True, resample=Image.BICUBIC)   # PIL: positive = counter-clockwise
     layer.alpha_composite(c, (round(pad + cx * k - c.width / 2), round(pad + cy * k - c.height / 2)))
     return layer.crop(layer.getbbox())

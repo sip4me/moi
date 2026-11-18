@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { HEALTH_FULL, HEALTH_SHORT } from '../../data/disclaimer';
 import { goNext } from '../../data/flow';
 import { Button, CardGrid, DoctorNote, MoreRow, RecCard, Screen, SectionCard, Sub, Title, TopBar } from '../../components/ui';
 import { useStore } from '../../state/store';
@@ -33,7 +34,10 @@ export default function PlanScreen() {
           {plan.extras.map(c => <MoreRow key={c.id} id={c.id} label={c.label} meta={`${c.value}${c.unit ? ' ' + c.unit : ''} · ${evidenceStyle[c.evidence ?? 'early'].label.toLowerCase()}`} onPress={() => router.push(`/why/${c.id}`)} />)}
         </View>
       ) : null}
-      <Text style={{ fontFamily: F.regular, fontSize: 12, color: C.gray, textAlign: 'center', marginTop: 16 }}>General hair-care guidance, not medical advice.</Text>
+      <View style={{ marginTop: 18, backgroundColor: C.card, borderRadius: 16, padding: 14, gap: 6 }}>
+        <Text style={{ fontFamily: F.semibold, fontSize: 13, color: C.ink }}>{HEALTH_SHORT}</Text>
+        <Text style={{ fontFamily: F.regular, fontSize: 12, lineHeight: 17, color: C.gray2 }}>{HEALTH_FULL[1]}</Text>
+      </View>
     </Screen>
   );
 }

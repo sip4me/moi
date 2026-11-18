@@ -1,0 +1,94 @@
+import type { Card, Plan } from '../engine/planEngine';
+
+/**
+ * Turns the plan into the next seven days, so the calendar shows what's coming and
+ * reshuffles itself whenever something changes: logging a wash moves every wash day,
+ * editing a card's amount changes how often it appears, and new plans re-plan the week.
+ */
+
+/** Steps that belong to wash day. */
+const WASH_DAY = new Set(['leave_in', 'conditioner', 'gentle_wash', 'detangle', 'rinse', 'pre_wash_oil', 'tea_tree', 'flax_gel', 'deep_condition', 'anti_dandruff', 'keto_wash', 'bond_repair', 'scalp_scrub']);
+/** Steps for the days in between washes. */
+const BETWEEN_WASHES = new Set(['dry_shampoo']);
+/** Things to do on a cycle rather than on a weekday. */
+const EVERY_N_DAYS: Record<string, (v: number) => number> = { pillowcase: v => v, trim: v => v * 7 };
+
+export type Day = { key: string; date: Date; isToday: boolean; isWash: boolean; items: Card[] };
+
+const DAY_MS = 86400000;
+const keyOf = (d: Date) => d.toISOString().slice(0, 10);
+const addDays = (d: Date, n: number) => new Date(d.getTime() + n * DAY_MS);
+const daysBetween = (a: string, b: string) => Math.round((new Date(b).getTime() - new Date(a).getTime()) / DAY_MS);
+
+export function washInterval(plan: Plan) {
+  const card = plan.cards.find(c => c.id === 'wash_interval') ?? plan.extras.find(c => c.id === 'wash_interval');
+  const v = Number(card?.value);
+  return Number.isFinite(v) && v > 0 ? v : 3;
+}
+
+/** Days until the next wash: counts from the last logged wash, or from today if none yet. */
+export function daysUntilWash(plan: Plan, lastWash: string | null, todayKey: string) {
+  const every = washInterval(plan);
+  if (!lastWash) return every;
+  return Math.max(0, every - daysBetween(lastWash, todayKey));
+}
+
+/** How many times a "×/wk" or "×/mo" step happens per week. */
+function perWeek(card: Card): number | null {
+  const v = Number(card.value);
+  if (!Number.isFinite(v)) return null;
+  if (card.unit.includes('/wk')) return v;
+  if (card.unit.includes('/mo')) return v / 4.3;
+  return null;
+}
+
+export function week(plan: Plan, lastWash: string | null, todayKey: string, paused = false): Day[] {
+  const today = new Date(todayKey + 'T12:00:00');
+  const every = washInterval(plan);
+  const firstWash = daysUntilWash(plan, lastWash, todayKey);
+  const days: Day[] = Array.from({ length: 7 }, (_, i) => {
+    const date = addDays(today, i);
+    const isWash = !paused && i >= firstWash && (i - firstWash) % every === 0;
+    return { key: keyOf(date), date, isToday: i === 0, isWash, items: [] };
+  });
+  const washDays = days.filter(d => d.isWash);
+
+  for (const card of plan.cards) {
+    if (card.id === 'wash_interval') { washDays.forEach(d => d.items.push(card)); continue; }
+
+    const cycle = EVERY_N_DAYS[card.id];
+    if (cycle && Number.isFinite(Number(card.value))) {
+      const n = Math.max(1, Math.round(cycle(Number(card.value))));
+      days.forEach((d, i) => { if (i % n === 0) d.items.push(card); });
+      continue;
+    }
+
+    const times = perWeek(card);
+    if (times !== null) {
+      // Spread across the week, wash days first, so a 2×/wk mask lands on two different washes.
+      const count = Math.max(0, Math.min(7, Math.round(times)));
+      // Wash-day steps go on wash days when there are enough of them; otherwise spread across the week.
+      const pool = WASH_DAY.has(card.id) && washDays.length >= count ? washDays : days;
+      const step = pool.length / Math.max(count, 1);
+      for (let k = 0; k < count; k++) pool[Math.floor(k * step)]?.items.push(card);
+      continue;
+    }
+
+    if (WASH_DAY.has(card.id)) washDays.forEach(d => d.items.push(card));
+    else if (BETWEEN_WASHES.has(card.id)) days.filter(d => !d.isWash).forEach(d => d.items.push(card));
+    else days.forEach(d => d.items.push(card)); // daily habits
+  }
+  return days;
+}
+
+/** Evening habits the 8 PM reminder can mention. */
+const NIGHT = new Set(['satin', 'scalp_massage', 'wind_down', 'ends_oil', 'loose_styles']);
+
+/** What the server-side reminder sender needs, saved with the profile whenever the plan changes. */
+export function planSummary(plan: Plan) {
+  return {
+    washEvery: washInterval(plan),
+    washSteps: plan.cards.filter(c => WASH_DAY.has(c.id)).map(c => c.label),
+    nightSteps: plan.cards.filter(c => NIGHT.has(c.id)).map(c => c.label),
+  };
+}

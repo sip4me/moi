@@ -35,15 +35,10 @@ export const QUESTIONS: Question[] = [
   { id: 'texture', title: 'Choose your hair texture', subtitle: CALIBRATE, kind: 'tiles', options: [
     { label: 'Straight', value: 'straight' }, { label: 'Wavy', value: 'wavy' }, { label: 'Curly', value: 'curly' }, { label: 'Coily', value: 'coily' },
   ] },
-  { id: 'scalp', title: 'How does your scalp feel?', subtitle: 'By the second day after washing.', kind: 'single', options: [
-    { label: 'Oily', sub: 'Greasy within a day or two', value: 'oily' }, { label: 'Dry or itchy', value: 'dry' },
-    { label: 'Flaky', sub: 'White or yellow flakes', value: 'flaky' }, { label: 'Balanced', value: 'normal' },
-  ] },
-  { id: 'chemical', title: 'Have you treated your hair?', subtitle: 'In the last 6 months.', kind: 'single', options: [
-    { label: 'None', value: 'none' }, { label: 'Color', value: 'color' }, { label: 'Bleach or highlights', value: 'bleach' }, { label: 'Relaxer, perm or keratin', value: 'relaxer' },
-  ] },
-  { id: 'heatUse', title: 'How often do you use heat?', subtitle: 'Blow-dryer, straightener or curling iron.', kind: 'single', options: [
-    { label: 'Never', value: 'none' }, { label: 'A few times a week', value: 'weekly' }, { label: 'Every day', value: 'daily' },
+  { id: 'treatments', title: 'Have you treated your hair?', subtitle: 'Select all from the last year.', kind: 'chips', options: [
+    { label: 'Color', value: 'color' }, { label: 'Bleach or highlights', value: 'bleach' }, { label: 'Relaxer or perm', value: 'relaxer' },
+    { label: 'Keratin / smoothing', value: 'keratin' }, { label: 'Heat styling 3+× a week', value: 'heat' }, { label: 'Braids or extensions', value: 'braids' },
+    { label: 'Swimming / hard water', value: 'swim' }, { label: 'None of these', value: 'none' },
   ] },
   { id: 'hairstyles', title: 'What hairstyles do you wear?', subtitle: 'Select all that apply. Styling affects breakage and scalp health.', kind: 'chips', writeIn: 'Something else? Type your style…', options: [
     { label: 'Heat styled', value: 'heat_styled' }, { label: 'Natural', value: 'natural' }, { label: 'Braids', value: 'braids' },

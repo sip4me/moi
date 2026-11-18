@@ -1,7 +1,7 @@
 import { useLocalSearchParams } from 'expo-router';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { Button, OptionRow, Screen, Sub, Title, TopBar } from '../../../components/ui';
+import { Button, Chip, OptionRow, Screen, Sub, Title, TopBar } from '../../../components/ui';
 import type { StepKey } from '../../../data/flow';
 import { type Option, QUESTIONS, questionById } from '../../../data/questions';
 import { useStore } from '../../../state/store';
@@ -91,14 +91,5 @@ function Chips({ options, isSel, pick }: PickProps) {
         </View>
       ))}
     </View>
-  );
-}
-
-function Chip({ label, on, onPress }: { label: string; on: boolean; onPress: () => void }) {
-  return (
-    <Pressable onPress={onPress} accessibilityRole="checkbox" accessibilityState={{ checked: on }}
-      style={({ pressed }) => ({ paddingHorizontal: 16, height: 40, borderRadius: 20, justifyContent: 'center', backgroundColor: on ? (pressed ? '#2E2E2E' : C.ink) : pressed ? C.pressed : '#fff', borderWidth: 1, borderColor: on ? C.ink : '#E3E3E6' })}>
-      <Text style={{ fontFamily: F.medium, fontSize: 14, color: on ? '#fff' : C.ink }}>{label}</Text>
-    </Pressable>
   );
 }

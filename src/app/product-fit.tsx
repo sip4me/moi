@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { Button, Screen, TopBar } from '../components/ui';
@@ -30,18 +30,19 @@ function ScoreRing({ score, color }: { score: number; color: string }) {
 /** Product fit: one label scored against the plan, explained ingredient by ingredient. */
 export default function ProductFit() {
   const { id, label: rawLabel } = useLocalSearchParams<{ id?: string; label?: string }>();
-  const { plan, shelf, addToShelf, removeFromShelf } = useStore();
+  const { plan, shelf, addToShelf, removeFromShelf, addChecked } = useStore();
   const saved = shelf.find(x => x.id === id);
   const label = saved?.label ?? rawLabel ?? '';
   const [name, setName] = useState('');
+  useEffect(() => { if (!saved && label) addChecked(label); }, [label]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!plan || !label) return null;
   const fit = fitLabel(label, plan, rules);
   const tone = TONE[fit.verdict];
 
   return (
     <Screen scroll footer={saved
-      ? <Button label="Remove from my shelf" variant="ghost" onPress={() => { removeFromShelf(saved.id); router.back(); }} />
-      : <Button label="Add to my shelf" disabled={!name.trim()} onPress={() => { addToShelf({ name: name.trim(), label }); router.replace('/(tabs)/products'); }} />}>
+      ? <Button label="Remove from my routine" variant="ghost" onPress={() => { removeFromShelf(saved.id); router.back(); }} />
+      : <Button label="Add to my routine" disabled={!name.trim()} onPress={() => { addToShelf({ name: name.trim(), label }); router.replace('/(tabs)/products'); }} />}>
       <TopBar />
       <Text style={{ fontFamily: F.semibold, fontSize: 18, color: C.ink, textAlign: 'center', marginTop: -36, marginBottom: 20 }}>Product fit</Text>
       {saved ? <Text style={{ fontFamily: F.bold, fontSize: 22, color: C.ink, marginBottom: 14 }}>{saved.name}</Text> : (

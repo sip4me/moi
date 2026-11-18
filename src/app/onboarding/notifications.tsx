@@ -1,24 +1,24 @@
-import { Platform, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Text, View } from 'react-native';
+import { enablePush } from '../../lib/push';
 import { StepScreen } from '../../components/onboarding';
 import { Logo, Title } from '../../components/ui';
 import { useStore } from '../../state/store';
 import { useStep } from '../../state/useStep';
 import { C, F } from '../../theme';
 
-/** Asks the browser for notification permission where it can; the choice is saved either way. */
-async function requestPermission(): Promise<boolean> {
-  if (Platform.OS === 'web' && typeof Notification !== 'undefined') {
-    try { return (await Notification.requestPermission()) === 'granted'; } catch { return false; }
-  }
-  return true; // native push permission is requested when push is wired up
-}
-
 export default function Notifications() {
   const { setReminder } = useStore();
   const { next } = useStep('notifications');
+  const [note, setNote] = useState<string | null>(null);
   const decide = async (allow: boolean) => {
-    setReminder('all', allow && (await requestPermission()));
+    if (!allow) { setReminder('all', false); return next(); }
+    const result = await enablePush().catch(() => 'unsupported' as const);
+    setReminder('all', result === 'on');
+    // On iPhone, reminders only work once Moi is on the home screen; the next steps show how.
+    if (result === 'needs-home-screen') setReminder('all', true);
     next();
+    if (result === 'denied') setNote('Notifications are off for this browser. You can turn them on later in Settings.');
   };
   return (
     <StepScreen step="notifications" cta="Allow" onNext={() => decide(true)} secondary={{ label: 'Don’t allow', onPress: () => decide(false) }}>
@@ -35,6 +35,7 @@ export default function Notifications() {
           </View>
         </View>
         <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.gray, textAlign: 'center' }}>At most 2 a day, and never between 10 PM and 7 AM.</Text>
+        {note ? <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.red, textAlign: 'center' }}>{note}</Text> : null}
       </View>
     </StepScreen>
   );

@@ -7,7 +7,7 @@ export default function ThankYou() {
   return (
     <StepScreen step="thanks">
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14 }}>
-        <Image source={require('../../../assets/thanks.png')} style={{ width: 232, height: 232 }} />
+        <Image source={require('../../../assets/thanks.png')} style={{ width: 232, height: 232 }} resizeMode="contain" />
         <Title style={{ textAlign: 'center', marginTop: 12 }}>Thank you for{'\n'}trusting us</Title>
         <Sub style={{ textAlign: 'center' }}>Now let’s personalize Moi for you…</Sub>
       </View>

@@ -10,7 +10,7 @@ export const FLOW = [
   // 2 · easy questions
   'q:gender', 'q:washNow', 'q:hearAbout', 'q:triedApps',
   // 3 · build the profile
-  'results', 'length-color', 'birthday', 'q:texture', 'q:scalp', 'q:chemical', 'q:heatUse', 'q:hairstyles', 'q:lifestyle', 'q:noticed', 'q:goal',
+  'results', 'length-color', 'birthday', 'q:texture', 'scalp', 'q:treatments', 'q:hairstyles', 'q:lifestyle', 'q:noticed', 'q:goal',
   // 4 · goals + motivation
   'target', 'affirmation', 'q:porosity', 'routine-time', 'comparison', 'q:stopping', 'q:prefersNatural', 'q:accomplish', 'potential',
   // 5 · trust + permissions

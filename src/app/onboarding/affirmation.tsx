@@ -10,7 +10,7 @@ export default function Affirmation() {
   return (
     <StepScreen step="affirmation">
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-        <Image source={require('../../../assets/affirmation.png')} style={{ width: 150, height: 150 }} />
+        <Image source={require('../../../assets/affirmation.png')} style={{ width: 150, height: 150 }} resizeMode="contain" />
         <Title style={{ textAlign: 'center', marginTop: 16 }}>{copy.affirmation}</Title>
         <Sub style={{ textAlign: 'center' }}>Small changes show up clearly in your photos.</Sub>
       </View>

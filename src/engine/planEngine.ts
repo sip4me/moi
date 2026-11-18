@@ -16,6 +16,7 @@ export interface Profile {
   heatUse: 'none' | 'weekly' | 'daily';
   length: 'buzzed' | 'short' | 'chin' | 'shoulder' | 'mid-back' | 'waist' | 'longer';
   tightStyles: boolean;
+  swims: boolean;          // swimming or hard water, from the treatments screen
   lifestyle: string[];     // 'sports' | 'demanding_job' | 'student' | 'pregnant' | 'caregiver'
   busy: boolean;           // demanding job, student or caring for a child
   timeBudget: number;      // minutes/day from "Routine time" (5 / 15 / 30)

@@ -1,4 +1,5 @@
-import { Switch, Text, View } from 'react-native';
+import { Image, Switch, Text, View } from 'react-native';
+import { icon3d } from '../data/icons3d';
 import { Glyph, Screen, SectionCard, Sub, Title, TopBar } from '../components/ui';
 import { useStore } from '../state/store';
 import { C, F } from '../theme';
@@ -16,7 +17,7 @@ export default function Reminders() {
       <SectionCard style={{ marginTop: 16 }}>
         {items.map((it, i) => (
           <View key={it.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8, borderTopWidth: i ? 1 : 0, borderTopColor: '#E6E6E8' }}>
-            {it.id !== 'scan' && it.id !== 'weather' ? <Glyph id={it.id} /> : <Glyph name={it.id === 'scan' ? 'magnifier' : 'sun'} color={C.ink} />}
+            <Image source={icon3d(it.id === 'scan' ? 'mirror' : it.id === 'weather' ? 'sun_cover' : it.id)} resizeMode="contain" style={{ width: 30, height: 30 }} />
             <View style={{ flex: 1 }}><Text style={{ fontFamily: F.regular, fontSize: 16, color: C.ink }}>{it.t}</Text><Text style={{ fontFamily: F.regular, fontSize: 13, color: C.gray }}>{it.s}</Text></View>
             <Switch value={reminders[it.id] ?? true} onValueChange={v => setReminder(it.id, v)} trackColor={{ true: C.ink, false: '#E3E3E6' }} thumbColor="#fff" />
           </View>

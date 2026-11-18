@@ -4,9 +4,11 @@ import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, useW
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path, SvgXml } from 'react-native-svg';
 import { glyphSvg, leverColor, leverSvg } from '../data/icons';
+import { icon3d } from '../data/icons3d';
+import { haptic } from '../lib/haptics';
 import { C, evidenceStyle, F } from '../theme';
 
-const crown = require('../../assets/crown.png');
+const crown = require('../../assets/crown-pink.png');
 const seal = require('../../assets/seal.png');
 
 // Phone-width column on web so screens look like the Figma frames.
@@ -45,7 +47,7 @@ export function BackButton({ onPress }: { onPress?: () => void }) {
 
 export function Button({ label, onPress, variant = 'primary', disabled, loading, style }: { label: string; onPress?: () => void; variant?: 'primary' | 'secondary' | 'ghost'; disabled?: boolean; loading?: boolean; style?: ViewStyle }) {
   return (
-    <Pressable disabled={disabled || loading} onPress={onPress} style={({ pressed }) => [
+    <Pressable disabled={disabled || loading} onPress={onPress ? () => { haptic(); onPress(); } : undefined} style={({ pressed }) => [
       s.btn,
       variant === 'primary' && { backgroundColor: disabled ? '#E3E3E6' : pressed ? '#2E2E2E' : C.ink },
       variant === 'secondary' && { backgroundColor: pressed ? C.pressed : C.option, borderWidth: 1, borderColor: '#E5E5E5' },
@@ -64,12 +66,22 @@ export function Button({ label, onPress, variant = 'primary', disabled, loading,
 
 export function OptionRow({ label, sub, selected, onPress, multi }: { label: string; sub?: string; selected: boolean; onPress: () => void; multi?: boolean }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [s.opt, { backgroundColor: selected ? (pressed ? '#2E2E2E' : C.ink) : pressed ? C.pressed : C.option }]}>
+    <Pressable onPress={() => { haptic('select'); onPress(); }} style={({ pressed }) => [s.opt, { backgroundColor: selected ? (pressed ? '#2E2E2E' : C.ink) : pressed ? C.pressed : C.option }]}>
       <View style={{ flex: 1 }}>
         <Text style={[s.optTitle, selected && { color: '#fff' }]}>{label}</Text>
         {sub ? <Text style={[s.optSub, selected && { color: '#fff', opacity: 0.8 }]}>{sub}</Text> : null}
       </View>
       {multi ? <View style={[s.check, selected && { backgroundColor: '#fff', borderColor: '#fff' }]}>{selected ? <Svg width={12} height={12} viewBox="0 0 24 24"><Path d="m5 12.5 4.5 4.5L19 7.5" stroke={C.ink} strokeWidth={3} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg> : null}</View> : null}
+    </Pressable>
+  );
+}
+
+/** Pill toggle used by chip questions. */
+export function Chip({ label, on, onPress }: { label: string; on: boolean; onPress: () => void }) {
+  return (
+    <Pressable onPress={() => { haptic('select'); onPress(); }} accessibilityRole="checkbox" accessibilityState={{ checked: on }}
+      style={({ pressed }) => ({ paddingHorizontal: 16, height: 40, borderRadius: 20, justifyContent: 'center', backgroundColor: on ? (pressed ? '#2E2E2E' : C.ink) : pressed ? C.pressed : '#fff', borderWidth: 1, borderColor: on ? C.ink : '#E3E3E6' })}>
+      <Text style={{ fontFamily: F.medium, fontSize: 14, color: on ? '#fff' : C.ink }}>{label}</Text>
     </Pressable>
   );
 }
@@ -83,14 +95,13 @@ export function Sub({ children, style }: { children: React.ReactNode; style?: an
 
 // "Moi" in Young Serif with the 3D crown on the o, scaled from the Figma lockup (64 px master).
 /**
- * Wordmark, built to match the Figma "Logo/Moi lockup" (40:400) exactly. Positions are in
- * units of its 64px master (k = size / 64): each letter is placed where Figma places it, and
- * the crown uses Figma's transform (27° counter-clockwise about its top-left at 53.8, 14.6),
- * converted to a rotation about the centre because that is how React Native rotates.
+ * Wordmark. Letters sit where the Figma "Logo/Moi lockup" (40:400) places them, in units of
+ * its 64px master (k = size / 64). The pink velvet crown rests on the "o" the way it would on a
+ * head: as wide as the letter (ink 65.8–98.5 × 30.2–63.7), its band hugging the top curve, tipped 14° left.
  * The box is the text height, so inline baselines line up with the sentence around it.
  */
 const LETTERS: [string, number][] = [['M', -1.9], ['o', 63.8], ['i', 99.5]];
-const CROWN = { w: 32.2, h: 34, left: 59.8, top: 5.4, rotate: '-27deg' };
+const CROWN = { w: 33, h: 33.5, left: 63.5, top: 7.25, rotate: '-14deg' }; // 852×865 artwork, centred on the o at (80, 24)
 
 export function Logo({ size = 40, color = '#2F3D3B' }: { size?: number; color?: string }) {
   const k = size / 64;
@@ -130,27 +141,19 @@ export function CardGrid({ children }: { children: React.ReactNode[] }) {
   return <View style={{ gap: 10 }}>{rows.map((r, i) => <View key={i} style={{ flexDirection: 'row', gap: 10 }}>{r}{r.length === 1 ? <View style={{ flex: 1 }} /> : null}</View>)}</View>;
 }
 
+/** A routine card: label on top, the 3D object for the step, and today's amount underneath. */
 export function RecCard({ id, label, value, unit, done, onPress }: { id: string; label: string; value: string | number; unit: string; done?: boolean; onPress?: () => void; width?: any }) {
-  const col = leverColor(id);
   const narrow = useWindowDimensions().width < 360;
+  const amount = `${value}${unit ? ` ${unit}` : ''}`;
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [s.rec, narrow && { padding: 10, gap: 6 }, { flex: 1, minWidth: 0, backgroundColor: pressed ? '#F2F2F4' : '#fff' }]}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: narrow ? 6 : 8 }}>
-        <Glyph id={id} size={narrow ? 14 : undefined} />
-        <Text numberOfLines={1} style={{ fontFamily: F.medium, fontSize: narrow ? 13 : 14, color: done ? C.gray : C.ink, flex: 1 }}>{label}</Text>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${label}, ${amount}${done ? ', done' : ''}`}
+      style={({ pressed }) => [s.rec, narrow && { padding: 10, gap: 4 }, { flex: 1, minWidth: 0, backgroundColor: pressed ? '#F2F2F4' : '#fff' }]}>
+      <Text numberOfLines={1} style={{ fontFamily: F.semibold, fontSize: narrow ? 13 : 14, color: done ? C.gray : C.ink }}>{label}</Text>
+      <View style={{ alignItems: 'center', justifyContent: 'center', height: narrow ? 64 : 72 }}>
+        <Image source={icon3d(id)} resizeMode="contain" style={{ width: narrow ? 58 : 66, height: narrow ? 58 : 66, opacity: done ? 0.45 : 1 }} />
+        {done ? <View style={{ position: 'absolute', right: 2, bottom: 0 }}><Seal size={26} /></View> : null}
       </View>
-      <View style={{ alignItems: 'center', justifyContent: 'center', height: 64 }}>
-        <Ring color={col} full={done} />
-        <View style={StyleSheet.absoluteFill as any}>
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            {done ? <Seal size={26} /> : (
-              <Text style={{ fontFamily: F.semibold, fontSize: String(value).length > 5 ? 11 : 13, color: C.ink, textAlign: 'center', maxWidth: 44 }}>
-                {String(value)}{unit ? <Text style={{ fontFamily: F.medium, fontSize: 8 }}>{'\n'}{unit}</Text> : null}
-              </Text>
-            )}
-          </View>
-        </View>
-      </View>
+      <Text numberOfLines={1} style={{ fontFamily: F.medium, fontSize: 12, color: done ? C.gray : C.gray2, textAlign: 'center' }}>{done ? 'Done today' : amount}</Text>
     </Pressable>
   );
 }
@@ -181,7 +184,7 @@ export function MoreRow({ id, label, meta, onPress }: { id: string; label: strin
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [s.more, pressed && { backgroundColor: '#F2F2F4' }]}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
-        <View style={s.moreIcon}><Glyph id={id} /></View>
+        <View style={s.moreIcon}><Image source={icon3d(id)} resizeMode="contain" style={{ width: 28, height: 28 }} /></View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: F.semibold, fontSize: 14, color: C.ink }}>{label}</Text>
           <Text style={{ fontFamily: F.regular, fontSize: 11, color: C.gray }}>{meta}</Text>

@@ -7,9 +7,20 @@ import { C, F } from '../theme';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StoreProvider } from '../state/store';
-import React from 'react';
+import React, { useEffect } from 'react';
+import { markOpened } from '../lib/push';
+
+/** A tapped reminder opens /?n=<id>; record it so the sender knows reminders are being read. */
+function useOpenedReminder() {
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+    const id = new URLSearchParams(window.location.search).get('n');
+    if (id) markOpened(id).catch(() => {});
+  }, []);
+}
 
 export default function RootLayout() {
+  useOpenedReminder();
   const [loaded] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, YoungSerif_400Regular });
   if (!loaded) return null;
   return (
@@ -19,6 +30,7 @@ export default function RootLayout() {
         <Frame>
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#fff' } }}>
           <Stack.Screen name="why/[id]" options={{ presentation: 'transparentModal', animation: 'fade' }} />
+          <Stack.Screen name="feed/[id]" options={{ presentation: 'transparentModal', animation: 'fade' }} />
           <Stack.Screen name="change" options={{ presentation: 'modal' }} />
           <Stack.Screen name="reminders" options={{ presentation: 'modal' }} />
         </Stack>

@@ -6,6 +6,7 @@ export type Account = { email: string | null; phone: string | null; anonymous: b
 
 /** The slice of app state that lives in the `profiles` row and `done_log` table. */
 export type Snapshot = {
+  planSummary?: Record<string, unknown>;
   name: string;
   answers: Record<string, unknown>;
   onboarded: boolean;
@@ -86,6 +87,7 @@ export function useCloud(ready: boolean, local: Omit<Snapshot, 'done'>, apply: (
         onboarded: local.onboarded,
         last_wash: local.lastWash,
         reminders: local.reminders,
+        plan_summary: local.planSummary ?? {},
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       }));
       setStatus(saved ? 'saved' : 'off');

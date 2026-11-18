@@ -38,3 +38,23 @@ export async function saveScan(photos: Partial<Record<Angle, string>>): Promise<
   }
   return saved;
 }
+
+export type ScanSession = { id: string; at: string; photos: Partial<Record<Angle, string>> };
+
+/** The person's scan sessions, oldest first, with short-lived links to each photo. */
+export async function loadScanSessions(): Promise<ScanSession[]> {
+  const sb = supabase();
+  if (!sb) return [];
+  const { data: rows, error } = await sb.from('scans').select('session_id, angle, path, taken_at').order('taken_at', { ascending: true });
+  if (error || !rows?.length) return [];
+  const { data: links } = await sb.storage.from('scans').createSignedUrls(rows.map(r => r.path), 3600);
+  const url = new Map((links ?? []).map(l => [l.path, l.signedUrl]));
+  const sessions = new Map<string, ScanSession>();
+  for (const r of rows) {
+    const s: ScanSession = sessions.get(r.session_id) ?? { id: r.session_id, at: r.taken_at, photos: {} };
+    const u = url.get(r.path);
+    if (u) s.photos[r.angle as Angle] = u;
+    sessions.set(r.session_id, s);
+  }
+  return [...sessions.values()];
+}
