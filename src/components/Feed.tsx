@@ -68,13 +68,15 @@ function Section({ s }: { s: FeedSection }) {
   );
 }
 
-/** The scrolling feed under "Your routine" on Home. */
-export function HomeFeed({ streakWeeks }: { streakWeeks: number }) {
+/** Feed sections for a Home tab: `only` picks sections by id; `withRecords` adds Hair records at the end. */
+export function HomeFeed({ streakWeeks, only, withRecords }: { streakWeeks: number; only?: string[]; withRecords?: boolean }) {
   return (
     <View>
-      {feed().map(s => <Section key={s.id} s={s} />)}
-      <Header title="Hair records" />
-      <Row>{records(streakWeeks).map(r => <Locked key={r.id} radius={18} label={r.label}><Record r={r} /></Locked>)}</Row>
+      {feed().filter(s => !only || only.includes(s.id)).map(s => <Section key={s.id} s={s} />)}
+      {withRecords ? <>
+        <Header title="Hair records" />
+        <Row>{records(streakWeeks).map(r => <Locked key={r.id} radius={18} label={r.label}><Record r={r} /></Locked>)}</Row>
+      </> : null}
     </View>
   );
 }

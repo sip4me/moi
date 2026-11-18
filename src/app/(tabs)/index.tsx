@@ -9,6 +9,7 @@ import { IronMaxxing } from '../../components/IronMaxxing';
 import { Trending } from '../../components/Trending';
 import { MomentCard } from '../../components/MomentCard';
 import { WashDayArt } from '../../components/WashDayArt';
+import { SegmentedTabs } from '../../components/SegmentedTabs';
 import { Locked, PeekRow } from '../../components/Peek';
 import { currentMoment } from '../../data/moments';
 import { TwoFrameArt } from '../../components/TwoFrameArt';
@@ -25,13 +26,17 @@ import { C, F, evidenceStyle } from '../../theme';
 const CARD_W = 150;
 const ROW_W = 270;
 
+const TABS = ['Food recipes', 'Care', 'Style'];
+
 const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function Home() {
   const { plan, done, todayKey, lastWash, lifeChange, scans, answers, toggleDone } = useStore();
   const hour = useHour();
   const [selected, setSelected] = useState(0);
+  const [tab, setTab] = useState(0);
   if (!plan) return null;
+  const streakWeeksN = scanStreakWeeks(scans);
   const paused = !!lifeChange && (lifeChange.type === 'Protective style' || lifeChange.type === 'Sick or recovering');
   const days = week(plan, lastWash, todayKey, paused);
   const day = days[selected] ?? days[0];
@@ -133,29 +138,38 @@ export default function Home() {
         ) : <Sub style={{ fontSize: 14, textAlign: 'center', paddingVertical: 12 }}>Rest day. Nothing planned.</Sub>}
         <Sub style={{ fontSize: 12, textAlign: 'center', marginTop: 10 }}>{day.isToday ? 'Tap a card to see why and mark it done.' : 'A preview. It updates when you log a wash or change a card.'}</Sub>
       </View>
-      {plan.learn.length ? (
-        <View style={{ marginTop: 14 }}>
-          <PeekRow itemWidth={ROW_W}>{plan.learn.map(l => <Locked key={l.id} label={l.label}><DoctorNote id={l.id} label={l.label} why={l.why} onPress={() => router.push(`/why/${l.id}`)} /></Locked>)}</PeekRow>
-        </View>
-      ) : null}
-      {plan.extras.length ? (
-        <View style={{ gap: 8, marginTop: 16 }}>
-          <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>More you can try</Text>
-          <PeekRow itemWidth={ROW_W}>
-            {plan.extras.map(c => (
-              <Locked key={c.id} label={c.label} radius={14}>
-                <View style={{ borderRadius: 14, borderWidth: 1, borderColor: C.line, overflow: 'hidden' }}>
-                  <MoreRow id={c.id} label={c.label} meta={`${c.value}${c.unit ? ' ' + c.unit : ''} · ${evidenceStyle[c.evidence ?? 'early'].label.toLowerCase()}`} onPress={() => router.push(`/why/${c.id}`)} />
-                </View>
-              </Locked>
-            ))}
-          </PeekRow>
-        </View>
-      ) : null}
-      <GlamourEntry />
-      <IronMaxxing />
-      <Trending />
-      <HomeFeed streakWeeks={scanStreakWeeks(scans)} />
+      {/* Everything else, sorted into three tabs: food, care and style. */}
+      <View style={{ marginTop: 26 }}>
+        <SegmentedTabs tabs={TABS} value={tab} onChange={setTab} />
+      </View>
+      {tab === 0 ? <IronMaxxing /> : null}
+      {tab === 1 ? <>
+        {plan.learn.length ? (
+          <View style={{ marginTop: 18 }}>
+            <PeekRow itemWidth={ROW_W}>{plan.learn.map(l => <Locked key={l.id} label={l.label}><DoctorNote id={l.id} label={l.label} why={l.why} onPress={() => router.push(`/why/${l.id}`)} /></Locked>)}</PeekRow>
+          </View>
+        ) : null}
+        {plan.extras.length ? (
+          <View style={{ gap: 8, marginTop: 18 }}>
+            <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>More you can try</Text>
+            <PeekRow itemWidth={ROW_W}>
+              {plan.extras.map(c => (
+                <Locked key={c.id} label={c.label} radius={14}>
+                  <View style={{ borderRadius: 14, borderWidth: 1, borderColor: C.line, overflow: 'hidden' }}>
+                    <MoreRow id={c.id} label={c.label} meta={`${c.value}${c.unit ? ' ' + c.unit : ''} · ${evidenceStyle[c.evidence ?? 'early'].label.toLowerCase()}`} onPress={() => router.push(`/why/${c.id}`)} />
+                  </View>
+                </Locked>
+              ))}
+            </PeekRow>
+          </View>
+        ) : null}
+        <GlamourEntry />
+        <HomeFeed streakWeeks={streakWeeksN} only={['care', 'rituals']} />
+      </> : null}
+      {tab === 2 ? <>
+        <Trending />
+        <HomeFeed streakWeeks={streakWeeksN} only={['styles']} withRecords />
+      </> : null}
     </Screen>
   );
 }
