@@ -97,8 +97,7 @@ function Badge({ c, i, size = 48 }: { c: RecItem; i: number; size?: number }) {
   const [light, deep] = TINTS[i % TINTS.length];
   const g = `${useContext(Uid)}g${i % TINTS.length}`;
   return (
-    <View style={{ width: size, height: size, borderRadius: size / 2, borderWidth: 3, borderColor: '#fff', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-      shadowColor: deep, shadowOpacity: 0.45, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } }}>
+    <View style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
       <Svg style={{ position: 'absolute', top: 0, left: 0 }} width={size} height={size} viewBox="0 0 10 10" pointerEvents="none">
         <Defs>
           <RadialGradient id={g} cx="0.35" cy="0.3" r="0.85">

@@ -31,6 +31,8 @@ export const F = {
   serif: 'YoungSerif_400Regular',
   display: 'InstrumentSerif_400Regular',
   displayItalic: 'InstrumentSerif_400Regular_Italic',
+  /** Glamour affirmations: a high-contrast didone with ball terminals (Abril Fatface). */
+  glam: 'AbrilFatface_400Regular',
 };
 
 export const evidenceStyle: Record<string, { label: string; bg: string; fg: string }> = {

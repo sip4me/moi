@@ -1,6 +1,7 @@
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, useFonts } from '@expo-google-fonts/inter';
 import { YoungSerif_400Regular } from '@expo-google-fonts/young-serif';
 import { InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic } from '@expo-google-fonts/instrument-serif';
+import { AbrilFatface_400Regular } from '@expo-google-fonts/abril-fatface';
 import { Stack } from 'expo-router';
 import { Platform, Text, useWindowDimensions, View } from 'react-native';
 import { BrandText, Logo } from '../components/ui';
@@ -45,7 +46,7 @@ function SubscriptionSync() {
 export default function RootLayout() {
   useOpenedReminder();
   useContentProtection();
-  const [loaded] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, YoungSerif_400Regular, InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic });
+  const [loaded] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, YoungSerif_400Regular, InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic, AbrilFatface_400Regular });
   if (!loaded) return null;
   return (
     <SafeAreaProvider>

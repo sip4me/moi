@@ -8,7 +8,7 @@ import { haptic } from '../lib/haptics';
 import { useStore } from '../state/store';
 import { F } from '../theme';
 
-const PLUM = '#3A1F2B', MAUVE = '#7A3E5C', HEART = '#A8698A', CARD = '#FBF1EE';
+const PLUM = '#2E1F4A', MAUVE = '#6A4FB0', HEART = '#8E6FD8', CARD = '#F6F2FF';
 
 const Heart = ({ filled, size = 22 }: { filled?: boolean; size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24"><Path d="M12 20.5s-7.5-4.4-9.3-9.2C1.4 7.7 3.6 4.5 7 4.5c2 0 3.6 1.1 5 3 1.4-1.9 3-3 5-3 3.4 0 5.6 3.2 4.3 6.8-1.8 4.8-9.3 9.2-9.3 9.2Z" fill={filled ? HEART : 'none'} stroke={HEART} strokeWidth={2} strokeLinejoin="round" /></Svg>
@@ -18,7 +18,7 @@ const ShareIcon = () => (
 );
 const Circle = ({ children, onPress, label }: { children: React.ReactNode; onPress: () => void; label: string }) => (
   <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} hitSlop={8}
-    style={({ pressed }) => ({ width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#F1E2E2' : 'rgba(255,255,255,0.55)', transform: [{ scale: pressed ? 0.94 : 1 }] })}>
+    style={({ pressed }) => ({ width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#ECE6FA' : 'rgba(255,255,255,0.55)', transform: [{ scale: pressed ? 0.94 : 1 }] })}>
     {children}
   </Pressable>
 );
@@ -31,7 +31,7 @@ function CardFace({ card, saved, onSave, onShare }: { card: GlamourCard; saved: 
         <Circle onPress={onShare} label="Share"><ShareIcon /></Circle>
       </View>
       <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 6, gap: 26 }}>
-        <Text style={{ fontFamily: F.displayItalic, fontSize: 31, lineHeight: 37, color: PLUM, textAlign: 'center' }}>{card.line}</Text>
+        <Text style={{ fontFamily: F.glam, fontSize: 28, lineHeight: 36, color: PLUM, textAlign: 'center' }}>{card.line}</Text>
         <Text style={{ fontFamily: F.semibold, fontSize: 12, letterSpacing: 3, color: MAUVE, textAlign: 'center' }}>{card.tag.toUpperCase()}</Text>
       </View>
     </View>
@@ -87,7 +87,7 @@ export default function Glamour() {
   return (
     <View style={{ flex: 1 }}>
       <Svg style={{ position: 'absolute', width: '100%', height: '100%' }}>
-        <Defs><LinearGradient id="glam" x1="0" y1="0" x2="0" y2="1"><Stop offset="0" stopColor="#F8E6DF" /><Stop offset="0.45" stopColor="#EFCCD3" /><Stop offset="1" stopColor="#DDA9BE" /></LinearGradient></Defs>
+        <Defs><LinearGradient id="glam" x1="0" y1="0" x2="0" y2="1"><Stop offset="0" stopColor="#F1ECFF" /><Stop offset="0.45" stopColor="#DCD0FB" /><Stop offset="1" stopColor="#B9A3F0" /></LinearGradient></Defs>
         <Rect width="100%" height="100%" fill="url(#glam)" />
       </Svg>
       <SafeAreaView style={{ flex: 1, width: '100%', maxWidth: 520, alignSelf: 'center', paddingHorizontal: 24 }} edges={['top', 'bottom']}>
@@ -101,16 +101,16 @@ export default function Glamour() {
             <Heart filled size={24} />
           </Pressable>
         </View>
-        <Text style={{ fontFamily: F.display, fontSize: 44, lineHeight: 46, letterSpacing: -0.5, color: PLUM, marginTop: 6 }}>{showSaved ? 'Your saved\nglamour' : 'Remind yourself\nof your glamour'}</Text>
+        <Text style={{ fontFamily: F.glam, fontSize: 40, lineHeight: 46, letterSpacing: -0.2, color: PLUM, marginTop: 6 }}>{showSaved ? 'Your saved\nglamour' : 'Remind yourself\nof your glamour'}</Text>
         <Text style={{ fontFamily: F.semibold, fontSize: 12, letterSpacing: 3.2, color: MAUVE, marginTop: 14 }}>{showSaved ? `${deck.length} SAVED` : 'COME BACK ONCE DAILY'}</Text>
 
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 30 }}>
           <View style={{ width: cardW, height: Math.min(cardW * 1.08, 460) }}>
             {done || !deck.length ? (
               <View style={{ flex: 1, borderRadius: 40, borderWidth: 8, borderColor: '#fff', backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', padding: 28, gap: 14 }}>
-                <Text style={{ fontFamily: F.displayItalic, fontSize: 30, lineHeight: 36, color: PLUM, textAlign: 'center' }}>{deck.length ? 'You’re glowing.\nCome back tomorrow for more.' : 'Tap the heart on any card to keep it here.'}</Text>
+                <Text style={{ fontFamily: F.glam, fontSize: 26, lineHeight: 34, color: PLUM, textAlign: 'center' }}>{deck.length ? 'You’re glowing.\nCome back tomorrow for more.' : 'Tap the heart on any card to keep it here.'}</Text>
                 {deck.length ? (
-                  <Pressable onPress={() => { haptic('select'); setI(0); }} style={({ pressed }) => ({ marginTop: 6, borderRadius: 999, paddingHorizontal: 18, paddingVertical: 10, backgroundColor: pressed ? '#EBD3D8' : '#F3E1E3' })}>
+                  <Pressable onPress={() => { haptic('select'); setI(0); }} style={({ pressed }) => ({ marginTop: 6, borderRadius: 999, paddingHorizontal: 18, paddingVertical: 10, backgroundColor: pressed ? '#DED3F7' : '#ECE5FB' })}>
                     <Text style={{ fontFamily: F.semibold, fontSize: 12, letterSpacing: 2.4, color: MAUVE }}>READ AGAIN</Text>
                   </Pressable>
                 ) : null}
@@ -119,11 +119,11 @@ export default function Glamour() {
               <>
                 {/* The stack: up to two cards peeking out below, rising as the top card flies off. */}
                 {[2, 1].map(depth => (i + depth < deck.length ? (
-                  <Animated.View key={`b${depth}`} style={[{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, borderRadius: 40, borderWidth: 8, borderColor: '#fff', backgroundColor: depth === 1 ? '#F7E8E8' : '#F1DFE2' }, behind(depth)]} />
+                  <Animated.View key={`b${depth}`} style={[{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, borderRadius: 40, borderWidth: 8, borderColor: '#fff', backgroundColor: depth === 1 ? '#EEE8FD' : '#E5DCFA' }, behind(depth)]} />
                 ) : null))}
                 <Animated.View {...pan.panHandlers}
                   style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, borderRadius: 40, borderWidth: 8, borderColor: '#fff', backgroundColor: CARD,
-                    shadowColor: '#7A3E5C', shadowOpacity: 0.18, shadowRadius: 24, shadowOffset: { width: 0, height: 14 }, transform: [{ translateX: x }, { rotate }] }}>
+                    shadowColor: '#6A4FB0', shadowOpacity: 0.18, shadowRadius: 24, shadowOffset: { width: 0, height: 14 }, transform: [{ translateX: x }, { rotate }] }}>
                   <Pressable style={{ flex: 1 }} onPress={() => next(1)} accessibilityHint="Shows the next card">
                     <CardFace card={deck[i]} saved={saved.includes(`glam:${deck[i].id}`)} onSave={() => save(deck[i])} onShare={() => share(deck[i])} />
                   </Pressable>
@@ -133,7 +133,7 @@ export default function Glamour() {
           </View>
           {!done && deck.length ? (
             <View style={{ flexDirection: 'row', gap: 6, marginTop: 44 }}>
-              {deck.map((g, k) => <View key={g.id} style={{ width: k === i ? 18 : 6, height: 6, borderRadius: 3, backgroundColor: k === i ? PLUM : 'rgba(58,31,43,0.25)' }} />)}
+              {deck.map((g, k) => <View key={g.id} style={{ width: k === i ? 18 : 6, height: 6, borderRadius: 3, backgroundColor: k === i ? PLUM : 'rgba(46,31,74,0.25)' }} />)}
             </View>
           ) : null}
         </View>
