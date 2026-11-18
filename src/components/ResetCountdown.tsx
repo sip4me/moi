@@ -17,7 +17,7 @@ export function ResetCountdown() {
   const passed = (now.getTime() - start.getTime()) / (midnight.getTime() - start.getTime());
   const h = Math.floor(left / 3600), m = Math.floor((left % 3600) / 60), s = left % 60;
   return (
-    <View style={{ alignItems: 'center', marginTop: 40, marginBottom: 8 }} accessibilityRole="timer" accessibilityLabel={`Your goal resets in ${h} hours and ${m} minutes`}>
+    <View style={{ alignItems: 'center', marginTop: 112, marginBottom: 24 }} accessibilityRole="timer" accessibilityLabel={`Your goal resets in ${h} hours and ${m} minutes`}>
       <Text style={{ fontFamily: F.semibold, fontSize: 10, letterSpacing: 2, color: C.gray }}>YOUR GOAL RESETS IN</Text>
       <Text style={{ fontFamily: F.display, fontSize: 34, lineHeight: 40, letterSpacing: 2, color: C.ink, marginTop: 4, fontVariant: ['tabular-nums'] }}>{pad(h)}:{pad(m)}:{pad(s)}</Text>
       <View style={{ width: '44%', height: 4, borderRadius: 2, backgroundColor: '#EFEFF1', marginTop: 10, overflow: 'hidden' }}>

@@ -21,6 +21,19 @@ export function HomePager({ pages }: { pages: HomePage[] }) {
   const scrollers = useRef<(ScrollViewInstance | null)[]>([]);
   const pageRef = useRef(0);
   pageRef.current = page;
+  // The dots fade out after a second on a screen, and come back while you swipe or land somewhere new.
+  const dots = useRef(new Animated.Value(1)).current;
+  const [dotsOn, setDotsOn] = useState(true);
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showDots = () => {
+    if (hideTimer.current) clearTimeout(hideTimer.current);
+    setDotsOn(true);
+    Animated.timing(dots, { toValue: 1, duration: 150, useNativeDriver: true }).start();
+    hideTimer.current = setTimeout(() => {
+      Animated.timing(dots, { toValue: 0, duration: 400, easing: Easing.out(Easing.quad), useNativeDriver: true }).start(() => setDotsOn(false));
+    }, 1000);
+  };
+  useEffect(() => { showDots(); return () => { if (hideTimer.current) clearTimeout(hideTimer.current); }; }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const go = (i: number, animated = true) => {
     pager.current?.scrollTo({ x: i * w, animated });
@@ -39,7 +52,12 @@ export function HomePager({ pages }: { pages: HomePage[] }) {
     <View style={{ flex: 1 }} onLayout={e => { setW(e.nativeEvent.layout.width); setH(e.nativeEvent.layout.height); }}>
       {w && h ? (
         <ScrollView ref={pager} horizontal pagingEnabled showsHorizontalScrollIndicator={false} scrollEventThrottle={32}
-          onScroll={e => { const i = Math.round(e.nativeEvent.contentOffset.x / w); if (i !== pageRef.current) { setPage(i); haptic('tap'); } }}
+          onScroll={e => {
+            const x = e.nativeEvent.contentOffset.x;
+            if (Math.abs(x - pageRef.current * w) > 4) showDots(); // mid-swipe: show where you're heading
+            const i = Math.round(x / w);
+            if (i !== pageRef.current) { setPage(i); haptic('tap'); }
+          }}
           style={{ flex: 1 }} contentContainerStyle={{ height: h }}>
           {pages.map((p, i) => (
             // Each screen is exactly one screen tall, so its own content scrolls up and down inside it.
@@ -58,7 +76,7 @@ export function HomePager({ pages }: { pages: HomePage[] }) {
       ) : null}
 
       {/* Where you are: one dot per screen and its name, just above the tab bar. Tap a dot to jump. */}
-      <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 98, alignItems: 'center' }}>
+      <Animated.View pointerEvents={dotsOn ? 'box-none' : 'none'} style={{ position: 'absolute', left: 0, right: 0, bottom: 98, alignItems: 'center', opacity: dots }}>
         <Pressable onLongPress={hold} delayLongPress={300} onPress={hold} accessibilityRole="button" accessibilityLabel={`Screen ${page + 1} of ${pages.length}, ${pages[page]?.title}. Tap to see all screens.`}
           style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.92)',
             shadowColor: '#1E2430', shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 3 } }}>
@@ -67,7 +85,7 @@ export function HomePager({ pages }: { pages: HomePage[] }) {
           ))}
           <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.ink, marginLeft: 4 }}>{pages[page]?.title}</Text>
         </Pressable>
-      </View>
+      </Animated.View>
 
       <Overview open={overview} pages={pages} current={page} onClose={() => setOverview(false)} onPick={i => { setOverview(false); setTimeout(() => go(i), 60); }} />
     </View>
