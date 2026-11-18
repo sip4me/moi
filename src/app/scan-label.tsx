@@ -1,6 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Image, Text, TextInput, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 import { Button, Screen, Sub, TopBar } from '../components/ui';
@@ -39,13 +39,18 @@ const MODES = ['Hair product', 'Iron food'];
  * (found by barcode in Open Food Facts, or "Iron" is read off its Nutrition Facts panel).
  */
 export default function ScanLabel() {
-  const params = useLocalSearchParams<{ mode?: string }>();
+  const params = useLocalSearchParams<{ mode?: string; proof?: string }>();
   const [mode, setMode] = useState(params.mode === 'food' ? 1 : 0);
   const food = mode === 1;
   const [s, setS] = useState<State>({ step: 'start' });
   const { answers, done, todayKey, toggleDone } = useStore();
   const need = ironTarget(answers);
   const ironDone = (done[todayKey] ?? []).includes('iron_food');
+  // Opened from a rec that asks for a product scan: a successful scan ticks that rec (and drops a coin).
+  const proof = params.proof;
+  const proven = !!proof && (done[todayKey] ?? []).includes(proof);
+  const scanned = s.step === 'product' || s.step === 'food';
+  useEffect(() => { if (proof && scanned && !proven) toggleDone(proof); }, [proof, scanned, proven, toggleDone]);
 
   async function scanFood(photo: string) {
     try {

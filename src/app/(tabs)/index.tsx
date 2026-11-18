@@ -31,13 +31,32 @@ import { C, F, SPACE, evidenceStyle, surface } from '../../theme';
 /** Peek-row widths: routine cards show the next two peeking in; wider rows show the next one. */
 const CARD_W = 148;
 const NIGHT = new Set(['satin', 'night_braid', 'wind_down', 'ends_oil', 'loose_styles', 'pillowcase']);
+/** Recs that ask for proof before the coin: a breathing recording, a photo, or a product scan. */
+const PROOF: Record<string, RecItem['proof']> = {
+  calm: { kind: 'voice', ask: 'Record at least 20 seconds of slow breathing to earn your coin.' },
+  night_braid: { kind: 'photo', ask: 'Snap your braid or pineapple to earn your coin.' },
+  loose_styles: { kind: 'photo', ask: 'Snap today’s loose style to earn your coin.' },
+  soft_ties: { kind: 'photo', ask: 'Snap your soft tie or scrunchie to earn your coin.' },
+  satin: { kind: 'photo', ask: 'Snap your satin pillowcase or bonnet to earn your coin.' },
+  iron_food: { kind: 'photo', ask: 'Snap one of today’s iron-rich meals to earn your coin.' },
+  sun_cover: { kind: 'photo', ask: 'Snap your hat or UV spray to earn your coin.' },
+  leave_in: { kind: 'scan', ask: 'Scan the leave-in you used to earn your coin.' },
+  ends_oil: { kind: 'scan', ask: 'Scan the oil you used to earn your coin.' },
+  heat_protect: { kind: 'scan', ask: 'Scan your heat protectant to earn your coin.' },
+  rosemary: { kind: 'scan', ask: 'Scan your rosemary oil to earn your coin.' },
+  dry_shampoo: { kind: 'scan', ask: 'Scan your dry shampoo to earn your coin.' },
+};
 /** A plan card as a notification in the routine stack. */
-const toRec = (c: Card, bedtime = false): RecItem => ({
-  id: c.id, label: c.label, sub: `${c.value}${c.unit ? ` ${c.unit}` : ''}`, icon: c.icon ?? c.id, pineapple: bedtime,
-  when: bedtime ? 'Before bed' : NIGHT.has(c.id) ? 'Tonight' : c.minutes ? `${c.minutes} min` : 'Today',
-  body: [{ text: c.why }],
+const toRec = (c: Card, bedtime = false): RecItem => {
+  const sub = `${c.value}${c.unit ? ` ${c.unit}` : ''}`.trim();
+  const mins = c.minutes ? `${c.minutes} min` : 'Today';
+  return {
+  id: c.id, label: c.label, sub, icon: c.icon ?? c.id, pineapple: bedtime,
+  when: bedtime ? 'Before bed' : NIGHT.has(c.id) ? 'Tonight' : mins === sub ? 'Today' : mins,
+  body: [{ text: c.why }], proof: PROOF[c.id],
   link: c.id === 'iron_food' ? { label: 'See today’s meals', href: '/iron' } : { label: 'Why it works', href: `/why/${c.id}` },
-});
+  };
+};
 const ROW_W = 280;
 
 const TABS = ['Food recipes', 'Care', 'Style'];

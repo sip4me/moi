@@ -4,10 +4,12 @@ import { createContext, useContext, useEffect, useId, useRef, useState } from 'r
 /** Unique per stack: SVG gradient ids are page-global on web, and screens stay mounted underneath each other. */
 const Uid = createContext('s');
 import { Animated, Easing, Image, Modal, Platform, Pressable, Text, View } from 'react-native';
-import Svg, { Defs, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
+import Svg, { Defs, LinearGradient, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { PINEAPPLE_ART, PINEAPPLE_TIMING } from '../data/art';
 import { icon3d } from '../data/icons3d';
+import * as ImagePicker from 'expo-image-picker';
 import { haptic } from '../lib/haptics';
+import { BreathRecorder } from './BreathRecorder';
 import { C, F } from '../theme';
 import { TwoFrameArt } from './TwoFrameArt';
 import { Seal } from './ui';
@@ -33,6 +35,8 @@ export type RecItem = {
   link?: { label: string; href: string };
   /** Bedtime pineapple: the animated art goes in the badge. */
   pineapple?: boolean;
+  /** Proof we ask for before the coin: a breathing recording, a photo, or a product scan. */
+  proof?: { kind: 'voice' | 'photo' | 'scan'; ask: string };
 };
 
 /** The frosted, faintly iridescent face every rec shares: pearl white with a pink, lilac and sky sheen. */
@@ -224,9 +228,11 @@ function RecPeek({ peek, done, canCheck, dayLabel, onClose, onCheck }: {
 }) {
   const pop = useRef(new Animated.Value(0)).current;
   const [ticked, setTicked] = useState(false);
+  const [photo, setPhoto] = useState<string | null>(null);
   useEffect(() => {
     if (!peek) return;
     setTicked(false);
+    setPhoto(null);
     pop.setValue(0);
     Animated.spring(pop, { toValue: 1, friction: 7, tension: 90, useNativeDriver: true }).start();
   }, [peek, pop]);
@@ -265,7 +271,33 @@ function RecPeek({ peek, done, canCheck, dayLabel, onClose, onCheck }: {
               </Pressable>
             ) : null}
 
-            {/* The check box: ticking it marks the rec done and drops a coin into the bag. */}
+            {photo ? <Image source={{ uri: photo }} style={{ marginTop: 16, height: 150, borderRadius: 18 }} resizeMode="cover" /> : null}
+            {c.proof && canCheck && !on ? (
+              <>
+                <Text style={{ fontFamily: F.medium, fontSize: 13, color: '#6B5C7A', marginTop: 16 }}>{c.proof.ask}</Text>
+                {c.proof.kind === 'voice' ? <BreathRecorder onSubmit={tick} /> : (
+                  <Pressable accessibilityRole="button" onPress={async () => {
+                    if (c.proof!.kind === 'scan') { onClose(); router.push({ pathname: '/scan-label', params: { proof: c.id } }); return; }
+                    if (Platform.OS !== 'web') { const p = await ImagePicker.requestCameraPermissionsAsync(); if (!p.granted) return; }
+                    const r = await ImagePicker.launchCameraAsync({ quality: 0.4, allowsEditing: false });
+                    if (r.canceled || !r.assets?.[0]) return;
+                    setPhoto(r.assets[0].uri); // shown here only; not uploaded
+                    tick();
+                  }}
+                    style={({ pressed }) => ({ marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 20, backgroundColor: pressed ? '#F1F1F4' : 'rgba(255,255,255,0.85)', borderWidth: 1, borderColor: '#ECECF0' })}>
+                    <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: c.proof.kind === 'scan' ? '#2E86FF' : '#F0408A', alignItems: 'center', justifyContent: 'center' }}>
+                      <Svg width={16} height={16} viewBox="0 0 24 24">{c.proof.kind === 'scan'
+                        ? <Path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8" stroke="#fff" strokeWidth={2.2} fill="none" strokeLinecap="round" />
+                        : <Path d="M4 8.5a2 2 0 0 1 2-2h2l1.5-2h5L16 6.5h2a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM12 16.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" stroke="#fff" strokeWidth={2} fill="none" strokeLinejoin="round" />}</Svg>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink }}>{c.proof.kind === 'scan' ? 'Scan the product' : 'Take a photo'}</Text>
+                      <Text style={{ fontFamily: F.regular, fontSize: 12, color: C.gray }}>{c.proof.kind === 'scan' ? 'Snap its label. Your coin lands when it’s found.' : 'Stays on your phone. Earns a gold coin.'}</Text>
+                    </View>
+                  </Pressable>
+                )}
+              </>
+            ) : (              <>{/* The check box: ticking it marks the rec done and drops a coin into the bag. */}
             <Pressable onPress={tick} disabled={!canCheck} accessibilityRole="checkbox" accessibilityState={{ checked: on, disabled: !canCheck }} accessibilityLabel={`Mark ${c.label} done`}
               style={({ pressed }) => ({ marginTop: 18, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 20, backgroundColor: pressed ? '#F1F1F4' : 'rgba(255,255,255,0.85)', borderWidth: 1, borderColor: '#ECECF0', opacity: canCheck ? 1 : 0.6 })}>
               {on ? <Seal size={30} /> : <View style={{ width: 28, height: 28, borderRadius: 9, borderWidth: 2, borderColor: '#C9C9CF', backgroundColor: '#fff' }} />}
@@ -273,7 +305,8 @@ function RecPeek({ peek, done, canCheck, dayLabel, onClose, onCheck }: {
                 <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink }}>{on ? 'Done' : 'Mark as done'}</Text>
                 <Text style={{ fontFamily: F.regular, fontSize: 12, color: C.gray }}>{!canCheck ? `You can tick this off on ${dayLabel}.` : on ? 'A gold coin is in your bag.' : 'Earn a gold coin for your bag.'}</Text>
               </View>
-            </Pressable>
+            </Pressable></>
+            )}
           </Pressable>
         </Animated.View>
       </Pressable>
