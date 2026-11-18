@@ -21,7 +21,7 @@ function Avatar({ label, tone = C.ink, dashed }: { label: string; tone?: string;
 function TokenCoin({ name, days, color, earned }: { name: string; days: number; color: readonly [string, string]; earned: boolean }) {
   const id = `tok-${name.replace(/\W/g, '')}`;
   return (
-    <View style={{ alignItems: 'center', width: 62, gap: 4 }} accessibilityLabel={`${name} token, ${earned ? 'earned' : `unlocks at a ${days}-day joint streak`}`}>
+    <View style={{ alignItems: 'center', width: 74, gap: 4 }} accessibilityLabel={`${name} token, ${earned ? 'earned' : `unlocks at a ${days}-day joint streak`}`}>
       <Svg width={52} height={52} viewBox="0 0 52 52">
         <Defs><RadialGradient id={id} cx="35%" cy="30%" r="75%"><Stop offset="0" stopColor="#fff" /><Stop offset="0.45" stopColor={color[0]} /><Stop offset="1" stopColor={color[1]} /></RadialGradient></Defs>
         <Circle cx={26} cy={26} r={24} fill={earned ? `url(#${id})` : '#EDEDEF'} stroke={earned ? color[1] : '#DDDDE0'} strokeWidth={1.5} />
@@ -30,8 +30,8 @@ function TokenCoin({ name, days, color, earned }: { name: string; days: number; 
           ? <Path d="M16 31 l2-11 5 5 3-7 3 7 5-5 2 11z" fill="#fff" stroke={color[1]} strokeWidth={1.2} strokeLinejoin="round" />
           : <Path d="M21 25v-3a5 5 0 0 1 10 0v3M19 25h14v9H19z" fill="none" stroke="#B5B5BA" strokeWidth={1.8} strokeLinejoin="round" />}
       </Svg>
-      <Text numberOfLines={1} style={{ fontFamily: F.semibold, fontSize: 11, color: earned ? C.ink : C.gray }}>{name}</Text>
-      <Text style={{ fontFamily: F.regular, fontSize: 10, color: C.gray, marginTop: -3 }}>{days ? `${days} days` : 'Pair up'}</Text>
+      <Text numberOfLines={2} style={{ fontFamily: F.semibold, fontSize: 11, lineHeight: 14, textAlign: 'center', color: earned ? C.ink : C.gray }}>{name}</Text>
+      <Text style={{ fontFamily: F.regular, fontSize: 10, color: C.gray, marginTop: -2 }}>{days ? (days === 365 ? '1 year' : `${days} days`) : 'Pair up'}</Text>
     </View>
   );
 }
@@ -150,7 +150,7 @@ export function JointStreaks() {
           <Text style={{ fontFamily: F.semibold, fontSize: 14, color: C.ink }}>Tokens {tokens.filter(t => t.earned).length}/{tokens.length}</Text>
           <Text style={{ fontFamily: F.regular, fontSize: 12, color: C.gray2 }}>{next ? `${next.days - best} more day${next.days - best === 1 ? '' : 's'} to ${next.name}` : streaks?.length ? 'All collected 👑' : 'Pair up to start'}</Text>
         </View>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', rowGap: 10, justifyContent: 'space-between' }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', rowGap: 16, justifyContent: 'space-between' }}>
           {tokens.map(t => <TokenCoin key={t.id} name={t.name} days={t.days} color={t.color} earned={t.earned} />)}
         </View>
       </View>

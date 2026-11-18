@@ -3,15 +3,27 @@ import { ensureUser, supabase } from './supabase';
 
 export type BuddyStreak = { pair_id: string; buddy_name: string; streak: number; best: number; me_today: boolean; buddy_today: boolean; since: string };
 
-/** Collectible tokens, earned by the best joint streak you've reached with anyone. */
+/**
+ * Collectible tokens, earned by the best joint streak you've reached with anyone. Sixteen in all,
+ * from pairing up to a full year together; names are playful, hair-care themed.
+ */
 export const TOKENS = [
-  { id: 'pair', days: 0, name: 'First pair', color: ['#FDE7EE', '#E46C93'] },
-  { id: 'spark', days: 3, name: 'Spark', color: ['#FFF1D6', '#F2A33A'] },
-  { id: 'silk', days: 7, name: 'Silk', color: ['#EDE9FF', '#7B66E3'] },
-  { id: 'pearl', days: 14, name: 'Pearl', color: ['#EEF3FD', '#5B8DEF'] },
-  { id: 'rose', days: 30, name: 'Rose gold', color: ['#FBE6DF', '#C9735A'] },
-  { id: 'velvet', days: 60, name: 'Velvet', color: ['#F7E1EA', '#A23B6B'] },
-  { id: 'crown', days: 100, name: 'Crown', color: ['#FDE3EC', '#D2638C'] },
+  { id: 'pair', days: 0, name: 'First Twirl', color: ['#FDE7EE', '#E46C93'] },
+  { id: 'baby', days: 2, name: 'Baby Hairs', color: ['#FFF4E0', '#E8A85A'] },
+  { id: 'spark', days: 3, name: 'Sparkle Spritz', color: ['#FFF1D6', '#F2A33A'] },
+  { id: 'ribbon', days: 5, name: 'Velvet Ribbon', color: ['#F7E1EA', '#B04C7A'] },
+  { id: 'silk', days: 7, name: 'Silk Pillow Pact', color: ['#EDE9FF', '#7B66E3'] },
+  { id: 'bonnet', days: 10, name: 'Bonnet Buddies', color: ['#FCE4EC', '#D45D8A'] },
+  { id: 'pineapple', days: 14, name: 'Moonlit Pineapple', color: ['#FFF6CC', '#D9A400'] },
+  { id: 'honey', days: 21, name: 'Honey Drizzle', color: ['#FFEFD0', '#D98A1E'] },
+  { id: 'curls', days: 30, name: 'Curl Constellation', color: ['#E6ECFF', '#4F6BD8'] },
+  { id: 'lather', days: 45, name: 'Lather Legend', color: ['#E3F4F7', '#3E9BB0'] },
+  { id: 'pearl', days: 60, name: 'Shower Pearl', color: ['#EEF3FD', '#5B8DEF'] },
+  { id: 'rose', days: 75, name: 'Rosewater Rendezvous', color: ['#FBE6DF', '#C9735A'] },
+  { id: 'comb', days: 100, name: 'Golden Comb', color: ['#FFF3D6', '#C9A24A'] },
+  { id: 'mermaid', days: 150, name: 'Mermaid Mane', color: ['#DDF5EE', '#2E9C7E'] },
+  { id: 'scrunchie', days: 200, name: 'Starlight Scrunchie', color: ['#ECE6FA', '#6A4FC7'] },
+  { id: 'crown', days: 365, name: 'The Royal Crown', color: ['#FDE3EC', '#D2638C'] },
 ] as const;
 export type Token = (typeof TOKENS)[number];
 
