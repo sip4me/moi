@@ -1,69 +1,55 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Image, ScrollView, Text, View } from 'react-native';
 import { type FeedCard, type FeedSection, type RecordCard, feed, records } from '../data/feed';
 import { C, F } from '../theme';
 import { Chip } from './ui';
-import { LockIcon as Lock, Locked, PeekRow } from './Peek';
+import { LockIcon as Lock, Locked, PeekRow, usePageInset } from './Peek';
+import { SectionTitle, Tile } from './Tile';
 
-const GOLD = '#C9A86A';
-const CARD_W = 128;
-const CARD_H = 164;
+const CARD_W = 148;
+const CARD_H = 140;
 
 
 function Card({ card }: { card: FeedCard }) {
   return (
-    <Pressable onPress={() => router.push(`/feed/${card.id}`)} accessibilityRole="button" accessibilityLabel={card.locked ? `${card.title}, locked` : card.title}
-      style={({ pressed }) => ({ width: CARD_W, height: CARD_H, borderRadius: 18, padding: 3, borderWidth: card.featured ? 1.5 : 1, borderColor: card.featured ? GOLD : C.line, backgroundColor: '#fff', transform: [{ scale: pressed ? 0.97 : 1 }] })}>
-      <View style={{ flex: 1, borderRadius: 14, backgroundColor: card.bg, overflow: 'hidden', padding: 10 }}>
-        <Text style={{ fontFamily: F.semibold, fontSize: 13, lineHeight: 16, color: C.ink, width: 96 }}>{card.title}</Text>
-        {card.image ? <Image source={card.image} resizeMode="contain" style={{ position: 'absolute', right: 4, bottom: 4, width: 88, height: 96, opacity: card.locked ? 0.55 : 1 }} /> : null}
-        {card.locked ? (
-          <View style={{ position: 'absolute', left: 10, bottom: 10, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4 }}>
-            <Lock /><Text style={{ fontFamily: F.semibold, fontSize: 11, color: C.ink }}>Unlock</Text>
-          </View>
-        ) : null}
-      </View>
-    </Pressable>
+    <Tile image={card.image} imageSize={108} height={CARD_H} title={card.title} onPress={() => router.push(`/feed/${card.id}`)}
+      label={card.locked ? `${card.title}, locked` : card.title}
+      badge={card.locked ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4 }}><Lock /><Text style={{ fontFamily: F.semibold, fontSize: 11, color: C.ink }}>Unlock</Text></View> : undefined} />
   );
 }
 
 function Record({ r }: { r: RecordCard }) {
   const fg = r.dark ? '#fff' : C.ink;
   return (
-    <View style={{ width: CARD_W, height: CARD_H, borderRadius: 18, padding: 3, borderWidth: r.featured ? 1.5 : 1, borderColor: r.featured ? GOLD : C.line, backgroundColor: '#fff' }}
+    <View style={{ height: CARD_H + 46, borderRadius: 22, backgroundColor: r.bg, overflow: 'hidden', padding: 14 }}
       accessibilityLabel={`${r.value}, ${r.label}${r.source ? `. Source: ${r.source}` : ''}`}>
-      <View style={{ flex: 1, borderRadius: 14, backgroundColor: r.bg, overflow: 'hidden', padding: 10 }}>
-        <Text style={{ fontFamily: F.bold, fontSize: 22, letterSpacing: -0.5, color: fg }}>{r.value}</Text>
-        <Text style={{ fontFamily: F.medium, fontSize: 12, lineHeight: 15, color: fg, marginTop: 2, width: 90 }}>{r.label}</Text>
-        {r.image ? <Image source={r.image} resizeMode="contain" style={{ position: 'absolute', right: 2, bottom: 2, width: 84, height: 84 }} /> : null}
-      </View>
+      <Text style={{ fontFamily: F.bold, fontSize: 24, letterSpacing: -0.6, color: fg }}>{r.value}</Text>
+      <Text style={{ fontFamily: F.medium, fontSize: 13, lineHeight: 17, color: fg, marginTop: 4, width: 104 }}>{r.label}</Text>
+      {r.image ? <Image source={r.image} resizeMode="contain" style={{ position: 'absolute', right: 6, bottom: 6, width: 92, height: 92 }} /> : null}
     </View>
   );
 }
 
-function Header({ title, note }: { title: string; note?: string }) {
-  return (
-    <Text style={{ fontFamily: F.bold, fontSize: 19, letterSpacing: -0.3, color: C.ink, marginBottom: 14 }}>
-      {title}{note ? <Text style={{ fontFamily: F.regular, fontSize: 15, letterSpacing: 0, color: C.gray }}> · {note}</Text> : null}
-    </Text>
-  );
-}
+const Header = ({ title, note }: { title: string; note?: string }) => (
+  <SectionTitle right={note ? <Text style={{ fontFamily: F.regular, fontSize: 14, color: C.gray2, marginBottom: 3 }}>{note}</Text> : undefined}>{title}</SectionTitle>
+);
 
-const Row = ({ children }: { children: React.ReactNode }) => <PeekRow itemWidth={CARD_W} gap={10}>{children}</PeekRow>;
+const Row = ({ children }: { children: React.ReactNode }) => <PeekRow itemWidth={CARD_W} gap={14}>{children}</PeekRow>;
 
 function Section({ s }: { s: FeedSection }) {
   const [filter, setFilter] = useState(s.filters?.[0]);
+  const inset = usePageInset();
   const cards = s.filters && filter ? s.cards.filter(c => c.locked || c.tags?.includes(filter)) : s.cards;
   return (
     <View>
       <Header title={s.title} note={s.note} />
       {s.filters ? (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -inset, marginBottom: 16, flexGrow: 0 }} contentContainerStyle={{ paddingHorizontal: inset, gap: 8 }}>
           {s.filters.map(f => <Chip key={f} label={f} on={f === filter} onPress={() => setFilter(f)} />)}
-        </View>
+        </ScrollView>
       ) : null}
-      <Row>{cards.map(c => c.locked ? <Card key={c.id} card={c} /> : <Locked key={c.id} radius={18} label={c.title}><Card card={c} /></Locked>)}</Row>
+      <Row>{cards.map(c => c.locked ? <Card key={c.id} card={c} /> : <Locked key={c.id} radius={22} label={c.title}><Card card={c} /></Locked>)}</Row>
     </View>
   );
 }
@@ -71,12 +57,12 @@ function Section({ s }: { s: FeedSection }) {
 /** Feed sections for a Home tab: `only` picks sections by id; `withRecords` adds Hair records at the end. */
 export function HomeFeed({ streakWeeks, only, withRecords }: { streakWeeks: number; only?: string[]; withRecords?: boolean }) {
   return (
-    <View style={{ gap: 36 }}>
+    <View style={{ gap: 40 }}>
       {feed().filter(s => !only || only.includes(s.id)).map(s => <Section key={s.id} s={s} />)}
       {withRecords ? (
         <View>
           <Header title="Hair records" />
-          <Row>{records(streakWeeks).map(r => <Locked key={r.id} radius={18} label={r.label}><Record r={r} /></Locked>)}</Row>
+          <Row>{records(streakWeeks).map(r => <Locked key={r.id} radius={22} label={r.label}><Record r={r} /></Locked>)}</Row>
         </View>
       ) : null}
     </View>

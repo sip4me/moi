@@ -4,7 +4,7 @@ import Svg, { Path } from 'react-native-svg';
 import { BrandText, Screen, SectionCard, Sub } from '../../components/ui';
 import { washInterval } from '../../data/schedule';
 import { profileFromAnswers, useStore } from '../../state/store';
-import { C, F } from '../../theme';
+import { C, F, surface } from '../../theme';
 
 const Chev = () => <Svg width={8} height={13} viewBox="0 0 8 14"><Path d="M1.5 1.5 6.5 7l-5 5.5" stroke="#9A9A9A" strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>;
 const ACTIVITY: Record<string, string> = { sports: 'Sports', demanding_job: 'Demanding job', student: 'Student', pregnant: 'Pregnant', caregiver: 'Caring for a child' };
@@ -13,7 +13,7 @@ const GOAL: Record<string, string> = { repair: 'Less frizz & breakage', grow: 'L
 
 function Row({ k, v, onPress, first }: { k: string; v?: string; onPress?: () => void; first?: boolean }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, borderTopWidth: first ? 0 : 1, borderTopColor: '#E6E6E8', backgroundColor: pressed && onPress ? '#EFEFF1' : 'transparent' })}>
+    <Pressable onPress={onPress} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, borderTopWidth: first ? 0 : 1, borderTopColor: '#EFEFF1', backgroundColor: pressed && onPress ? '#F7F7F8' : 'transparent' })}>
       <Text style={{ fontFamily: F.regular, fontSize: 16, color: v ? C.gray : C.ink }}>{k}</Text>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, marginLeft: 16 }}>{v ? <Text style={{ fontFamily: F.medium, fontSize: 16, color: C.ink, textAlign: 'right', flexShrink: 1 }}>{v}</Text> : null}{onPress ? <Chev /> : null}</View>
     </Pressable>
@@ -48,7 +48,7 @@ export default function Profile() {
         <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.gray }}>{cloud === 'saved' ? 'Backed up' : cloud === 'saving' ? 'Saving…' : 'Saved on this phone only'}</Text>
       </View>
 
-      <Text style={{ fontFamily: F.semibold, fontSize: 13, color: C.gray, letterSpacing: 1.5, marginTop: 22, marginBottom: 10 }}>SOMETHING CHANGED?</Text>
+      <Text style={{ fontFamily: F.bold, fontSize: 20, letterSpacing: -0.3, color: C.ink, marginTop: 32, marginBottom: 12 }}>Something changed?</Text>
       {lc ? (
         <View style={{ backgroundColor: C.goldSoft, borderRadius: 24, padding: 18, gap: 10, borderWidth: 1, borderColor: '#F1DDAA' }}>
           <Text style={{ fontFamily: F.semibold, fontSize: 17, color: C.ink }}>{lc.label}</Text>
@@ -61,20 +61,20 @@ export default function Profile() {
           </View>
         </View>
       ) : (
-        <Pressable onPress={() => router.push('/change')} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: pressed ? C.pressed : C.card, borderRadius: 20, padding: 16 })}>
+        <Pressable onPress={() => router.push('/change')} style={({ pressed }) => ({ ...surface, flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: pressed ? '#F4F4F5' : '#fff', borderRadius: 22, padding: 18 })}>
           <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: C.ink, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontFamily: F.semibold, fontSize: 17, marginTop: -2 }}>+</Text></View>
-          <View style={{ flex: 1 }}><Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>Add a change</Text><Text style={{ fontFamily: F.regular, fontSize: 12, color: C.gray }}>Travel, a new style, being sick… we’ll adjust for as long as it lasts</Text></View>
+          <View style={{ flex: 1 }}><Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink }}>Add a change</Text><Text style={{ fontFamily: F.regular, fontSize: 13, lineHeight: 18, color: C.gray, marginTop: 2 }}>Travel, a new style, being sick… we’ll adjust for as long as it lasts</Text></View>
         </Pressable>
       )}
 
-      <SectionCard label="MY CROWN" style={{ marginTop: 22, paddingBottom: 4 }}>
+      <SectionCard label="MY CROWN" style={{ marginTop: 32, paddingVertical: 2, paddingHorizontal: 18 }}>
         <View>
           <Row first k="Scan history" v={scans.length ? `${scans.length}` : undefined} onPress={() => router.push('/(tabs)/progress')} />
           <Row k="Saved styles" v={saved.length ? `${saved.length}` : undefined} onPress={() => router.push('/saved')} />
           <Row k="Product shelf" v={shelf.length ? `${shelf.length}` : undefined} onPress={() => router.push('/(tabs)/products')} />
         </View>
       </SectionCard>
-      <SectionCard label="THE BASICS" style={{ marginTop: 14, paddingBottom: 4 }}>
+      <SectionCard label="THE BASICS" style={{ marginTop: 32, paddingVertical: 2, paddingHorizontal: 18 }}>
         <View>
           <Row first k="Name" v={name} />
           <Row k="Age" v={age ? String(age) : '—'} />
@@ -83,7 +83,7 @@ export default function Profile() {
           <Row k={goalList(answers.goal).length > 1 ? 'Goals' : 'Goal'} v={goalList(answers.goal).map(g => GOAL[g]).filter(Boolean).join(', ') || '—'} />
         </View>
       </SectionCard>
-      <SectionCard label="MY ROUTINE" style={{ marginTop: 14, paddingBottom: 4 }}>
+      <SectionCard label="MY ROUTINE" style={{ marginTop: 32, paddingVertical: 2, paddingHorizontal: 18 }}>
         <View>
           <Row first k="Wash" v={plan ? `Every ${washInterval(plan)} days` : '—'} />
           <Row k="Activities" v={activities || 'None'} />

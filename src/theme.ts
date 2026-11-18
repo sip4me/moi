@@ -35,3 +35,19 @@ export const evidenceStyle: Record<string, { label: string; bg: string; fg: stri
   lab: { label: 'Lab tests only', bg: '#F2F2F4', fg: C.gray2 },
   early: { label: 'Early evidence', bg: C.amberSoft, fg: C.amberText },
 };
+
+/**
+ * Surfaces, in the Airbnb spirit: the page is white; content sits on white cards lifted by a soft
+ * shadow (no grey boxes, no heavy borders); 3D objects sit on light-grey tiles with their label below.
+ */
+export const TILE = '#F7F7F7';
+export const surface = {
+  backgroundColor: '#FFFFFF', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)',
+  shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 18, shadowOffset: { width: 0, height: 6 }, elevation: 3,
+} as const;
+/** Vertical rhythm: between sections, and from a section title to its content. */
+export const SPACE = { section: 40, head: 14 } as const;
+export const TYPE = {
+  h1: { fontFamily: F.bold, fontSize: 32, letterSpacing: -0.8, color: C.ink },
+  h2: { fontFamily: F.bold, fontSize: 22, letterSpacing: -0.4, color: C.ink },
+} as const;

@@ -11,7 +11,7 @@ import { GOAL_COPY } from '../data/goals';
 import { PHASE_LABEL, type Phase, type WashStep } from '../engine/washRoutine';
 import { haptic } from '../lib/haptics';
 import { useStore } from '../state/store';
-import { C, F } from '../theme';
+import { C, F, TILE, surface } from '../theme';
 
 const Check = ({ on }: { on: boolean }) => (
   <View style={{ width: 26, height: 26, borderRadius: 13, borderWidth: on ? 0 : 1.5, borderColor: '#D5D5D8', backgroundColor: on ? C.ink : '#fff', alignItems: 'center', justifyContent: 'center' }}>
@@ -22,9 +22,9 @@ const Check = ({ on }: { on: boolean }) => (
 function StepRow({ step, n, on, open, onToggle, onOpen, canCheck }: { step: WashStep; n: number; on: boolean; open: boolean; onToggle: () => void; onOpen: () => void; canCheck: boolean }) {
   const time = [step.minutes ? `${step.minutes} min` : null, step.waitMinutes ? `+${step.waitMinutes} min wait` : null, step.perWeek ? `${step.perWeek}× a week` : null].filter(Boolean).join(' · ');
   return (
-    <Pressable onPress={onOpen} style={({ pressed }) => ({ borderRadius: 20, padding: 14, backgroundColor: pressed ? C.pressed : C.card, borderWidth: 1, borderColor: C.line })}>
+    <Pressable onPress={onOpen} style={({ pressed }) => ({ ...surface, borderRadius: 22, padding: 16, backgroundColor: pressed ? '#F7F7F8' : '#fff' })}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <Image source={icon3d(step.icon)} style={{ width: 52, height: 52 }} resizeMode="contain" />
+        <View style={{ width: 60, height: 60, borderRadius: 16, backgroundColor: TILE, alignItems: 'center', justifyContent: 'center' }}><Image source={icon3d(step.icon)} style={{ width: 48, height: 48 }} resizeMode="contain" /></View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.gray, letterSpacing: 0.4 }}>STEP {n}</Text>
           <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink, textDecorationLine: on ? 'line-through' : 'none' }}>{step.title}</Text>
@@ -32,7 +32,7 @@ function StepRow({ step, n, on, open, onToggle, onOpen, canCheck }: { step: Wash
         </View>
         {canCheck ? <Pressable onPress={onToggle} hitSlop={12} accessibilityRole="checkbox" accessibilityState={{ checked: on }}><Check on={on} /></Pressable> : null}
       </View>
-      <Text style={{ fontFamily: F.regular, fontSize: 14, lineHeight: 20, color: C.ink, marginTop: 10 }}>{step.how}</Text>
+      <Text style={{ fontFamily: F.regular, fontSize: 15, lineHeight: 21, color: C.ink, marginTop: 12 }}>{step.how}</Text>
       {open ? (
         <View style={{ marginTop: 10, gap: 8 }}>
           <Text style={{ fontFamily: F.regular, fontSize: 13, lineHeight: 19, color: C.gray2 }}>{step.why}</Text>
@@ -80,8 +80,8 @@ export default function WashDay() {
       </View>
 
       {phases.map(p => (
-        <View key={p} style={{ marginTop: 22, gap: 10 }}>
-          <Text style={{ fontFamily: F.semibold, fontSize: 12, letterSpacing: 1.4, color: C.gray }}>{PHASE_LABEL[p].toUpperCase()}</Text>
+        <View key={p} style={{ marginTop: 32, gap: 14 }}>
+          <Text style={{ fontFamily: F.bold, fontSize: 20, letterSpacing: -0.3, color: C.ink }}>{PHASE_LABEL[p]}</Text>
           {steps.filter(s => s.phase === p).map(s => (
             <StepRow key={s.id} step={s} n={++n} on={isDone(s)} open={open === s.id} canCheck={isToday}
               onOpen={() => setOpen(open === s.id ? null : s.id)}

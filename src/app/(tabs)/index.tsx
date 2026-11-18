@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { type Day, daysUntilWash, week } from '../../data/schedule';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { icon3d } from '../../data/icons3d';
 import { HomeFeed } from '../../components/Feed';
 import { GlamourEntry } from '../../components/GlamourEntry';
@@ -10,7 +10,8 @@ import { Trending } from '../../components/Trending';
 import { MomentCard } from '../../components/MomentCard';
 import { WashDayArt } from '../../components/WashDayArt';
 import { SegmentedTabs } from '../../components/SegmentedTabs';
-import { Locked, PeekRow } from '../../components/Peek';
+import { LockIcon, Locked, PeekRow, openPaywall } from '../../components/Peek';
+import { SectionTitle, Tile } from '../../components/Tile';
 import { currentMoment } from '../../data/moments';
 import { TwoFrameArt } from '../../components/TwoFrameArt';
 import { PINEAPPLE_ART, PINEAPPLE_TIMING } from '../../data/art';
@@ -18,20 +19,20 @@ import { haptic } from '../../lib/haptics';
 import { profileFromAnswers } from '../../engine/profile';
 import { useHour } from '../../lib/useHour';
 import { scanStreakWeeks } from '../../data/progress';
-import { DoctorNote, Glyph, Logo, MoreRow, RecCard, Screen, Sub } from '../../components/ui';
+import { DoctorNote, Glyph, Logo, MoreRow, Screen, Sub } from '../../components/ui';
 import { useStore } from '../../state/store';
-import { C, F, evidenceStyle } from '../../theme';
+import { C, F, SPACE, evidenceStyle, surface } from '../../theme';
 
 /** Peek-row widths: routine cards show the next two peeking in; wider rows show the next one. */
-const CARD_W = 150;
-const ROW_W = 270;
+const CARD_W = 148;
+const ROW_W = 280;
 
 const TABS = ['Food recipes', 'Care', 'Style'];
 
 const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function Home() {
-  const { plan, done, todayKey, lastWash, lifeChange, scans, answers, toggleDone } = useStore();
+  const { plan, done, todayKey, lastWash, lifeChange, scans, answers, toggleDone, subscribed } = useStore();
   const hour = useHour();
   const [selected, setSelected] = useState(0);
   const [tab, setTab] = useState(0);
@@ -51,6 +52,17 @@ export default function Home() {
   const routineItems = pineapple && day.isToday && !day.items.some(c => c.id === 'night_braid')
     ? [{ id: 'night_braid', icon: 'night_braid', label: 'Pineapple', value: 'Before bed', unit: '' } as (typeof day.items)[number], ...day.items]
     : day.items;
+  // The hero's button opens the wash routine for the selected wash day, or the next one this week.
+  const washDay = day.wash.length ? day : days.find(d => d.wash.length);
+  const weekday = (d: Day) => d.date.toLocaleDateString('en-US', { weekday: 'long' });
+  const washLabel = !washDay ? '' : washDay.isToday
+    ? `Start wash routine · ${washDay.wash.filter(w => doneToday.includes(`wash:${w.id}`)).length}/${washDay.wash.length}`
+    : `See ${weekday(washDay)}’s wash routine`;
+  const nextWash = days.find(d => d.isWash && !d.isToday);
+  const heroSub = pineapple ? 'Tie a loose pineapple before bed so your hair keeps its shape overnight.'
+    : paused ? 'Your routine is adjusted while things change.'
+    : daysLeft === 0 ? plan.washRoutine.headline
+    : nextWash ? `Next wash on ${weekday(nextWash)}. Keep up the daily steps until then.` : plan.target;
   const dayName = (d: Day) => (d.isToday ? 'Today' : d.date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }));
   return (
     <Screen scroll tab="index">
@@ -85,9 +97,18 @@ export default function Home() {
         })}
       </View>
 
-      <View style={{ alignItems: 'center', marginTop: 28, gap: 10 }}>
-        {pineapple ? <TwoFrameArt spec={PINEAPPLE_ART} timing={PINEAPPLE_TIMING} width={128} /> : <WashDayArt width={128} />}
-        <Text style={{ fontFamily: F.bold, fontSize: 30, color: C.ink, letterSpacing: -0.6 }}>{paused ? 'Wash day paused' : daysLeft === 0 ? 'Wash day today' : `Wash hair in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`}</Text>
+      {/* Hero: one centred card, like a feature card — object, headline, one line of context, one soft button. */}
+      <View style={[surface, { marginTop: 24, borderRadius: 28, paddingHorizontal: 22, paddingTop: 22, paddingBottom: 22, alignItems: 'center' }]}>
+        {pineapple ? <TwoFrameArt spec={PINEAPPLE_ART} timing={PINEAPPLE_TIMING} width={120} /> : <WashDayArt width={120} />}
+        <Text style={{ fontFamily: F.bold, fontSize: 28, lineHeight: 33, color: C.ink, letterSpacing: -0.7, textAlign: 'center', marginTop: 12 }}>{paused ? 'Wash day paused' : daysLeft === 0 ? 'Wash day today' : `Wash hair in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`}</Text>
+        <Text style={{ fontFamily: F.regular, fontSize: 15, lineHeight: 21, color: C.gray2, textAlign: 'center', marginTop: 6 }}>{heroSub}</Text>
+        {washDay ? (
+          <Pressable onPress={subscribed ? () => router.push({ pathname: '/wash-day', params: { day: washDay.key } }) : openPaywall} accessibilityRole="button"
+            style={({ pressed }) => ({ alignSelf: 'stretch', height: 50, borderRadius: 14, marginTop: 18, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#E8E8EA' : '#F2F2F3' })}>
+            {subscribed ? null : <LockIcon size={14} />}
+            <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink }}>{washLabel}</Text>
+          </Pressable>
+        ) : null}
       </View>
       {moment && !pineapple ? <MomentCard moment={moment} onDone={() => toggleDone(moment.doneId)} /> : null}
       {lifeChange ? (
@@ -96,70 +117,51 @@ export default function Home() {
           <Text style={{ fontFamily: F.regular, fontSize: 12, color: '#7A6A4A', marginTop: 2 }}>{lifeChange.endsAt ? `Until ${new Date(lifeChange.endsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : 'Until you end it'} · your routine is adjusted</Text>
         </Pressable>
       ) : null}
-      <View style={{ marginTop: 36, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <View><Text style={{ fontFamily: F.semibold, fontSize: 19, color: C.ink }}>{day.isToday ? 'Your routine' : dayName(day)}</Text><Sub style={{ fontSize: 12, marginTop: 2 }}>{day.isWash ? 'Wash day · ' : ''}{plan.target}</Sub></View>
-        {day.isToday ? <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.gray2 }}>{routineItems.filter(c => doneToday.includes(c.id)).length}/{routineItems.length} today</Text> : null}
-      </View>
-      {day.wash.length ? (
-        <Locked radius={24} label={plan.washRoutine.headline} style={{ marginTop: 14 }}>
-        <Pressable onPress={() => router.push({ pathname: '/wash-day', params: { day: day.key } })}
-          style={({ pressed }) => ({ borderRadius: 24, padding: 16, backgroundColor: pressed ? '#E4ECFB' : '#EEF3FD' })}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink, flex: 1 }}>{plan.washRoutine.headline}</Text>
-            <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.gray2 }}>{day.isToday ? `${day.wash.filter(w => doneToday.includes(`wash:${w.id}`)).length}/${day.wash.length}` : `${day.wash.length} steps`} ›</Text>
-          </View>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
-            {day.wash.map(w => (
-              <View key={w.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#fff', borderRadius: 999, paddingLeft: 4, paddingRight: 10, paddingVertical: 3 }}>
-                <Image source={icon3d(w.icon)} style={{ width: 22, height: 22 }} resizeMode="contain" />
-                <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.ink, textDecorationLine: doneToday.includes(`wash:${w.id}`) ? 'line-through' : 'none' }}>{w.title}</Text>
-              </View>
-            ))}
-          </View>
-        </Pressable>
-        </Locked>
-      ) : null}
-      {/* Routine cards in a peek row: the first sits on the page margin, the rest peek in from the right. */}
-      <View style={{ marginTop: 14 }}>
+
+      <View style={{ marginTop: SPACE.section }}>
+        <SectionTitle note={`${day.isWash ? 'Wash day · ' : ''}${plan.target}`}
+          right={day.isToday ? <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.gray2, marginBottom: 2 }}>{routineItems.filter(c => doneToday.includes(c.id)).length}/{routineItems.length} today</Text> : null}>
+          {day.isToday ? 'Your routine' : dayName(day)}
+        </SectionTitle>
         {routineItems.length ? (
-          <PeekRow itemWidth={CARD_W}>
-            {routineItems.map(c => (
-              <Locked key={c.id} label={c.label}>
-                <View style={{ borderRadius: 16, borderWidth: 1, borderColor: C.line, overflow: 'hidden' }}>
-                  {pineapple && day.isToday && c.id === 'night_braid'
-                    ? <RecCard id={c.id} label={c.label} value={c.value} unit={c.unit} done={doneToday.includes(c.id)}
-                        art={<TwoFrameArt spec={PINEAPPLE_ART} timing={PINEAPPLE_TIMING} width={64} />}
-                        onPress={() => { if (!doneToday.includes(c.id)) haptic('success'); toggleDone(c.id); }} />
-                    : <RecCard id={c.id} icon={c.icon} label={c.label} value={c.value} unit={c.unit} done={day.isToday && doneToday.includes(c.id)} onPress={() => router.push(c.id === 'iron_food' ? '/iron' : `/why/${c.id}`)} />}
-                </View>
-              </Locked>
-            ))}
+          <PeekRow itemWidth={CARD_W} gap={14}>
+            {routineItems.map(c => {
+              const isDone = day.isToday && doneToday.includes(c.id);
+              const bedtime = pineapple && day.isToday && c.id === 'night_braid';
+              return (
+                <Locked key={c.id} label={c.label} radius={22}>
+                  <Tile title={c.label} sub={isDone ? 'Done today' : `${c.value}${c.unit ? ` ${c.unit}` : ''}`} done={isDone}
+                    image={bedtime ? undefined : icon3d(c.icon ?? c.id)}
+                    art={bedtime ? <TwoFrameArt spec={PINEAPPLE_ART} timing={PINEAPPLE_TIMING} width={84} /> : undefined}
+                    onPress={bedtime ? () => { if (!isDone) haptic('success'); toggleDone(c.id); } : () => router.push(c.id === 'iron_food' ? '/iron' : `/why/${c.id}`)} />
+                </Locked>
+              );
+            })}
           </PeekRow>
-        ) : <Sub style={{ fontSize: 14, textAlign: 'center', paddingVertical: 12 }}>Rest day. Nothing planned.</Sub>}
-        <Sub style={{ fontSize: 12, textAlign: 'center', marginTop: 12 }}>{day.isToday ? 'Tap a card to see why and mark it done.' : 'A preview. It updates when you log a wash or change a card.'}</Sub>
+        ) : <Sub style={{ fontSize: 15, paddingVertical: 12 }}>Rest day. Nothing planned.</Sub>}
+        <Sub style={{ fontSize: 13, marginTop: 14 }}>{day.isToday ? 'Tap a card to see why and mark it done.' : 'A preview. It updates when you log a wash or change a card.'}</Sub>
       </View>
+
       {/* Everything else, sorted into three tabs: food, care and style. */}
-      <View style={{ marginTop: 40 }}>
+      <View style={{ marginTop: SPACE.section }}>
         <SegmentedTabs tabs={TABS} value={tab} onChange={setTab} />
       </View>
-      {/* One rhythm for every tab: 24 under the switch, 36 between sections. */}
-      <View style={{ marginTop: 24, gap: 36 }}>
+      <View style={{ marginTop: 28, gap: SPACE.section }}>
       {tab === 0 ? <IronMaxxing /> : null}
       {tab === 1 ? <>
         {plan.learn.length ? (
           <View>
-            <PeekRow itemWidth={ROW_W}>{plan.learn.map(l => <Locked key={l.id} label={l.label}><DoctorNote id={l.id} label={l.label} why={l.why} onPress={() => router.push(`/why/${l.id}`)} /></Locked>)}</PeekRow>
+            <SectionTitle>Worth knowing</SectionTitle>
+            <PeekRow itemWidth={ROW_W} gap={14}>{plan.learn.map(l => <Locked key={l.id} label={l.label} radius={18}><DoctorNote id={l.id} label={l.label} why={l.why} onPress={() => router.push(`/why/${l.id}`)} /></Locked>)}</PeekRow>
           </View>
         ) : null}
         {plan.extras.length ? (
-          <View style={{ gap: 14 }}>
-            <Text style={{ fontFamily: F.bold, fontSize: 19, letterSpacing: -0.3, color: C.ink }}>More you can try</Text>
-            <PeekRow itemWidth={ROW_W}>
+          <View>
+            <SectionTitle>More you can try</SectionTitle>
+            <PeekRow itemWidth={ROW_W} gap={14}>
               {plan.extras.map(c => (
-                <Locked key={c.id} label={c.label} radius={14}>
-                  <View style={{ borderRadius: 14, borderWidth: 1, borderColor: C.line, overflow: 'hidden' }}>
-                    <MoreRow id={c.id} label={c.label} meta={`${c.value}${c.unit ? ' ' + c.unit : ''} · ${evidenceStyle[c.evidence ?? 'early'].label.toLowerCase()}`} onPress={() => router.push(`/why/${c.id}`)} />
-                  </View>
+                <Locked key={c.id} label={c.label} radius={18}>
+                  <MoreRow id={c.id} label={c.label} meta={`${c.value}${c.unit ? ' ' + c.unit : ''} · ${evidenceStyle[c.evidence ?? 'early'].label.toLowerCase()}`} onPress={() => router.push(`/why/${c.id}`)} />
                 </Locked>
               ))}
             </PeekRow>

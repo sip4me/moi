@@ -4,7 +4,7 @@ import Svg, { Circle, Defs, Path, RadialGradient, Stop } from 'react-native-svg'
 import { type BuddyStreak, inviteByPhone, loadBuddyStreaks, nextToken, tokensFor } from '../lib/buddies';
 import { haptic } from '../lib/haptics';
 import { useStore } from '../state/store';
-import { C, F } from '../theme';
+import { C, F, surface } from '../theme';
 import { Button, Glyph } from './ui';
 
 const initial = (name: string) => (name.trim()[0] ?? '?').toUpperCase();
@@ -108,9 +108,9 @@ export function JointStreaks() {
   const me = name && name !== 'Your name' ? name : 'You';
 
   return (
-    <View style={{ marginTop: 24 }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <Text style={{ fontFamily: F.semibold, fontSize: 18, color: C.ink }}>Joint streaks</Text>
+    <View style={{ marginTop: 40 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 14 }}>
+        <Text style={{ fontFamily: F.bold, fontSize: 22, letterSpacing: -0.4, color: C.ink }}>Joint streaks</Text>
         {streaks?.length ? (
           <Pressable onPress={() => setInviting(true)} hitSlop={10}>
             {({ pressed }) => <Text style={{ fontFamily: F.semibold, fontSize: 15, color: pressed ? C.gray : C.ink, textDecorationLine: 'underline' }}>Invite</Text>}
@@ -118,7 +118,7 @@ export function JointStreaks() {
         ) : null}
       </View>
 
-      <View style={{ backgroundColor: C.option, borderRadius: 22, padding: 16, gap: 14 }}>
+      <View style={[surface, { padding: 18, gap: 16 }]}>
         {streaks === null ? <Text style={{ fontFamily: F.regular, fontSize: 14, color: C.gray2 }}>Loading your streaks…</Text>
           : !streaks.length ? (
             <View style={{ gap: 12 }}>
@@ -138,7 +138,7 @@ export function JointStreaks() {
                   {s.me_today && s.buddy_today ? 'Both done today ✓' : s.me_today ? `Waiting on ${s.buddy_name}` : s.buddy_today ? `${s.buddy_name} is done — your turn` : 'Neither done yet today'}
                 </Text>
               </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#F2F2F3', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 }}>
                 <Glyph name="flame" size={15} color={s.streak ? '#F08A24' : '#C9C9CE'} />
                 <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.ink }}>{s.streak}</Text>
               </View>

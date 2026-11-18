@@ -8,7 +8,7 @@ import { washInterval } from '../../data/schedule';
 import { fitLabel } from '../../engine/planEngine';
 import { haptic } from '../../lib/haptics';
 import { rules, useStore } from '../../state/store';
-import { C, F } from '../../theme';
+import { C, F, TILE, surface } from '../../theme';
 
 const VERDICT: Record<string, { bg: string; fg: string }> = {
   'Great fit': { bg: C.greenSoft, fg: C.greenText }, 'Good fit': { bg: C.greenSoft, fg: C.greenText },
@@ -18,7 +18,7 @@ const VERDICT: Record<string, { bg: string; fg: string }> = {
 /** Small bottle in the category colour, on a white tile (Figma 05 · Products). */
 export function Bottle({ tint, size = 56 }: { tint: string; size?: number }) {
   return (
-    <View style={{ width: size, height: size, borderRadius: 14, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{ width: size, height: size, borderRadius: 16, backgroundColor: TILE, alignItems: 'center', justifyContent: 'center' }}>
       <Svg width={size * 0.5} height={size * 0.5} viewBox="0 0 28 28">
         <Rect x={10} y={1.5} width={8} height={4} rx={1.2} fill={tint} opacity={0.55} />
         <Rect x={6.5} y={6.5} width={15} height={20} rx={3.5} fill={tint} />
@@ -61,7 +61,7 @@ function ProductRow({ name, label, caption, usage, tint, onPress }: { name: stri
   const tone = VERDICT[fit.verdict];
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${name}, ${fit.score} out of 10, ${fit.verdict}`}
-      style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', gap: 14, borderRadius: 20, padding: 12, backgroundColor: pressed ? '#ECECEE' : C.option }, squeeze(pressed)]}>
+      style={({ pressed }) => [surface, { flexDirection: 'row', alignItems: 'center', gap: 14, borderRadius: 22, padding: 14, backgroundColor: pressed ? '#F7F7F8' : '#fff' }, squeeze(pressed)]}>
       <Bottle tint={tint} />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={{ fontFamily: F.semibold, fontSize: 11, letterSpacing: 0.8, color: C.gray }}>{caption}</Text>
@@ -91,11 +91,11 @@ export default function Products() {
           <ScanIcon color="#fff" /><Text style={{ fontFamily: F.semibold, fontSize: 15, color: '#fff' }}>Scan</Text>
         </Pressable>
       </View>
-      <Sub style={{ marginTop: 4, fontSize: 14 }}>Every ingredient checked against your hair profile.</Sub>
+      <Sub style={{ marginTop: 6, fontSize: 15 }}>Every ingredient checked against your hair profile.</Sub>
 
-      <View style={{ marginTop: 14 }}><Tabs value={tab} onChange={setTab} counts={[shelf.length, checked.length]} /></View>
+      <View style={{ marginTop: 24 }}><Tabs value={tab} onChange={setTab} counts={[shelf.length, checked.length]} /></View>
 
-      <View style={{ gap: 10, marginTop: 12 }}>
+      <View style={{ gap: 14, marginTop: 24 }}>
         {tab === 'shelf'
           ? shelf.map(x => {
             const k = KIND[kindOf(x.name, x.label)];
@@ -109,7 +109,7 @@ export default function Products() {
         {tab === 'scanned' && !checked.length ? <Sub style={{ fontSize: 14, textAlign: 'center', paddingVertical: 8 }}>Labels you scan or search show up here.</Sub> : null}
 
         <Pressable onPress={() => router.push('/add-product')} accessibilityRole="button"
-          style={({ pressed }) => [{ height: 52, borderRadius: 20, borderWidth: 1.5, borderStyle: 'dashed', borderColor: pressed ? '#BDBDC2' : '#D6D6D9', alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? C.option : 'transparent' }, squeeze(pressed)]}>
+          style={({ pressed }) => [{ height: 56, borderRadius: 22, borderWidth: 1.5, borderStyle: 'dashed', borderColor: pressed ? '#BDBDC2' : '#D6D6D9', alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? C.option : 'transparent' }, squeeze(pressed)]}>
           <Text style={{ fontFamily: F.medium, fontSize: 15, color: C.gray2 }}>+  Add a product to your routine</Text>
         </Pressable>
       </View>

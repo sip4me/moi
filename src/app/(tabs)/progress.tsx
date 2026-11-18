@@ -8,7 +8,8 @@ import { healthScore, scanStreakWeeks } from '../../data/progress';
 import { haptic } from '../../lib/haptics';
 import { loadScanSessions, type ScanSession } from '../../lib/scans';
 import { useStore } from '../../state/store';
-import { C, F } from '../../theme';
+import { SectionTitle } from '../../components/Tile';
+import { C, F, SPACE, surface } from '../../theme';
 
 const GOAL = 85;
 const RANGES = { '4W': 28, '12W': 84, '6M': 182, All: Infinity } as const;
@@ -17,9 +18,9 @@ const DAY = 86400000;
 const short = (t: number | string) => new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 const CROWN = require('../../../assets/crown-pink.png');
 
-const card = { backgroundColor: C.option, borderRadius: 22, padding: 16 } as const;
+const card = { ...surface, padding: 18 } as const;
 const Pill = ({ children, tone = 'white' }: { children: React.ReactNode; tone?: 'white' | 'green' }) => (
-  <View style={{ alignSelf: 'flex-start', backgroundColor: tone === 'green' ? C.greenSoft : '#fff', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 4 }}>
+  <View style={{ alignSelf: 'flex-start', backgroundColor: tone === 'green' ? C.greenSoft : '#F2F2F3', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 4 }}>
     <Text style={{ fontFamily: F.semibold, fontSize: 12, color: tone === 'green' ? C.greenText : C.ink }}>{children}</Text>
   </View>
 );
@@ -67,7 +68,7 @@ function Trend({ points, from, to }: { points: { t: number; score: number }[]; f
 function PhotoTile({ session, label }: { session?: ScanSession; label: string }) {
   const uri = session && (session.photos.crown ?? Object.values(session.photos)[0]);
   return (
-    <View style={{ flex: 1, aspectRatio: 1.13, borderRadius: 20, overflow: 'hidden', backgroundColor: '#0A0A0A', alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{ flex: 1, aspectRatio: 1.13, borderRadius: 22, overflow: 'hidden', backgroundColor: '#0A0A0A', alignItems: 'center', justifyContent: 'center' }}>
       {uri ? <Image source={{ uri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
         : <Image source={CROWN} style={{ width: 54, height: 54, opacity: 0.9 }} resizeMode="contain" />}
       <View style={{ position: 'absolute', left: 10, bottom: 10, backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 4 }}>
@@ -98,14 +99,14 @@ export default function Progress() {
     <Screen scroll tab="progress">
       <Title>Progress</Title>
 
-      <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
-        <View style={[card, { flex: 1, gap: 4 }]}>
-          <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.gray2 }}>Hair health</Text>
+      <View style={{ flexDirection: 'row', gap: 14, marginTop: 24 }}>
+        <View style={[card, { flex: 1, gap: 6 }]}>
+          <Text style={{ fontFamily: F.regular, fontSize: 14, color: C.gray2 }}>Hair health</Text>
           <Text style={{ fontFamily: F.bold, fontSize: 30, letterSpacing: -0.6, color: C.ink }}>{latest?.score ?? '—'}<Text style={{ fontFamily: F.regular, fontSize: 15, color: C.gray }}> /100</Text></Text>
           <Pill>Goal {GOAL}</Pill>
         </View>
-        <View style={[card, { flex: 1, gap: 4 }]}>
-          <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.gray2 }}>Scan streak</Text>
+        <View style={[card, { flex: 1, gap: 6 }]}>
+          <Text style={{ fontFamily: F.regular, fontSize: 14, color: C.gray2 }}>Scan streak</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Image source={CROWN} style={{ width: 30, height: 30 }} resizeMode="contain" />
             <Text style={{ fontFamily: F.bold, fontSize: 24, letterSpacing: -0.5, color: C.ink }}>{streak} {streak === 1 ? 'week' : 'weeks'}</Text>
@@ -114,11 +115,9 @@ export default function Progress() {
         </View>
       </View>
 
-      <View style={[card, { marginTop: 12, gap: 14 }]}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={{ fontFamily: F.semibold, fontSize: 17, color: C.ink }}>Hair health</Text>
-          {shown.length > 1 ? <Pill tone={change >= 0 ? 'green' : 'white'}>{change >= 0 ? '↑' : '↓'} {Math.abs(change)} pts</Pill> : null}
-        </View>
+      <View style={{ marginTop: SPACE.section }}>
+      <SectionTitle right={shown.length > 1 ? <Pill tone={change >= 0 ? 'green' : 'white'}>{change >= 0 ? '↑' : '↓'} {Math.abs(change)} pts</Pill> : undefined}>Hair health trend</SectionTitle>
+      <View style={[card, { gap: 16 }]}>
         <Segmented options={Object.keys(RANGES) as Range[]} value={range} onChange={setRange} />
         <View>
           <Text style={{ position: 'absolute', right: 2, top: 0, fontFamily: F.medium, fontSize: 12, color: C.gold }}>Goal {GOAL}</Text>
@@ -133,22 +132,22 @@ export default function Progress() {
           {ticks.map(t => <Text key={t} style={{ fontFamily: F.regular, fontSize: 12, color: C.gray }}>{short(t)}</Text>)}
         </View>
       </View>
+      </View>
 
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, marginBottom: 12 }}>
-        <Text style={{ fontFamily: F.semibold, fontSize: 18, color: C.ink }}>Photo progress</Text>
-        {first && last && first !== last ? (
+      <View style={{ marginTop: SPACE.section }}>
+        <SectionTitle right={first && last && first !== last ? (
           <Pressable onPress={() => router.push('/compare')} hitSlop={10}>
-            <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink, textDecorationLine: 'underline' }}>Compare</Text>
+            <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink, textDecorationLine: 'underline', marginBottom: 3 }}>Compare</Text>
           </Pressable>
-        ) : null}
+        ) : undefined}>Photo progress</SectionTitle>
       </View>
       {first ? (
-        <View style={{ flexDirection: 'row', gap: 10 }}>
+        <View style={{ flexDirection: 'row', gap: 14 }}>
           <PhotoTile session={first} label={short(first.at)} />
           {last !== first ? <PhotoTile session={last} label={short(last.at)} /> : <PhotoTile label="Next scan" />}
         </View>
       ) : (
-        <Pressable onPress={() => router.push('/scan')} style={{ flexDirection: 'row', gap: 10 }}>
+        <Pressable onPress={() => router.push('/scan')} style={{ flexDirection: 'row', gap: 14 }}>
           <PhotoTile label={sessions === null ? 'Loading…' : 'First scan'} />
           <PhotoTile label="In 2 weeks" />
         </Pressable>

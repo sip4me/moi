@@ -9,7 +9,7 @@ import { HEALTH_FULL, HEALTH_SHORT } from '../data/disclaimer';
 import { deleteAccount, signOut } from '../lib/auth';
 import { enablePush } from '../lib/push';
 import { useStore } from '../state/store';
-import { C, F } from '../theme';
+import { C, F, surface } from '../theme';
 
 // Matches the Figma "Settings" frame (147:571): grouped cards, caps section labels, a danger zone at the end.
 
@@ -19,9 +19,9 @@ const Chevron = () => (
 
 function Group({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <View style={{ backgroundColor: C.card, borderRadius: 22, borderWidth: 1, borderColor: '#EDEDEF', paddingHorizontal: 18, paddingTop: 16, paddingBottom: 4, marginTop: 14 }}>
-      <Text style={{ fontFamily: F.semibold, fontSize: 12, letterSpacing: 1.4, color: C.ink, marginBottom: 4 }}>{label}</Text>
-      {children}
+    <View style={{ marginTop: 32 }}>
+      <Text style={{ fontFamily: F.bold, fontSize: 20, letterSpacing: -0.3, color: C.ink, marginBottom: 12 }}>{label.charAt(0) + label.slice(1).toLowerCase()}</Text>
+      <View style={[surface, { paddingHorizontal: 18, paddingVertical: 4, overflow: 'hidden' }]}>{children}</View>
     </View>
   );
 }
@@ -30,7 +30,7 @@ type RowProps = { title: string; sub?: string; value?: string; first?: boolean; 
 function Row({ title, sub, value, first, onPress, right, muted }: RowProps) {
   return (
     <Pressable disabled={!onPress} onPress={onPress} accessibilityRole={onPress ? 'button' : undefined}
-      style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: sub ? 62 : 50, paddingVertical: 8, marginHorizontal: -18, paddingHorizontal: 18, borderTopWidth: first ? 0 : 1, borderTopColor: '#E6E6E8', backgroundColor: pressed ? '#ECECEF' : 'transparent' })}>
+      style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: sub ? 62 : 50, paddingVertical: 8, marginHorizontal: -18, paddingHorizontal: 18, borderTopWidth: first ? 0 : 1, borderTopColor: '#EFEFF1', backgroundColor: pressed ? '#F4F4F5' : 'transparent' })}>
       <View style={{ flex: 1 }}>
         <Text style={{ fontFamily: F.regular, fontSize: 16, color: muted ? C.gray : C.ink }}>{title}</Text>
         {sub ? <View style={{ marginTop: 2 }}><BrandText text={sub} size={13} weight="regular" color={C.gray} /></View> : null}
@@ -86,7 +86,7 @@ export default function Settings() {
 
   const signedIn = account && !account.anonymous;
   const who = account?.email ?? account?.phone ?? '';
-  const version = Constants.expoConfig?.version ?? '1.5.5';
+  const version = Constants.expoConfig?.version ?? '1.6.0';
   const hairProfile = [answers.texture, answers.length, answers.porosity && `${answers.porosity} porosity`].filter(Boolean).join(' · ');
 
   const open = (url: string) => (url ? openLink(url) : setSheet('soon'));
@@ -168,8 +168,8 @@ export default function Settings() {
         <Row title="Contact us" onPress={() => open(LINKS.contact)} right={<CopyIcon />} />
       </Group>
 
-      <Text style={{ fontFamily: F.semibold, fontSize: 12, letterSpacing: 1.4, color: C.gray, marginTop: 24, marginBottom: 8 }}>SUPPORT</Text>
-      <Pressable onPress={shareDiagnostics} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: pressed ? C.pressed : C.card, borderRadius: 18, borderWidth: 1, borderColor: '#EDEDEF', paddingHorizontal: 18, height: 54 })}>
+      <Text style={{ fontFamily: F.bold, fontSize: 20, letterSpacing: -0.3, color: C.ink, marginTop: 32, marginBottom: 12 }}>Support</Text>
+      <Pressable onPress={shareDiagnostics} style={({ pressed }) => ({ ...surface, flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: pressed ? '#F4F4F5' : '#fff', borderRadius: 20, paddingHorizontal: 18, height: 56 })}>
         <MailIcon /><Text style={{ flex: 1, fontFamily: F.regular, fontSize: 16, color: C.ink }}>Share troubleshooting info</Text><Chevron />
       </Pressable>
       <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.gray, marginTop: 8 }}>Sends app and device details to help us fix problems. No photos or hair data.</Text>

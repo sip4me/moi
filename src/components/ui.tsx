@@ -7,7 +7,7 @@ import { glyphSvg, leverColor, leverSvg } from '../data/icons';
 import { icon3d } from '../data/icons3d';
 import { haptic } from '../lib/haptics';
 import { onScrollTop } from '../lib/scrollTop';
-import { C, evidenceStyle, F } from '../theme';
+import { C, evidenceStyle, F, surface, TILE } from '../theme';
 
 const crown = require('../../assets/crown-pink.png');
 const seal = require('../../assets/seal.png');
@@ -230,22 +230,27 @@ export function MoreRow({ id, label, meta, onPress }: { id: string; label: strin
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [s.more, pressed && { backgroundColor: '#F2F2F4' }]}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
-        <View style={s.moreIcon}><Image source={icon3d(id)} resizeMode="contain" style={{ width: 28, height: 28 }} /></View>
+        <View style={s.moreIcon}><Image source={icon3d(id)} resizeMode="contain" style={{ width: 32, height: 32 }} /></View>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: F.semibold, fontSize: 14, color: C.ink }}>{label}</Text>
-          <Text style={{ fontFamily: F.regular, fontSize: 11, color: C.gray }}>{meta}</Text>
+          <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>{label}</Text>
+          <Text numberOfLines={1} style={{ fontFamily: F.regular, fontSize: 12, color: C.gray, marginTop: 1 }}>{meta}</Text>
         </View>
       </View>
-      <View style={{ backgroundColor: C.ink, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 }}><Text style={{ fontFamily: F.semibold, fontSize: 12, color: '#fff' }}>Why?</Text></View>
+      <View style={{ backgroundColor: '#F2F2F3', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7 }}><Text style={{ fontFamily: F.semibold, fontSize: 13, color: C.ink }}>Why?</Text></View>
     </Pressable>
   );
 }
 
+/** A titled group: the title sits above in sentence case, the content on a white card lifted by a soft shadow. */
 export function SectionCard({ label, children, style }: { label?: string; children: React.ReactNode; style?: ViewStyle }) {
+  const flat = (StyleSheet.flatten(style) ?? {}) as ViewStyle & Record<string, unknown>;
+  const outer: ViewStyle = {}; const inner: ViewStyle = {};
+  for (const [k, v] of Object.entries(flat)) ((k.startsWith('margin') ? outer : inner) as Record<string, unknown>)[k] = v;
+  const title = label ? label.charAt(0) + label.slice(1).toLowerCase() : null;
   return (
-    <View style={[s.section, style]}>
-      {label ? <Text style={s.sectionLabel}>{label}</Text> : null}
-      {children}
+    <View style={outer}>
+      {title ? <Text style={s.sectionLabel}>{title}</Text> : null}
+      <View style={[s.section, inner]}>{children}</View>
     </View>
   );
 }
@@ -267,10 +272,10 @@ const s = StyleSheet.create({
   optSub: { fontFamily: F.regular, fontSize: 13, color: C.gray2, marginTop: 2 },
   check: { width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, borderColor: '#CFC9BD', alignItems: 'center', justifyContent: 'center' },
   rec: { borderRadius: 16, padding: 12, gap: 8 },
-  note: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderRadius: 16, padding: 12, borderWidth: 1, borderColor: C.line },
+  note: { ...surface, flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 18, padding: 14 },
   noteIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F2F2F4', alignItems: 'center', justifyContent: 'center' },
-  more: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10 },
-  moreIcon: { width: 32, height: 32, borderRadius: 10, backgroundColor: C.card, alignItems: 'center', justifyContent: 'center' },
-  section: { backgroundColor: C.card, borderRadius: 24, padding: 16, gap: 10, borderWidth: 1, borderColor: C.line },
-  sectionLabel: { fontFamily: F.semibold, fontSize: 13, color: C.ink, letterSpacing: 1.5 },
+  more: { ...surface, flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 18, paddingHorizontal: 14, paddingVertical: 12 },
+  moreIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: TILE, alignItems: 'center', justifyContent: 'center' },
+  section: { ...surface, padding: 16, gap: 10 },
+  sectionLabel: { fontFamily: F.bold, fontSize: 20, letterSpacing: -0.3, color: C.ink, marginBottom: 12 },
 });
