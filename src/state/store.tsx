@@ -40,6 +40,9 @@ type State = {
 
 /** Today's date on the person's own calendar (not UTC), so evenings don't roll over to tomorrow early. */
 const today = () => localKey(new Date());
+/** Locks only switch on once Stripe is live (set EXPO_PUBLIC_PAYMENTS_LIVE=1 in Vercel). Until then everything is open for testing. */
+export const PAYMENTS_LIVE = process.env.EXPO_PUBLIC_PAYMENTS_LIVE === '1';
+
 const initial: State = { answers: {}, onboarded: false, done: {}, lastWash: null, lifeChange: null, reminders: {}, name: 'Your name', shelf: [], scans: [], overrides: {}, saved: [], checked: [], subscribed: false };
 const KEY = 'moi-state-v1';
 
@@ -91,7 +94,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const todayKey = today();
   const value: Ctx = {
-    ...s, hydrated, cloud: cloud.status, account: cloud.account, syncNow: cloud.syncNow, plan, todayKey,
+    ...s, subscribed: s.subscribed || !PAYMENTS_LIVE, hydrated, cloud: cloud.status, account: cloud.account, syncNow: cloud.syncNow, plan, todayKey,
     setAnswer: (id, v) => setS(p => ({ ...p, answers: { ...p.answers, [id]: v } })),
     finishOnboarding: () => setS(p => ({ ...p, onboarded: true })),
     toggleDone: id => {
