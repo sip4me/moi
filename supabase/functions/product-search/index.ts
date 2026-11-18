@@ -1,5 +1,7 @@
-// Product search: our own catalog first, then Open Beauty Facts for anything we haven't looked up yet.
-// Data © Open Beauty Facts contributors, ODbL 1.0 — the app shows that attribution under the results.
+// Product search: our own catalog first, then Open Beauty Facts, then — only when both come up empty —
+// the brand's own product page via Firecrawl, read once and saved so the next person gets it instantly.
+// Open Beauty Facts data is ODbL 1.0 (the app credits it on those results). From brand pages we keep only
+// facts: product name, brand and the INCI ingredient list — never photos or marketing copy.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const OBF = 'https://world.openbeautyfacts.org/cgi/search.pl';
@@ -8,6 +10,9 @@ const FIELDS = 'code,product_name,brands,ingredients_text,ingredients_text_en,im
 const HAIR = /hair|shampoo|conditioner|scalp|curl|leave-in|dry-shampoo/;
 const REMOTE_PER_MINUTE = 8; // upstream allows 10 searches a minute; keep headroom
 const RECHECK_DAYS = 14;
+const FIRECRAWL_KEY = Deno.env.get('FIRECRAWL_API_KEY');
+const WEB_PER_DAY = Number(Deno.env.get('WEB_LOOKUPS_PER_DAY') ?? 15); // protects the Firecrawl credit balance
+const WEB_RECHECK_DAYS = 30; // a query that found nothing isn't retried for a month
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -57,6 +62,63 @@ async function fetchRemote(q: string) {
   if (rows.length) await db.from('products').upsert(rows, { onConflict: 'code' });
 }
 
+const slug = (t: string) => t.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
+
+/** True when a brand-site lookup is allowed: this query wasn't tried recently and today's budget isn't spent. */
+async function mayFetchWeb(q: string) {
+  if (!FIRECRAWL_KEY) return false;
+  const key = `web:${q}`;
+  const since = new Date(Date.now() - WEB_RECHECK_DAYS * 864e5).toISOString();
+  const { data: seen } = await db.from('product_lookups').select('query').eq('query', key).gte('fetched_at', since).maybeSingle();
+  if (seen) return false;
+  const dayAgo = new Date(Date.now() - 864e5).toISOString();
+  const { count } = await db.from('product_lookups').select('query', { count: 'exact', head: true }).like('query', 'web:%').gte('fetched_at', dayAgo);
+  return (count ?? 0) < WEB_PER_DAY;
+}
+
+type WebProduct = { name?: string; brand?: string; ingredients?: string; is_hair_product?: boolean };
+
+/** Finds the product on its brand's site and reads the full ingredient list (Firecrawl search + JSON extraction). */
+async function fetchWeb(q: string) {
+  await db.from('product_lookups').upsert({ query: `web:${q}`, fetched_at: new Date().toISOString() });
+  const res = await fetch('https://api.firecrawl.dev/v2/search', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${FIRECRAWL_KEY}`, 'Content-Type': 'application/json' },
+    signal: AbortSignal.timeout(45000),
+    body: JSON.stringify({
+      query: `${q} hair product full ingredients list official site`,
+      limit: 1,
+      scrapeOptions: {
+        onlyMainContent: true,
+        formats: [{
+          type: 'json',
+          prompt: 'From this product page, return the product name, the brand, whether it is a hair or scalp care product, and the complete INCI ingredient list exactly as printed, comma-separated. Leave ingredients empty if the full list is not on the page.',
+          schema: {
+            type: 'object',
+            properties: { name: { type: 'string' }, brand: { type: 'string' }, is_hair_product: { type: 'boolean' }, ingredients: { type: 'string' } },
+            required: ['name', 'ingredients'],
+          },
+        }],
+      },
+    }),
+  });
+  if (!res.ok) return;
+  const body = await res.json() as { data?: { web?: { url?: string; json?: WebProduct }[] } | { url?: string; json?: WebProduct }[] };
+  const hits = Array.isArray(body.data) ? body.data : body.data?.web ?? [];
+  const hit = hits.find(h => h.json?.ingredients);
+  const p = hit?.json;
+  const ingredients = (p?.ingredients ?? '').replace(/\s+/g, ' ').trim();
+  // Only save what we can score: a name, a real comma-separated INCI list, and a hair or scalp product.
+  if (!p?.name || p.is_hair_product === false || ingredients.length < 40 || ingredients.split(',').length < 5) return;
+  const brand = p.brand?.trim() || null;
+  const row = {
+    code: `web:${slug(`${brand ?? ''} ${p.name}`)}`, name: p.name.trim(), brand, ingredients,
+    image_url: null, hair: true, source: 'brand_site', source_url: hit?.url ?? null, updated_at: new Date().toISOString(),
+  };
+  await db.from('products').upsert(row, { onConflict: 'code' });
+  return row;
+}
+
 /** Barcode lookup: our table first, then Open Beauty Facts' product endpoint (not the rate-limited search). */
 async function byCode(code: string) {
   const { data } = await db.from('products').select('*').eq('code', code).maybeSingle();
@@ -87,6 +149,12 @@ Deno.serve(async req => {
     let products = await local(q);
     if (products.length < 8 && (await mayFetch(q))) {
       try { await fetchRemote(q); products = await local(q); } catch { /* upstream down: serve what we have */ }
+    }
+    // Nothing anywhere yet: read it from the brand's own site (rate-limited; misses are remembered).
+    // Only on an explicit request (?web=1), so half-typed searches never spend credits.
+    const web = new URL(req.url).searchParams.get('web') === '1';
+    if (web && !products.length && q.length >= 4 && (await mayFetchWeb(q))) {
+      try { const row = await fetchWeb(q); products = await local(q); if (row && !products.length) products = [row]; } catch { /* Firecrawl down: the app offers to paste the label */ }
     }
     return json({ products, attribution: 'Product data © Open Beauty Facts contributors, ODbL' });
   } catch (e) {
