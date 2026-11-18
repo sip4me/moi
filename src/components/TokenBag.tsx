@@ -7,12 +7,12 @@ import { TOKEN_BAG_SVG } from '../data/tokenBag';
 import { getFalling, onCoin, onFalling, setFalling, takeCoins } from '../lib/coinDrops';
 import { haptic } from '../lib/haptics';
 import { useStore } from '../state/store';
-import { C, F } from '../theme';
+import { C, F, surface } from '../theme';
 
 const COIN = `<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 52 52">${coinSvg('crown')}</svg>`;
 
 /** Your coin total: one gold coin for every daily rec you've checked off, minus any still falling. */
-function useCoins() {
+export function useCoins() {
   const { done } = useStore();
   const total = Object.values(done).reduce((n, ids) => n + ids.length, 0);
   const [air, setAir] = useState(getFalling());
@@ -110,5 +110,45 @@ export function CoinDrop() {
         <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.gray }}>+1</Text>
       </View>
     </Animated.View>
+  );
+}
+
+/** Coin levels: the bar on Progress fills toward the next one as checked recs drop coins in the bag. */
+export const COIN_LEVELS = [
+  { at: 0, name: 'Fresh Start' }, { at: 10, name: 'Shine' }, { at: 25, name: 'Gloss' }, { at: 50, name: 'Silk' },
+  { at: 100, name: 'Crown' }, { at: 250, name: 'Royal' }, { at: 500, name: 'Legend' },
+];
+
+/** Progress card: your coins, your level, and a gold bar that grows toward the next level. */
+export function CoinProgress() {
+  const { shown } = useCoins();
+  const lvl = [...COIN_LEVELS].reverse().find(l => shown >= l.at) ?? COIN_LEVELS[0];
+  const next = COIN_LEVELS.find(l => l.at > shown);
+  const pct = next ? (shown - lvl.at) / (next.at - lvl.at) : 1;
+  const fill = useRef(new Animated.Value(0)).current;
+  useFocusEffect(useCallback(() => {
+    fill.setValue(Math.max(0, pct - 0.15));
+    Animated.timing(fill, { toValue: pct, duration: 900, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start();
+  }, [pct, fill]));
+  return (
+    <View style={[surface, { borderRadius: 22, padding: 16, gap: 12 }]} accessibilityLabel={`${shown} coins, level ${lvl.name}${next ? `, ${next.at - shown} to ${next.name}` : ''}`}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <SvgXml xml={COIN} width={40} height={40} />
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontFamily: F.bold, fontSize: 20, color: C.ink, letterSpacing: -0.3 }}>{shown} coins · {lvl.name}</Text>
+          <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.gray2, marginTop: 2 }}>{next ? `${next.at - shown} more to reach ${next.name}` : 'Top level reached. Legendary.'}</Text>
+        </View>
+      </View>
+      <View style={{ height: 12, borderRadius: 6, backgroundColor: '#F2EEE4', overflow: 'hidden' }}>
+        <Animated.View style={{ height: 12, borderRadius: 6, backgroundColor: '#E2B43F', width: fill.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }}>
+          <View style={{ position: 'absolute', top: 2, left: 6, right: 6, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.55)' }} />
+        </Animated.View>
+      </View>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.gray }}>{lvl.name} · {lvl.at}</Text>
+        {next ? <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.gray }}>{next.name} · {next.at}</Text> : null}
+      </View>
+      <Text style={{ fontFamily: F.regular, fontSize: 12, color: C.gray }}>Every rec or wash step you tick off adds a coin.</Text>
+    </View>
   );
 }

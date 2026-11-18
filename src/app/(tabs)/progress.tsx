@@ -7,6 +7,7 @@ import { Screen, Title } from '../../components/ui';
 import { healthScore, scanStreakWeeks } from '../../data/progress';
 import { haptic } from '../../lib/haptics';
 import { loadScanSessions, type ScanSession } from '../../lib/scans';
+import { CoinProgress } from '../../components/TokenBag';
 import { useStore } from '../../state/store';
 import { SectionTitle } from '../../components/Tile';
 import { C, F, SPACE, surface } from '../../theme';
@@ -113,6 +114,11 @@ export default function Progress() {
           </View>
           <Pill>Next scan: Sun</Pill>
         </View>
+      </View>
+
+      {/* Coins: the gold bar fills as checked recs and wash steps drop coins in the bag. */}
+      <View style={{ marginTop: 14 }}>
+        <CoinProgress />
       </View>
 
       <View style={{ marginTop: SPACE.section }}>

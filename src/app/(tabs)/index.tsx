@@ -13,7 +13,8 @@ import { WashDayArt } from '../../components/WashDayArt';
 import { SegmentedTabs } from '../../components/SegmentedTabs';
 import { ResetCountdown } from '../../components/ResetCountdown';
 import { CoinDrop, TokenBag } from '../../components/TokenBag';
-import { RecStack } from '../../components/RecStack';
+import { RecStack, type RecItem } from '../../components/RecStack';
+import type { Card } from '../../engine/planEngine';
 import { LockIcon, Locked, PeekRow, openPaywall } from '../../components/Peek';
 import { SectionTitle, Tile } from '../../components/Tile';
 import { currentMoment } from '../../data/moments';
@@ -29,6 +30,14 @@ import { C, F, SPACE, evidenceStyle, surface } from '../../theme';
 
 /** Peek-row widths: routine cards show the next two peeking in; wider rows show the next one. */
 const CARD_W = 148;
+const NIGHT = new Set(['satin', 'night_braid', 'wind_down', 'ends_oil', 'loose_styles', 'pillowcase']);
+/** A plan card as a notification in the routine stack. */
+const toRec = (c: Card, bedtime = false): RecItem => ({
+  id: c.id, label: c.label, sub: `${c.value}${c.unit ? ` ${c.unit}` : ''}`, icon: c.icon ?? c.id, pineapple: bedtime,
+  when: bedtime ? 'Before bed' : NIGHT.has(c.id) ? 'Tonight' : c.minutes ? `${c.minutes} min` : 'Today',
+  body: [{ text: c.why }],
+  link: c.id === 'iron_food' ? { label: 'See today’s meals', href: '/iron' } : { label: 'Why it works', href: `/why/${c.id}` },
+});
 const ROW_W = 280;
 
 const TABS = ['Food recipes', 'Care', 'Style'];
@@ -89,16 +98,23 @@ export default function Home() {
       {/* The calendar: scrolls sideways through past and coming days, or opens the full month. */}
       <HomeCalendar days={cal} done={done} selected={selected} onSelect={setSelected} />
 
-      {/* Hero: one centred card, like a feature card — object, headline, one line of context, one soft button. */}
-      <View style={[surface, { marginTop: 36, borderRadius: 28, paddingHorizontal: 24, paddingTop: 32, paddingBottom: 28, alignItems: 'center' }]}>
-        {pineapple ? <TwoFrameArt spec={PINEAPPLE_ART} timing={PINEAPPLE_TIMING} width={120} /> : <WashDayArt width={120} />}
-        <Text style={{ fontFamily: F.bold, fontSize: 28, lineHeight: 33, color: C.ink, letterSpacing: -0.7, textAlign: 'center', marginTop: 18 }}>{paused ? 'Wash day paused' : daysLeft === 0 ? 'Wash day today' : `Wash hair in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`}</Text>
-        <Text style={{ fontFamily: F.regular, fontSize: 15, lineHeight: 21, color: C.gray2, textAlign: 'center', marginTop: 8, paddingHorizontal: 6 }}>{heroSub}</Text>
+      {/* Hero: a compact card so the calendar and routine stay in view. Art left, the headline and one
+          line of context right, then the wash routine button. */}
+      <View style={[surface, { marginTop: 24, borderRadius: 24, padding: 16 }]}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+          <View style={{ width: 72, height: 72, borderRadius: 20, backgroundColor: '#F6F3FB', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            {pineapple ? <TwoFrameArt spec={PINEAPPLE_ART} timing={PINEAPPLE_TIMING} width={64} /> : <WashDayArt width={62} />}
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontFamily: F.bold, fontSize: 20, lineHeight: 24, color: C.ink, letterSpacing: -0.4 }}>{paused ? 'Wash day paused' : daysLeft === 0 ? 'Wash day today' : `Wash hair in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`}</Text>
+            <Text numberOfLines={2} style={{ fontFamily: F.regular, fontSize: 13, lineHeight: 18, color: C.gray2, marginTop: 3 }}>{heroSub}</Text>
+          </View>
+        </View>
         {washDay ? (
           <Pressable onPress={subscribed ? () => router.push({ pathname: '/wash-day', params: { day: washDay.key } }) : openPaywall} accessibilityRole="button"
-            style={({ pressed }) => ({ alignSelf: 'stretch', height: 52, borderRadius: 999, marginTop: 24, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#2E2E2E' : C.ink, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
-            {subscribed ? null : <LockIcon size={14} color="#fff" />}
-            <Text style={{ fontFamily: F.semibold, fontSize: 16, color: '#fff' }}>{washLabel}</Text>
+            style={({ pressed }) => ({ height: 44, borderRadius: 999, marginTop: 14, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#2E2E2E' : C.ink, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
+            {subscribed ? null : <LockIcon size={13} color="#fff" />}
+            <Text style={{ fontFamily: F.semibold, fontSize: 15, color: '#fff' }}>{washLabel}</Text>
           </Pressable>
         ) : null}
       </View>
@@ -119,8 +135,8 @@ export default function Home() {
         </SectionTitle>
         {routineItems.length ? (
           <Locked radius={30} label="Your daily recs">
-            <RecStack items={routineItems} done={day.isToday ? doneToday : (done[day.key] ?? [])} canCheck={day.isToday}
-              bedtimeId={pineapple && day.isToday ? 'night_braid' : undefined} dayLabel={dayName(day)}
+            <RecStack items={routineItems.map(c => toRec(c, pineapple && day.isToday && c.id === 'night_braid'))}
+              done={day.isToday ? doneToday : (done[day.key] ?? [])} canCheck={day.isToday} dayLabel={dayName(day)}
               onToggle={id => toggleDone(id)} />
           </Locked>
         ) : <Sub style={{ fontSize: 15, paddingVertical: 12 }}>Rest day. Nothing planned.</Sub>}

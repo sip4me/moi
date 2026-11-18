@@ -1,8 +1,10 @@
 import { router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useId, useRef, useState } from 'react';
+
+/** Unique per stack: SVG gradient ids are page-global on web, and screens stay mounted underneath each other. */
+const Uid = createContext('s');
 import { Animated, Easing, Image, Modal, Platform, Pressable, Text, View } from 'react-native';
 import Svg, { Defs, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
-import type { Card } from '../engine/planEngine';
 import { PINEAPPLE_ART, PINEAPPLE_TIMING } from '../data/art';
 import { icon3d } from '../data/icons3d';
 import { haptic } from '../lib/haptics';
@@ -16,34 +18,49 @@ const GAP = 10;
 /** Bright two-tone badge gradients (light, deep), cycled so neighbouring recs never share a colour. */
 const TINTS = [['#FFB36B', '#FF6A3D'], ['#C49BFF', '#7C4DFF'], ['#FFE066', '#FFAA00'], ['#7FD3FF', '#2E86FF'], ['#7BEBB0', '#17B872'], ['#FF9CC4', '#F0408A']];
 
-const NIGHT = new Set(['satin', 'night_braid', 'wind_down', 'ends_oil', 'loose_styles', 'pillowcase']);
-const when = (c: Card) => (NIGHT.has(c.id) ? 'Tonight' : c.minutes ? `${c.minutes} min` : 'Today');
-const amount = (c: Card) => `${c.value}${c.unit ? ` ${c.unit}` : ''}`;
+/** One notification in the stack: a daily rec or a wash-day step. */
+export type RecItem = {
+  /** What gets ticked in the store (a card id, or `wash:<step>`). */
+  id: string;
+  label: string;
+  /** The line under the title (amount, or the step's one-line how). */
+  sub: string;
+  /** Right-hand timestamp: Tonight, 5 min, Before... */
+  when: string;
+  /** Opened text: one or more short paragraphs, each with an optional heading. */
+  body: { title?: string; text: string }[];
+  icon: string;
+  link?: { label: string; href: string };
+  /** Bedtime pineapple: the animated art goes in the badge. */
+  pineapple?: boolean;
+};
 
 /** The frosted, faintly iridescent face every rec shares: pearl white with a pink, lilac and sky sheen. */
-function Holo({ radius, id }: { radius: number; id: string }) {
+function Holo({ radius: _r, id: local }: { radius: number; id: string }) {
+  const id = useContext(Uid) + local;
   return (
     <Svg style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 100 100" pointerEvents="none">
       <Defs>
-        <LinearGradient id={`b${id}`} x1="0" y1="0" x2="0" y2="1">
+        <LinearGradient id={`moiHb${id}`} x1="0" y1="0" x2="0" y2="1">
           <Stop offset="0" stopColor="#FFFFFF" />
           <Stop offset="1" stopColor="#F1F1F4" />
         </LinearGradient>
-        <LinearGradient id={`h${id}`} x1="0" y1="0" x2="1" y2="1">
+        <LinearGradient id={`moiHh${id}`} x1="0" y1="0" x2="1" y2="1">
           <Stop offset="0" stopColor="#FFD9E8" stopOpacity="0.55" />
           <Stop offset="0.35" stopColor="#E9DDFF" stopOpacity="0.35" />
           <Stop offset="0.65" stopColor="#D6F0FF" stopOpacity="0.35" />
           <Stop offset="1" stopColor="#FFF1C9" stopOpacity="0.5" />
         </LinearGradient>
       </Defs>
-      <Rect x="0" y="0" width="100" height="100" fill={`url(#b${id})`} />
-      <Rect x="0" y="0" width="100" height="100" fill={`url(#h${id})`} />
+      <Rect x="0" y="0" width="100" height="100" fill={`url(#moiHb${id})`} />
+      <Rect x="0" y="0" width="100" height="100" fill={`url(#moiHh${id})`} />
     </Svg>
   );
 }
 
 /** A light band that drifts across a card now and then, like light catching a hologram. */
 function Sheen({ delay = 0 }: { delay?: number }) {
+  const u = useContext(Uid);
   const x = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const loop = Animated.loop(Animated.sequence([
@@ -59,22 +76,22 @@ function Sheen({ delay = 0 }: { delay?: number }) {
       transform: [{ translateX: x.interpolate({ inputRange: [0, 1], outputRange: [-120, 480] }) }, { rotate: '18deg' }] }}>
       <Svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 10 10">
         <Defs>
-          <LinearGradient id="sh" x1="0" y1="0" x2="1" y2="0">
+          <LinearGradient id={`${u}sh`} x1="0" y1="0" x2="1" y2="0">
             <Stop offset="0" stopColor="#fff" stopOpacity="0" />
             <Stop offset="0.5" stopColor="#fff" stopOpacity="0.85" />
             <Stop offset="1" stopColor="#fff" stopOpacity="0" />
           </LinearGradient>
         </Defs>
-        <Rect width="10" height="10" fill="url(#sh)" />
+        <Rect width="10" height="10" fill={`url(#${u}sh)`} />
       </Svg>
     </Animated.View>
   );
 }
 
 /** Round pastel badge with a soft ring, holding the rec's 3D icon (or the pineapple at bedtime). */
-function Badge({ c, i, size = 48, bedtime }: { c: Card; i: number; size?: number; bedtime?: boolean }) {
+function Badge({ c, i, size = 48 }: { c: RecItem; i: number; size?: number }) {
   const [light, deep] = TINTS[i % TINTS.length];
-  const g = `g${i % TINTS.length}`;
+  const g = `${useContext(Uid)}g${i % TINTS.length}`;
   return (
     <View style={{ width: size, height: size, borderRadius: size / 2, borderWidth: 3, borderColor: '#fff', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
       shadowColor: deep, shadowOpacity: 0.45, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } }}>
@@ -87,27 +104,27 @@ function Badge({ c, i, size = 48, bedtime }: { c: Card; i: number; size?: number
         </Defs>
         <Rect width="10" height="10" fill={`url(#${g})`} />
       </Svg>
-      {bedtime ? <TwoFrameArt spec={PINEAPPLE_ART} timing={PINEAPPLE_TIMING} width={size * 0.8} />
-        : <Image source={icon3d(c.icon ?? c.id)} style={{ width: size * 0.64, height: size * 0.64 }} resizeMode="contain" />}
+      {c.pineapple ? <TwoFrameArt spec={PINEAPPLE_ART} timing={PINEAPPLE_TIMING} width={size * 0.8} />
+        : <Image source={icon3d(c.icon)} style={{ width: size * 0.64, height: size * 0.64 }} resizeMode="contain" />}
     </View>
   );
 }
 
-const shadow = { shadowColor: '#6B6B78', shadowOpacity: 0.16, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 3 };
+const shadow = { shadowColor: '#7A5C8F', shadowOpacity: 0.16, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 3 };
 
 /** One notification-style rec. */
-function Rec({ c, i, done, bedtime, sheen }: { c: Card; i: number; done: boolean; bedtime: boolean; sheen?: boolean }) {
+function Rec({ c, i, done, sheen }: { c: RecItem; i: number; done: boolean; sheen?: boolean }) {
   return (
     <View style={[shadow, { height: H, borderRadius: 26, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.95)', overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14 }]}>
       <Holo radius={26} id={`r${i}`} />
       {sheen ? <Sheen delay={i * 400} /> : null}
-      <Badge c={c} i={i} bedtime={bedtime} />
+      <Badge c={c} i={i} />
       <View style={{ flex: 1, opacity: done ? 0.55 : 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
           <Text numberOfLines={1} style={{ flex: 1, fontFamily: F.semibold, fontSize: 16, color: '#3A3A40', textDecorationLine: done ? 'line-through' : 'none' }}>{c.label}</Text>
-          <Text style={{ fontFamily: F.regular, fontSize: 12, color: '#9A9AA2' }}>{done ? 'Done' : bedtime ? 'Before bed' : when(c)}</Text>
+          <Text style={{ fontFamily: F.regular, fontSize: 12, color: '#9A9AA2' }}>{done ? 'Done' : c.when}</Text>
         </View>
-        <Text numberOfLines={1} style={{ fontFamily: F.regular, fontSize: 14, color: '#75757D', marginTop: 2 }}>{amount(c)}</Text>
+        <Text numberOfLines={1} style={{ fontFamily: F.regular, fontSize: 14, color: '#75757D', marginTop: 2 }}>{c.sub}</Text>
       </View>
       {done ? <Seal size={26} /> : null}
     </View>
@@ -119,12 +136,13 @@ function Rec({ c, i, done, bedtime, sheen }: { c: Card; i: number; done: boolean
  * underneath; a tap fans them out. Press and hold any rec to open it, then tick the box: the rec is
  * done and a gold coin drops into the token bag.
  */
-export function RecStack({ items, done, canCheck, bedtimeId, onToggle, dayLabel }: {
-  items: Card[]; done: string[]; canCheck: boolean; bedtimeId?: string; onToggle: (id: string) => void; dayLabel: string;
+export function RecStack({ items, done, canCheck, onToggle, dayLabel, defaultOpen = false, noun = 'rec' }: {
+  items: RecItem[]; done: string[]; canCheck: boolean; onToggle: (id: string) => void; dayLabel: string; defaultOpen?: boolean; noun?: string;
 }) {
-  const [open, setOpen] = useState(false);
-  const [peek, setPeek] = useState<{ c: Card; i: number } | null>(null);
-  const fan = useRef(new Animated.Value(0)).current;
+  const u = 'moi' + useId().replace(/[^a-zA-Z0-9]/g, '');
+  const [open, setOpen] = useState(defaultOpen);
+  const [peek, setPeek] = useState<{ c: RecItem; i: number } | null>(null);
+  const fan = useRef(new Animated.Value(defaultOpen ? 1 : 0)).current;
   // Still-to-do recs first, done ones sink to the bottom.
   const order = items.map((c, i) => ({ c, i })).sort((a, b) => Number(done.includes(a.c.id)) - Number(done.includes(b.c.id)));
   const n = order.length;
@@ -133,23 +151,34 @@ export function RecStack({ items, done, canCheck, bedtimeId, onToggle, dayLabel 
   useEffect(() => { Animated.spring(fan, { toValue: open ? 1 : 0, friction: 9, tension: 70, useNativeDriver: false }).start(); }, [open, fan]);
   const height = fan.interpolate({ inputRange: [0, 1], outputRange: [H + Math.min(2, n - 1) * 12, n * H + (n - 1) * GAP] });
 
-  const hold = (o: { c: Card; i: number }) => { haptic('select'); setPeek(o); };
+  const hold = (o: { c: RecItem; i: number }) => { haptic('select'); setPeek(o); };
 
   return (
+    <Uid.Provider value={u}>
     <View style={{ borderRadius: 30, padding: 12, paddingTop: 14, overflow: 'hidden' }}>
-      {/* The soft grey glass the stack sits on. */}
+      {/* A soft aurora behind the glass recs: peach, rose and lilac glows over a pale sky wash, so the
+          white cards lift off it the way notifications sit on a wallpaper. */}
       <Svg style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 100 100" pointerEvents="none">
         <Defs>
-          <RadialGradient id="bg" cx="0.5" cy="0.35" r="0.8">
-            <Stop offset="0" stopColor="#F3F3F5" />
-            <Stop offset="1" stopColor="#E2E2E7" />
-          </RadialGradient>
+          <LinearGradient id={`${u}aw`} x1="0" y1="0" x2="1" y2="1">
+            <Stop offset="0" stopColor="#FCEBDD" />
+            <Stop offset="0.45" stopColor="#F5E6F7" />
+            <Stop offset="1" stopColor="#E2ECFB" />
+          </LinearGradient>
+          <RadialGradient id={`${u}a1`} cx="0.1" cy="0.05" r="0.6"><Stop offset="0" stopColor="#FFC9A8" stopOpacity="0.75" /><Stop offset="1" stopColor="#FFC9A8" stopOpacity="0" /></RadialGradient>
+          <RadialGradient id={`${u}a2`} cx="0.95" cy="0.3" r="0.55"><Stop offset="0" stopColor="#F7B5D3" stopOpacity="0.6" /><Stop offset="1" stopColor="#F7B5D3" stopOpacity="0" /></RadialGradient>
+          <RadialGradient id={`${u}a3`} cx="0.25" cy="0.95" r="0.65"><Stop offset="0" stopColor="#C8B8FA" stopOpacity="0.6" /><Stop offset="1" stopColor="#C8B8FA" stopOpacity="0" /></RadialGradient>
+          <RadialGradient id={`${u}a4`} cx="0.9" cy="0.95" r="0.5"><Stop offset="0" stopColor="#A9D8FA" stopOpacity="0.55" /><Stop offset="1" stopColor="#A9D8FA" stopOpacity="0" /></RadialGradient>
         </Defs>
-        <Rect width="100" height="100" fill="url(#bg)" />
+        <Rect width="100" height="100" fill={`url(#${u}aw)`} />
+        <Rect width="100" height="100" fill={`url(#${u}a1)`} />
+        <Rect width="100" height="100" fill={`url(#${u}a2)`} />
+        <Rect width="100" height="100" fill={`url(#${u}a3)`} />
+        <Rect width="100" height="100" fill={`url(#${u}a4)`} />
       </Svg>
 
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 6, marginBottom: 10 }}>
-        <Text style={{ fontFamily: F.medium, fontSize: 13, color: '#6E6E76' }}>{left ? `${left} rec${left > 1 ? 's' : ''} ${canCheck ? 'left today' : `for ${dayLabel}`}` : 'All done today'}</Text>
+        <Text style={{ fontFamily: F.semibold, fontSize: 13, color: '#5B4E66' }}>{left ? `${left} ${noun}${left > 1 ? 's' : ''} ${canCheck ? 'left today' : `for ${dayLabel}`}` : canCheck ? 'All done. Nice work.' : 'Nothing left'}</Text>
         {n > 1 ? (
           <Pressable onPress={() => { haptic('tap'); setOpen(o => !o); }} hitSlop={8} accessibilityRole="button"
             style={({ pressed }) => [shadow, { shadowOpacity: 0.08, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999, backgroundColor: pressed ? '#F0F0F2' : '#FAFAFB', borderWidth: 1, borderColor: '#fff' }]}>
@@ -168,9 +197,9 @@ export function RecStack({ items, done, canCheck, bedtimeId, onToggle, dayLabel 
           return (
             <Animated.View key={o.c.id} style={{ position: 'absolute', left: 0, right: 0, top, opacity, zIndex: n - k, transform: [{ scaleX: scale }] }}>
               <Pressable onPress={() => (open || n === 1 ? hold(o) : (haptic('tap'), setOpen(true)))} onLongPress={() => hold(o)} delayLongPress={320}
-                accessibilityRole="button" accessibilityLabel={`${o.c.label}, ${amount(o.c)}${isDone ? ', done' : ''}`} accessibilityHint="Press and hold to open"
+                accessibilityRole="button" accessibilityLabel={`${o.c.label}, ${o.c.sub}${isDone ? ', done' : ''}`} accessibilityHint="Press and hold to open"
                 style={({ pressed }) => [{ transform: [{ scale: pressed ? 0.98 : 1 }] }, web && ({ userSelect: 'none', WebkitTouchCallout: 'none' } as any)]}>
-                {k === 0 || open ? <Rec c={o.c} i={o.i} done={isDone} bedtime={o.c.id === bedtimeId} sheen={k === 0} />
+                {k === 0 || open ? <Rec c={o.c} i={o.i} done={isDone} sheen={k === 0} />
                   : <View style={[shadow, { height: H, borderRadius: 26, borderWidth: 1.5, borderColor: '#fff', overflow: 'hidden' }]}><Holo radius={26} id={`l${k}`} /></View>}
               </Pressable>
             </Animated.View>
@@ -178,19 +207,20 @@ export function RecStack({ items, done, canCheck, bedtimeId, onToggle, dayLabel 
         })}
       </Animated.View>
 
-      <Text style={{ fontFamily: F.regular, fontSize: 12, color: '#8C8C94', textAlign: 'center', marginTop: 12 }}>
-        {canCheck ? 'Press and hold a rec to open it. Tick it off for a coin.' : 'Press and hold a rec to see what’s planned.'}
+      <Text style={{ fontFamily: F.regular, fontSize: 12, color: '#7A6E84', textAlign: 'center', marginTop: 12 }}>
+        {canCheck ? `Press and hold a ${noun} to open it. Tick it off for a coin.` : `Press and hold a ${noun} to see what’s planned.`}
       </Text>
 
-      <RecPeek peek={peek} done={!!peek && done.includes(peek.c.id)} canCheck={canCheck} dayLabel={dayLabel} bedtime={peek?.c.id === bedtimeId}
+      <RecPeek peek={peek} done={!!peek && done.includes(peek.c.id)} canCheck={canCheck} dayLabel={dayLabel}
         onClose={() => setPeek(null)} onCheck={id => { setPeek(null); setTimeout(() => onToggle(id), 220); }} />
     </View>
+    </Uid.Provider>
   );
 }
 
 /** The opened rec, like a long-pressed notification: lifted over a frosted backdrop with a check box. */
-function RecPeek({ peek, done, canCheck, dayLabel, bedtime, onClose, onCheck }: {
-  peek: { c: Card; i: number } | null; done: boolean; canCheck: boolean; dayLabel: string; bedtime: boolean; onClose: () => void; onCheck: (id: string) => void;
+function RecPeek({ peek, done, canCheck, dayLabel, onClose, onCheck }: {
+  peek: { c: RecItem; i: number } | null; done: boolean; canCheck: boolean; dayLabel: string; onClose: () => void; onCheck: (id: string) => void;
 }) {
   const pop = useRef(new Animated.Value(0)).current;
   const [ticked, setTicked] = useState(false);
@@ -217,16 +247,23 @@ function RecPeek({ peek, done, canCheck, dayLabel, bedtime, onClose, onCheck }: 
           <Pressable onPress={() => {}} style={[shadow, { shadowOpacity: 0.22, shadowRadius: 30, borderRadius: 30, borderWidth: 1.5, borderColor: '#fff', overflow: 'hidden', padding: 20 }]}>
             <Holo radius={30} id="peek" />
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-              <Badge c={c} i={i} size={60} bedtime={bedtime} />
+              <Badge c={c} i={i} size={60} />
               <View style={{ flex: 1 }}>
                 <Text style={{ fontFamily: F.bold, fontSize: 20, color: C.ink, letterSpacing: -0.3 }}>{c.label}</Text>
-                <Text style={{ fontFamily: F.regular, fontSize: 14, color: C.gray2, marginTop: 2 }}>{amount(c)} · {bedtime ? 'Before bed' : when(c)}</Text>
+                <Text style={{ fontFamily: F.regular, fontSize: 14, color: C.gray2, marginTop: 2 }}>{c.sub ? `${c.sub} · ` : ''}{c.when}</Text>
               </View>
             </View>
-            <Text style={{ fontFamily: F.regular, fontSize: 15, lineHeight: 22, color: '#4A4A50', marginTop: 16 }}>{c.why}</Text>
-            <Pressable onPress={() => { onClose(); router.push(c.id === 'iron_food' ? '/iron' : `/why/${c.id}`); }} hitSlop={6} style={{ alignSelf: 'flex-start', marginTop: 10 }}>
-              <Text style={{ fontFamily: F.semibold, fontSize: 14, color: C.ink, textDecorationLine: 'underline' }}>{c.id === 'iron_food' ? 'See today’s meals' : 'Why it works'}</Text>
-            </Pressable>
+            {c.body.map((b, k) => (
+              <View key={k} style={{ marginTop: k ? 12 : 16 }}>
+                {b.title ? <Text style={{ fontFamily: F.semibold, fontSize: 13, color: C.gray, letterSpacing: 0.3, marginBottom: 3 }}>{b.title.toUpperCase()}</Text> : null}
+                <Text style={{ fontFamily: F.regular, fontSize: 15, lineHeight: 22, color: '#4A4A50' }}>{b.text}</Text>
+              </View>
+            ))}
+            {c.link ? (
+              <Pressable onPress={() => { onClose(); router.push(c.link!.href as never); }} hitSlop={6} style={{ alignSelf: 'flex-start', marginTop: 10 }}>
+                <Text style={{ fontFamily: F.semibold, fontSize: 14, color: C.ink, textDecorationLine: 'underline' }}>{c.link.label}</Text>
+              </Pressable>
+            ) : null}
 
             {/* The check box: ticking it marks the rec done and drops a coin into the bag. */}
             <Pressable onPress={tick} disabled={!canCheck} accessibilityRole="checkbox" accessibilityState={{ checked: on, disabled: !canCheck }} accessibilityLabel={`Mark ${c.label} done`}

@@ -10,8 +10,10 @@ import { C, F } from '../../theme';
 
 const ICON: Record<string, (c: string) => React.ReactNode> = {
   index: c => <Path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1v-8Z" fill={c} />,
-  progress: c => <><Rect x={4} y={13} width={4} height={7} rx={1} fill={c} /><Rect x={10} y={9} width={4} height={11} rx={1} fill={c} /><Rect x={16} y={5} width={4} height={15} rx={1} fill={c} /></>,
-  products: c => <><Rect x={8} y={8} width={8} height={13} rx={2} stroke={c} strokeWidth={2} fill="none" /><Path d="M10 4h4v4h-4z" fill={c} /></>,
+  // Stairs climbing to the right with an arrow riding up along their edge.
+  progress: c => <><Path d="M3.5 21v-4.5h5.5v-4.5h5.5V7.5H20.5V21z" fill={c} /><Path d="M3.5 11.5 12.5 4M12.5 4H8.6M12.5 4v3.9" stroke={c} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" /></>,
+  // A bottle with its cap flipped open on the hinge, so it reads as "products" at a glance.
+  products: c => <><Rect x={7.5} y={10} width={9} height={11.5} rx={2.2} stroke={c} strokeWidth={2} fill="none" /><Rect x={9.75} y={6.8} width={4.5} height={3.2} rx={0.8} stroke={c} strokeWidth={1.8} fill="none" /><Rect x={14} y={2.2} width={5.5} height={3.4} rx={1.2} fill={c} transform="rotate(32 14.2 5.8)" /></>,
   profile: c => <><Circle cx={12} cy={8} r={4} stroke={c} strokeWidth={2} fill="none" /><Path d="M5 20c1-4 4-6 7-6s6 2 7 6" stroke={c} strokeWidth={2} fill="none" strokeLinecap="round" /></>,
 };
 const LABEL: Record<string, string> = { index: 'Home', progress: 'Progress', products: 'Products', profile: 'Profile' };
