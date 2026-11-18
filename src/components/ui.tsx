@@ -45,19 +45,27 @@ export function BackButton({ onPress }: { onPress?: () => void }) {
   );
 }
 
+/**
+ * States: default · pressed (darker, 0.98 squeeze) · loading (spinner, keeps its colour, can't be tapped)
+ * · disabled (grey, can't be tapped). Ghost buttons darken their text when pressed.
+ */
 export function Button({ label, onPress, variant = 'primary', disabled, loading, style }: { label: string; onPress?: () => void; variant?: 'primary' | 'secondary' | 'ghost'; disabled?: boolean; loading?: boolean; style?: ViewStyle }) {
+  const off = disabled && !loading;
   return (
-    <Pressable disabled={disabled || loading} onPress={onPress ? () => { haptic(); onPress(); } : undefined} style={({ pressed }) => [
-      s.btn,
-      variant === 'primary' && { backgroundColor: disabled ? '#E3E3E6' : pressed ? '#2E2E2E' : C.ink },
-      variant === 'secondary' && { backgroundColor: pressed ? C.pressed : C.option, borderWidth: 1, borderColor: '#E5E5E5' },
-      variant === 'ghost' && { backgroundColor: 'transparent', height: 44 },
-      style,
-    ]}>
+    <Pressable disabled={disabled || loading} onPress={onPress ? () => { haptic(); onPress(); } : undefined}
+      accessibilityRole="button" accessibilityState={{ disabled: !!(disabled || loading), busy: !!loading }}
+      style={({ pressed }) => [
+        s.btn,
+        variant === 'primary' && { backgroundColor: off ? '#E3E3E6' : pressed ? '#2E2E2E' : C.ink },
+        variant === 'secondary' && { backgroundColor: off ? '#F7F7F8' : pressed ? C.pressed : C.option, borderWidth: 1, borderColor: off ? '#EFEFF1' : '#E5E5E5' },
+        variant === 'ghost' && { backgroundColor: 'transparent', height: 44 },
+        { transform: [{ scale: pressed && variant !== 'ghost' ? 0.98 : 1 }] },
+        style,
+      ]}>
       {({ pressed }) => (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           {loading ? <ActivityIndicator color={variant === 'primary' ? '#fff' : C.ink} size="small" /> : null}
-          <Text style={[s.btnText, variant === 'primary' && { color: disabled ? '#9A9A9A' : '#fff' }, variant !== 'primary' && { color: variant === 'ghost' ? (pressed ? C.ink : C.gray2) : C.ink }]}>{label}</Text>
+          <Text style={[s.btnText, variant === 'primary' && { color: off ? '#9A9A9A' : '#fff' }, variant === 'secondary' && { color: off ? '#B5B5BA' : C.ink }, variant === 'ghost' && { color: pressed ? C.ink : C.gray2 }]}>{label}</Text>
         </View>
       )}
     </Pressable>
@@ -164,7 +172,7 @@ export function CardGrid({ children }: { children: React.ReactNode[] }) {
 }
 
 /** A routine card: label on top, the 3D object for the step, and today's amount underneath. */
-export function RecCard({ id, label, value, unit, done, onPress }: { id: string; label: string; value: string | number; unit: string; done?: boolean; onPress?: () => void; width?: any }) {
+export function RecCard({ id, icon, label, value, unit, done, onPress }: { id: string; icon?: string; label: string; value: string | number; unit: string; done?: boolean; onPress?: () => void; width?: any }) {
   const narrow = useWindowDimensions().width < 360;
   const amount = `${value}${unit ? ` ${unit}` : ''}`;
   return (
@@ -172,7 +180,7 @@ export function RecCard({ id, label, value, unit, done, onPress }: { id: string;
       style={({ pressed }) => [s.rec, narrow && { padding: 10, gap: 4 }, { flex: 1, minWidth: 0, backgroundColor: pressed ? '#F2F2F4' : '#fff' }]}>
       <Text numberOfLines={1} style={{ fontFamily: F.semibold, fontSize: narrow ? 13 : 14, color: done ? C.gray : C.ink }}>{label}</Text>
       <View style={{ alignItems: 'center', justifyContent: 'center', height: narrow ? 64 : 72 }}>
-        <Image source={icon3d(id)} resizeMode="contain" style={{ width: narrow ? 58 : 66, height: narrow ? 58 : 66, opacity: done ? 0.45 : 1 }} />
+        <Image source={icon3d(icon ?? id)} resizeMode="contain" style={{ width: narrow ? 58 : 66, height: narrow ? 58 : 66, opacity: done ? 0.45 : 1 }} />
         {done ? <View style={{ position: 'absolute', right: 2, bottom: 0 }}><Seal size={26} /></View> : null}
       </View>
       <Text numberOfLines={1} style={{ fontFamily: F.medium, fontSize: 12, color: done ? C.gray : C.gray2, textAlign: 'center' }}>{done ? 'Done today' : amount}</Text>

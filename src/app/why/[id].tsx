@@ -1,5 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { IRON_FOODS, VITAMIN_C, ironFoodFor } from '../../data/ironFoods';
 import { icon3d } from '../../data/icons3d';
 import { haptic } from '../../lib/haptics';
 import { Button, EvidenceChip, Glyph } from '../../components/ui';
@@ -24,7 +25,9 @@ export default function Why() {
   const isDaily = !!plan?.cards.find(c => c.id === id);
   const isDone = (done[todayKey] ?? []).includes(id!);
   const ings: string[] = (card as any)?.ingredients ?? (lever as any)?.ingredients ?? [];
-  const value = card ? `${card.value}${card.unit ? ' ' + card.unit : ''}` : '';
+  // Iron-rich food: today's pick, with every alternative listed so it can be swapped.
+  const food = id === 'iron_food' ? ironFoodFor(todayKey) : null;
+  const value = food ? food.serving : card ? `${card.value}${card.unit ? ' ' + card.unit : ''}` : '';
   const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
   return (
     <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end', alignItems: 'center' }}>
@@ -32,9 +35,9 @@ export default function Why() {
       <View style={{ width: '100%', maxWidth: 430, backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 24, paddingTop: 12, paddingBottom: 34, gap: 14 }}>
         <View style={{ alignSelf: 'center', width: 36, height: 5, borderRadius: 3, backgroundColor: '#D6D6D9' }} />
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <View style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: '#F6EEEC', alignItems: 'center', justifyContent: 'center' }}><Image source={icon3d(id!)} resizeMode="contain" style={{ width: 44, height: 44 }} /></View>
+          <View style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: '#F6EEEC', alignItems: 'center', justifyContent: 'center' }}><Image source={icon3d(food?.id ?? id!)} resizeMode="contain" style={{ width: 44, height: 44 }} /></View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: F.bold, fontSize: 20, color: C.ink }}>{item.label}{value ? ` · ${value}` : ''}</Text>
+            <Text style={{ fontFamily: F.bold, fontSize: 20, color: C.ink }}>{food?.name ?? item.label}{value ? ` · ${value}` : ''}</Text>
             {(card as any)?.target !== undefined ? <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.gray }}>Working toward every {(card as any).target} {card!.unit}</Text> : null}
           </View>
         </View>
@@ -46,6 +49,21 @@ export default function Why() {
           />
         ) : null}
         <Text style={{ fontFamily: F.regular, fontSize: 15, color: '#2A2A2A', lineHeight: 21 }}>{item.why}</Text>
+        {food ? (
+          <View style={{ gap: 8 }}>
+            <Text style={{ fontFamily: F.semibold, fontSize: 11, color: C.gray, letterSpacing: 1 }}>ANY OF THESE COUNTS</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+              {[...IRON_FOODS, { ...VITAMIN_C, mg: 0 }].map(f => (
+                <View key={f.id} style={{ width: 92, borderRadius: 16, padding: 8, alignItems: 'center', backgroundColor: f.id === food.id ? C.ink : '#F4F4F5' }}>
+                  <Image source={icon3d(f.id)} resizeMode="contain" style={{ width: 48, height: 48 }} />
+                  <Text numberOfLines={2} style={{ fontFamily: F.semibold, fontSize: 11, textAlign: 'center', color: f.id === food.id ? '#fff' : C.ink, marginTop: 4 }}>{f.name}</Text>
+                  {f.mg ? <Text style={{ fontFamily: F.regular, fontSize: 10, color: f.id === food.id ? '#ffffffB0' : C.gray }}>{f.mg} mg iron</Text> : null}
+                </View>
+              ))}
+            </ScrollView>
+            <Text style={{ fontFamily: F.regular, fontSize: 13, lineHeight: 18, color: C.gray2 }}>{food.tip} {food.plant ? VITAMIN_C.tip : ''}</Text>
+          </View>
+        ) : null}
         {ings.length ? <View style={{ gap: 8 }}><Text style={{ fontFamily: F.semibold, fontSize: 11, color: C.gray, letterSpacing: 1 }}>LOOK FOR ON THE LABEL</Text><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{ings.map(g => <Chip key={g} t={g} bg="#F2F2F4" fg={C.ink} />)}</View></View> : null}
         {plan?.ingredients.avoid.length && card ? <View style={{ gap: 8 }}><Text style={{ fontFamily: F.semibold, fontSize: 11, color: C.gray, letterSpacing: 1 }}>AVOID</Text><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{plan.ingredients.avoid.map(g => <Chip key={g} t={g} bg={C.amberSoft} fg={C.amberText} />)}</View></View> : null}
         <View style={{ flexDirection: 'row', gap: 12, marginTop: 4 }}>

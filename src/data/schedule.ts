@@ -1,5 +1,6 @@
 import type { Card, Plan } from '../engine/planEngine';
 import { stepsForWash, type WashStep } from '../engine/washRoutine';
+import { ironDay } from './ironRecipes';
 
 /**
  * Turns the plan into the next seven days, so the calendar shows what's coming and
@@ -81,6 +82,12 @@ export function week(plan: Plan, lastWash: string | null, todayKey: string, paus
     else if (BETWEEN_WASHES.has(card.id)) days.filter(d => !d.isWash).forEach(d => d.items.push(card));
     else days.forEach(d => d.items.push(card)); // daily habits
   }
+  // Iron-maxxing: each day's card shows that day's meal plan total and its lunch icon.
+  for (const d of days) d.items = d.items.map(c => {
+    if (c.id !== 'iron_food') return c;
+    const day = ironDay(d.key);
+    return { ...c, label: 'Iron-maxxing', value: `≈${day.mg}`, unit: 'mg', icon: day.meals[1].icon };
+  });
   // A habit that's also a wash step (scalp massage) shows once on wash day: inside the routine.
   for (const d of days) if (d.wash.length) d.items = d.items.filter(c => !d.wash.some(w => w.id === c.id));
   return days;

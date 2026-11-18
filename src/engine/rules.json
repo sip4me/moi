@@ -1,5 +1,5 @@
 {
-  "version": "0.5.0",
+  "version": "0.6.0",
   "planWeeks": 12,
   "maxCards": 4,
   "levers": [
@@ -625,6 +625,40 @@
         "balance": 2
       },
       "why": "Pregnancy changes how hair grows, and many people shed more 2–4 months after giving birth. It usually settles on its own. Check with your doctor before starting regrowth treatments or essential oils."
+    },
+    {
+      "id": "calm",
+      "label": "Breathe",
+      "value": 5,
+      "unit": "min",
+      "min": 2,
+      "max": 15,
+      "minutes": 5,
+      "kind": "daily",
+      "evidence": "moderate",
+      "relevance": {
+        "repair": 1,
+        "grow": 2,
+        "keep": 3,
+        "balance": 1
+      },
+      "why": "Stress pushes growing hairs into their resting phase, and they shed about three months later. A few minutes of slow breathing a day (in for 4, out for 6) lowers stress hormones and keeps more hair in its growth phase."
+    },
+    {
+      "id": "iron_food",
+      "label": "Iron-maxxing",
+      "value": "4 meals",
+      "unit": "",
+      "minutes": 0,
+      "kind": "daily",
+      "evidence": "moderate",
+      "relevance": {
+        "repair": 1,
+        "grow": 2,
+        "keep": 3,
+        "balance": 1
+      },
+      "why": "Hair is one of the first things the body rations when iron runs low, and low iron is common in people who shed. One iron-rich food a day helps; pair plant sources with vitamin C (an orange, peppers) so more of it is absorbed."
     }
   ],
   "rules": [

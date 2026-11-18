@@ -4,6 +4,8 @@ import { type Day, daysUntilWash, week } from '../../data/schedule';
 import { Image, Pressable, Text, View } from 'react-native';
 import { icon3d } from '../../data/icons3d';
 import { HomeFeed } from '../../components/Feed';
+import { IronMaxxing } from '../../components/IronMaxxing';
+import { Trending } from '../../components/Trending';
 import { WashDayArt } from '../../components/WashDayArt';
 import { scanStreakWeeks } from '../../data/progress';
 import { CardGrid, DoctorNote, Glyph, Logo, MoreRow, RecCard, Screen, SectionCard, Sub } from '../../components/ui';
@@ -93,7 +95,7 @@ export default function Home() {
       ) : null}
       <SectionCard style={{ marginTop: 10 }}>
         {day.items.length ? (
-          <CardGrid>{day.items.map(c => <RecCard key={c.id} id={c.id} label={c.label} value={c.value} unit={c.unit} done={day.isToday && doneToday.includes(c.id)} onPress={() => router.push(`/why/${c.id}`)} />)}</CardGrid>
+          <CardGrid>{day.items.map(c => <RecCard key={c.id} id={c.id} icon={c.icon} label={c.label} value={c.value} unit={c.unit} done={day.isToday && doneToday.includes(c.id)} onPress={() => router.push(c.id === 'iron_food' ? '/iron' : `/why/${c.id}`)} />)}</CardGrid>
         ) : <Sub style={{ fontSize: 14, textAlign: 'center', paddingVertical: 12 }}>Rest day. Nothing planned.</Sub>}
         <Sub style={{ fontSize: 12, textAlign: 'center' }}>{day.isToday ? 'Tap a card to see why and mark it done.' : 'A preview. It updates when you log a wash or change a card.'}</Sub>
       </SectionCard>
@@ -104,6 +106,8 @@ export default function Home() {
           {plan.extras.map(c => <MoreRow key={c.id} id={c.id} label={c.label} meta={`${c.value}${c.unit ? ' ' + c.unit : ''} · ${evidenceStyle[c.evidence ?? 'early'].label.toLowerCase()}`} onPress={() => router.push(`/why/${c.id}`)} />)}
         </View>
       ) : null}
+      <IronMaxxing />
+      <Trending />
       <HomeFeed streakWeeks={scanStreakWeeks(scans)} />
     </Screen>
   );

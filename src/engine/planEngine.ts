@@ -51,7 +51,7 @@ export interface Rules {
   targetOverrides?: { goal: Goal; when: Cond[]; target: Rules['targets'][Goal] }[];
 }
 
-export interface Card { id: string; label: string; value: Val; unit: string; why: string; evidence?: Evidence; ingredients?: string[]; target?: Val; score: number; minutes: number }
+export interface Card { /** 3D icon to show instead of the lever's own, e.g. today's iron-rich food. */ icon?: string; id: string; label: string; value: Val; unit: string; why: string; evidence?: Evidence; ingredients?: string[]; target?: Val; score: number; minutes: number }
 export interface LearnCard { id: string; label: string; why: string; evidence?: Evidence }
 export interface Plan {
   goal: Goal; target: string; targetDate: string;
@@ -141,20 +141,24 @@ export function buildPlan(p: Profile, R: Rules, start = new Date()): Plan {
   const actions = dailyActionCount(p.timeBudget);
   const toCard = (l: typeof ranked[number]['l'], score: number): Card => ({ id: l.id, label: l.label, value: l.value, unit: l.unit, why: l.why, evidence: l.evidence, ...(l.ingredients?.length ? { ingredients: l.ingredients } : {}), score: +score.toFixed(2), minutes: l.minutes,
     ...(l.id === 'wash_interval' && washTarget !== undefined && washTarget !== l.value ? { target: washTarget } : {}) });
+  // Daily essentials for everyone, on top of the goal actions: staying calm (stress triggers shedding)
+  // and one iron-rich food. They replace the older, vaguer "wind down" and "eat for hair" cards.
   const cards: Card[] = [];
-  const count = () => cards.filter(c => c.id !== 'wash_interval').length;
+  const pinned = new Set(['wash_interval', ...ESSENTIALS]);
+  const count = () => cards.filter(c => !pinned.has(c.id)).length;
   let minutes = 0;
   for (const { l, score } of daily) {
-    if (l.id === 'wash_interval') { cards.push(toCard(l, score)); continue; }
+    if (pinned.has(l.id)) { cards.push(toCard(l, score)); continue; }
+    if (l.id === 'wind_down' || l.id === 'hair_food') continue;
     if (count() < actions && minutes + l.minutes <= p.timeBudget) { minutes += l.minutes; cards.push(toCard(l, score)); }
   }
   // Short on time still gets three: fill with the quickest remaining habits, best first.
   for (const { l, score } of [...daily].sort((a, b) => a.l.minutes - b.l.minutes || b.score - a.score)) {
     if (count() >= Math.min(3, actions)) break;
-    if (!cards.some(c => c.id === l.id)) cards.push(toCard(l, score));
+    if (!cards.some(c => c.id === l.id) && l.id !== 'wind_down' && l.id !== 'hair_food') cards.push(toCard(l, score));
   }
   cards.sort((a, b) => b.score - a.score);
-  const extras = daily.filter(({ l }) => !cards.some(c => c.id === l.id)).slice(0, 3).map(({ l, score }) => toCard(l, score));
+  const extras = daily.filter(({ l }) => !cards.some(c => c.id === l.id) && l.id !== 'wind_down' && l.id !== 'hair_food').slice(0, 3).map(({ l, score }) => toCard(l, score));
 
   // target line
   const t = R.targetOverrides?.find(o => o.goal === p.goal && o.when.every(c => matches(p, c)))?.target ?? R.targets[p.goal];
@@ -225,6 +229,9 @@ export function fitLabel(labelText: string, plan: Plan, R: Rules): Fit {
     : good ? `${good} ingredient${good > 1 ? 's' : ''} your plan looks for, nothing to avoid.` : 'Nothing in this label stands out for your plan, good or bad.';
   return { score, verdict, summary, ingredients };
 }
+
+/** Always on the daily list, whatever the goal; they don't use up one of the goal actions. */
+export const ESSENTIALS = ['calm', 'iron_food'];
 
 /** 3 a day up to 30 minutes; +1 per extra half hour after that, capped at 6. */
 export function dailyActionCount(timeBudget: number) {

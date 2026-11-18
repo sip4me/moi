@@ -4,6 +4,7 @@ const B = '#5B8DEF', GR = '#6BAF7B', RD = '#E5484D', GD = '#C9A24A', INK = '#0A0
 const G: Record<string, (c: string) => string> = {
   drop: c => `<path d="M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11Z" fill="${c}"/>`,
   pipette: c => `<path d="M14.5 3.5a2.6 2.6 0 0 1 3.7 0l2.3 2.3a2.6 2.6 0 0 1 0 3.7l-1.6 1.6-6-6 1.6-1.6Z" fill="${c}"/><path d="m12 7 5 5-7.5 7.5c-.6.6-1.4.9-2.2.8l-1.6-.2-1.8 1.9-1.4-1.4 1.9-1.8-.2-1.6c-.1-.8.2-1.6.8-2.2L12 7Z" fill="${c}" fill-opacity=".55"/>`,
+  phone: c => `<rect x="7" y="2.5" width="10" height="19" rx="2.5" fill="none" stroke="${c}" stroke-width="1.8"/><path d="M10.5 18.5h3" stroke="${c}" stroke-width="1.8" stroke-linecap="round"/>`,
   flame: c => `<path d="M12 2c.5 3.2 4.5 5.4 4.5 10a4.5 4.5 0 0 1-9 0c0-2 1-3.4 2-4.3.2 1.6 1 2.5 1.8 2.8C10.8 7.6 11 4.5 12 2Z" fill="${c}"/><path d="M12 13c1 1 1.8 2 1.8 3.2a1.8 1.8 0 0 1-3.6 0c0-1.2.8-2.2 1.8-3.2Z" fill="#fff" fill-opacity=".7"/>`,
   moon: c => `<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" fill="${c}"/>`,
   hand: c => `<circle cx="12" cy="12" r="8" fill="none" stroke="${c}" stroke-width="2.4"/><circle cx="12" cy="12" r="3" fill="${c}"/>`,

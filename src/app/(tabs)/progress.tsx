@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop } from 'react-native-svg';
+import { JointStreaks } from '../../components/JointStreaks';
 import { Screen, Title } from '../../components/ui';
 import { healthScore, scanStreakWeeks } from '../../data/progress';
 import { haptic } from '../../lib/haptics';
@@ -152,6 +153,7 @@ export default function Progress() {
           <PhotoTile label="In 2 weeks" />
         </Pressable>
       )}
+      <JointStreaks />
     </Screen>
   );
 }
