@@ -46,7 +46,8 @@ export const LEVER_ICON: Record<string, [string, string]> = {
   bond_repair: ['link', RD], gentle_wash: ['bubbles', B], conditioner: ['bottle', GR], pre_wash_oil: ['oilclock', GD],
   keto_wash: ['shield', B], tea_tree: ['leaf', GR], rosemary: ['sprig', GR], flax_gel: ['seed', GD],
   flax_diet: ['seeds', GD], heat_protect: ['shieldflame', RD], soft_ties: ['ring', GD], hair_food: ['apple', RD],
-  sun_cover: ['sun', GD], wind_down: ['wind', B],
+  sun_cover: ['sun', GD], wind_down: ['wind', B], calm: ['wind', GR], iron_food: ['apple', RD],
+  heat_free: ['shieldflame', GR], night_braid: ['moon', B], gentle_brush: ['comb', GD],
   learn_minoxidil: ['steth', INK], learn_ferritin: ['tube', INK], learn_scalp_derm: ['magnifier', INK], learn_pregnancy: ['steth', INK],
 };
 

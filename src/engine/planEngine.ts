@@ -24,6 +24,8 @@ export interface Profile {
   timeBudget: number;      // minutes/day from "Routine time" (5 / 15 / 30)
   washNow?: number;        // current wash interval in days from "Wash frequency"
   noticed?: string[];      // e.g. ['sudden_shedding', 'patches', 'frizz']
+  /** 0 none · 1 some (breakage, split ends, daily heat or color) · 2 heavy (said "damaged", or bleach/relaxer plus signs). */
+  damage?: 0 | 1 | 2;
   prefersNatural?: boolean; // from 21 · Hair care method
   humidity?: number;       // % from weather, optional
   coldDry?: boolean;       // from weather, optional
@@ -138,7 +140,8 @@ export function buildPlan(p: Profile, R: Rules, start = new Date()): Plan {
 
   // Three daily actions; one more for every extra half hour past 30 minutes (up to six).
   // The wash cadence card rides along and doesn't take one of those slots.
-  const actions = dailyActionCount(p.timeBudget);
+  // Heavily damaged hair gets one more slot so restorative habits don't crowd out the goal's own.
+  const actions = dailyActionCount(p.timeBudget) + ((p.damage ?? 0) >= 2 ? 1 : 0);
   const toCard = (l: typeof ranked[number]['l'], score: number): Card => ({ id: l.id, label: l.label, value: l.value, unit: l.unit, why: l.why, evidence: l.evidence, ...(l.ingredients?.length ? { ingredients: l.ingredients } : {}), score: +score.toFixed(2), minutes: l.minutes,
     ...(l.id === 'wash_interval' && washTarget !== undefined && washTarget !== l.value ? { target: washTarget } : {}) });
   // Daily essentials for everyone, on top of the goal actions: staying calm (stress triggers shedding)

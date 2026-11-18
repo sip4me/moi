@@ -1,5 +1,5 @@
 {
-  "version": "0.6.0",
+  "version": "0.7.0",
   "planWeeks": 12,
   "maxCards": 4,
   "levers": [
@@ -659,6 +659,54 @@
         "balance": 1
       },
       "why": "Hair is one of the first things the body rations when iron runs low, and low iron is common in people who shed. One iron-rich food a day helps; pair plant sources with vitamin C (an orange, peppers) so more of it is absorbed."
+    },
+    {
+      "id": "heat_free",
+      "label": "Heat-free",
+      "value": "Today",
+      "unit": "",
+      "minutes": 0,
+      "kind": "daily",
+      "evidence": "lab",
+      "relevance": {
+        "repair": 3,
+        "grow": 2,
+        "keep": 1,
+        "balance": 0
+      },
+      "why": "Every hot-tool pass cracks a little more of the cuticle, and damaged hair can’t repair itself. Air-dry or try a heatless style today; save heat for days that matter."
+    },
+    {
+      "id": "night_braid",
+      "label": "Night braid",
+      "value": "Loose",
+      "unit": "",
+      "minutes": 1,
+      "kind": "daily",
+      "evidence": "expert",
+      "relevance": {
+        "repair": 2,
+        "grow": 2,
+        "keep": 1,
+        "balance": 0
+      },
+      "why": "A loose braid or pineapple at night stops damaged ends rubbing and tangling against the pillow, which is where a lot of breakage happens."
+    },
+    {
+      "id": "gentle_brush",
+      "label": "Brush",
+      "value": "Ends up",
+      "unit": "",
+      "minutes": 1,
+      "kind": "daily",
+      "evidence": "expert",
+      "relevance": {
+        "repair": 2,
+        "grow": 2,
+        "keep": 2,
+        "balance": 0
+      },
+      "why": "Start at the ends and work up, holding the hair above each knot. Damaged strands snap when a brush drags a knot down the whole length."
     }
   ],
   "rules": [
@@ -1797,6 +1845,100 @@
         ]
       ],
       "reason": "Skip essential oils and regrowth treatments in pregnancy unless a doctor says otherwise."
+    },
+    {
+      "id": "R50",
+      "when": [
+        [
+          "damage",
+          "gte",
+          1
+        ]
+      ],
+      "then": [
+        [
+          "ends_oil",
+          "need",
+          2
+        ],
+        [
+          "satin",
+          "need",
+          2
+        ],
+        [
+          "heat_cap",
+          "need",
+          2
+        ],
+        [
+          "detangle",
+          "need",
+          1
+        ],
+        [
+          "deep_condition",
+          "need",
+          2
+        ],
+        [
+          "trim",
+          "need",
+          1
+        ],
+        [
+          "gentle_brush",
+          "need",
+          2
+        ]
+      ],
+      "reason": "Damaged hair: protect what's there — less heat, less friction, sealed ends, regular trims."
+    },
+    {
+      "id": "R51",
+      "when": [
+        [
+          "damage",
+          "gte",
+          2
+        ]
+      ],
+      "then": [
+        [
+          "heat_free",
+          "need",
+          3
+        ],
+        [
+          "night_braid",
+          "need",
+          2
+        ],
+        [
+          "heat_cap",
+          "atMost",
+          280
+        ]
+      ],
+      "reason": "Heavily damaged hair: heat-free days and a protected night are the fastest wins."
+    },
+    {
+      "id": "R52",
+      "when": [
+        [
+          "heatUse",
+          "eq",
+          "none"
+        ]
+      ],
+      "then": [
+        [
+          "heat_free",
+          "exclude",
+          true
+        ]
+      ],
+      "reason": "No hot tools in use: a heat-free day is already the norm."
     }
   ],
   "targets": {

@@ -22,6 +22,10 @@ export function profileFromAnswers(a: Record<string, any>): Profile {
   const flaky = scalp === 'flaky' || a.flakes === 'sometimes' || raw.includes('flakes') || raw.includes('buildup');
   const chemical = treated.includes('bleach') ? 'bleach' : treated.includes('relaxer') || treated.includes('keratin') ? 'relaxer' : treated.includes('color') ? 'color' : a.chemical ?? 'none';
   const heatUse = treated.includes('heat') ? 'daily' : styles.includes('heat_styled') ? 'weekly' : a.heatUse ?? 'none';
+  // Damage: what they told us plus what their history implies.
+  const signs = ['damaged', 'breakage', 'split_ends', 'dryness', 'dullness'].filter(x => raw.includes(x)).length;
+  const harsh = chemical === 'bleach' || chemical === 'relaxer' || heatUse === 'daily';
+  const damage: 0 | 1 | 2 = raw.includes('damaged') || (harsh && signs > 0) || signs >= 3 ? 2 : signs || harsh || chemical === 'color' ? 1 : 0;
   return {
     goal: goals[0],
     goals,
@@ -39,6 +43,7 @@ export function profileFromAnswers(a: Record<string, any>): Profile {
     timeBudget: a.timeBudget ?? 15,
     washNow: a.washNow,
     noticed,
+    damage,
     prefersNatural: !!a.prefersNatural,
     targetValue: typeof a.target === 'number' ? a.target : undefined,
     // Estimated baseline until the first real scan

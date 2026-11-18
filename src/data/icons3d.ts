@@ -61,5 +61,8 @@ export const ICON3D: Record<string, ImageSourcePropType> = {
   wind_down: require('../../assets/icons3d/wind_down.png'),
 };
 
+/** Levers that reuse another icon. */
+const ALIAS: Record<string, string> = { heat_free: 'cover_heatless', night_braid: 'soft_ties', gentle_brush: 'detangle' };
+
 export const icon3d = (id: string): ImageSourcePropType =>
-  ICON3D[id] ?? (id.startsWith('learn_') ? ICON3D.learn : ICON3D.drop);
+  ICON3D[id] ?? ICON3D[ALIAS[id]] ?? (id.startsWith('learn_') ? ICON3D.learn : ICON3D.drop);

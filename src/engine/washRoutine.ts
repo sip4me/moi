@@ -112,11 +112,17 @@ const STEPS: Library = {
     why: 'Bleach, color and relaxers break the bonds that hold the strand together. Bond builders help reconnect some of them.',
     evidence: 'lab', minutes: 2, waitMinutes: 10, perWeek: 1,
   }),
+  protein_treat: p => ({
+    icon: p.chemical === 'bleach' || p.chemical === 'relaxer' ? 'deep_condition' : 'bond_repair', phase: 'treat', title: 'Protein treatment',
+    how: 'Once a week, after shampoo, apply a protein treatment (look for hydrolyzed keratin, silk or wheat protein) for 5–10 minutes, then condition as usual.',
+    why: 'Damage leaves gaps in the strand’s protein. A weekly protein fill makes hair stronger and less stretchy; your mask on the other wash keeps it from going stiff.',
+    evidence: 'lab', minutes: 2, waitMinutes: 8, perWeek: 1,
+  }),
   deep_condition: p => ({
     icon: 'deep_condition', phase: 'condition', title: 'Deep-conditioning mask',
     how: `Once a week, swap your conditioner for a mask. Leave it ${p.porosity === 'low' ? '15–20 minutes under a warm towel' : '10–15 minutes'}, then rinse.`,
     why: 'A mask stays on long enough to smooth the cuticle and fill weak spots, so hair holds moisture and frizzes less between washes.',
-    evidence: 'expert', minutes: 2, waitMinutes: 15, perWeek: 1,
+    evidence: 'expert', minutes: 2, waitMinutes: 15, perWeek: (p.damage ?? 0) >= 2 ? 2 : 1,
   }),
   conditioner: (_p, c) => ({
     icon: 'conditioner', phase: 'condition', title: 'Conditioner',
@@ -182,7 +188,7 @@ const STEPS: Library = {
 
 /** The order steps happen in on the day, within each phase. */
 const ORDER = ['finger_detangle', 'scalp_massage', 'pre_wash_oil', 'scalp_scrub', 'gentle_wash', 'clarify', 'anti_flake', 'tea_tree', 'bond_repair',
-  'conditioner', 'deep_condition', 'detangle', 'leave_in', 'hold', 'blot', 'heat_protect', 'dry_roots', 'dry_loose', 'seal_ends'];
+  'protein_treat', 'conditioner', 'deep_condition', 'detangle', 'leave_in', 'hold', 'blot', 'heat_protect', 'dry_roots', 'dry_loose', 'seal_ends'];
 
 /** Each goal's recipe: step ids, most important first (used to trim when time is short). */
 const RECIPES: Record<Goal, { steps: string[]; headline: string; summary: string; notes?: string[] }> = {
@@ -223,13 +229,16 @@ function adjust(p: Profile, ids: string[], c: Ctx, wanted: Set<string>): string[
   if (wanted.has('flax_gel') && p.texture !== 'straight') add('hold');
   if (c.curly) { add('finger_detangle'); add('leave_in'); add('hold', 'leave_in'); }
   if (p.chemical !== 'none') { add('bond_repair'); add('deep_condition'); }
+  // Damaged hair: protect before water, rebuild weekly, seal moisture in, and no friction drying.
+  if ((p.damage ?? 0) >= 1) { add('pre_wash_oil'); add('deep_condition'); add('leave_in'); add('blot'); if (p.heatUse !== 'none') add('heat_protect'); }
+  if ((p.damage ?? 0) >= 2) add('protein_treat');
   if (p.porosity === 'high') add('deep_condition');
   if (p.heatUse !== 'none') add('heat_protect');
   if (p.swims) add('clarify');
   if (p.tightStyles) add('dry_loose');
   // An oily scalp that only wants less frizz still shouldn't get heavy oil on the roots — the step text handles that.
   // Low-porosity, fine hair gets weighed down by masks every week; keep them only when hair is damaged.
-  if (p.porosity === 'low' && p.thickness === 'fine' && p.chemical === 'none') drop('deep_condition');
+  if (p.porosity === 'low' && p.thickness === 'fine' && p.chemical === 'none' && !p.damage) drop('deep_condition');
   if (p.length === 'buzzed') ['pre_wash_oil', 'conditioner', 'detangle', 'leave_in', 'seal_ends', 'deep_condition', 'hold', 'finger_detangle'].forEach(drop);
   return out;
 }
@@ -257,12 +266,14 @@ export function buildWashRoutine(p: Profile, wanted: Set<string> = new Set()): W
     .sort((a, b) => PHASE_ORDER.indexOf(a.phase) - PHASE_ORDER.indexOf(b.phase) || ORDER.indexOf(a.id) - ORDER.indexOf(b.id));
 
   const primary = RECIPES[goals[0]];
+  const damageNote = (p.damage ?? 0) >= 2
+    ? ['Damaged hair can’t heal itself — the goal is to stop new damage and make what’s there stronger. You’ll see the difference as healthy hair grows in; a trim every 8–10 weeks clears the worst ends.'] : [];
   return {
     goals,
-    headline: primary.headline,
+    headline: (p.damage ?? 0) >= 2 && goals[0] === 'repair' ? 'Your wash day to restore damaged hair' : primary.headline,
     summary: primary.summary,
     steps,
-    notes: [...new Set(goals.flatMap(g => RECIPES[g].notes ?? []))],
+    notes: [...damageNote, ...new Set(goals.flatMap(g => RECIPES[g].notes ?? []))],
     minutes: steps.filter(s => !s.perWeek).reduce((m, s) => m + s.minutes, 0),
   };
 }

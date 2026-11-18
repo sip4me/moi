@@ -59,7 +59,7 @@ export const QUESTIONS: Question[] = [
     { group: 'GROWTH & COVERAGE', label: 'Thinning crown', value: 'thinning_crown' },
     { group: 'GROWTH & COVERAGE', label: 'Wider part', value: 'wider_part' },
     { group: 'GROWTH & COVERAGE', label: 'Patchy spots', value: 'patches' },
-    { group: 'STRANDS', label: 'Frizz', value: 'frizz' }, { group: 'STRANDS', label: 'Dryness', value: 'dryness' },
+    { group: 'STRANDS', label: 'Damaged hair', value: 'damaged' }, { group: 'STRANDS', label: 'Frizz', value: 'frizz' }, { group: 'STRANDS', label: 'Dryness', value: 'dryness' },
     { group: 'STRANDS', label: 'Breakage', value: 'breakage' }, { group: 'STRANDS', label: 'Split ends', value: 'split_ends' },
     { group: 'STRANDS', label: 'Dullness', value: 'dullness' },
     { group: 'SCALP', label: 'Flakes', value: 'flakes' }, { group: 'SCALP', label: 'Oily roots', value: 'oily_roots' },
