@@ -11,7 +11,7 @@ import { MomentCard } from '../../components/MomentCard';
 import { WashDayArt } from '../../components/WashDayArt';
 import { SegmentedTabs } from '../../components/SegmentedTabs';
 import { ResetCountdown } from '../../components/ResetCountdown';
-import { TokenBag } from '../../components/TokenBag';
+import { CoinDrop, TokenBag } from '../../components/TokenBag';
 import { LockIcon, Locked, PeekRow, openPaywall } from '../../components/Peek';
 import { SectionTitle, Tile } from '../../components/Tile';
 import { currentMoment } from '../../data/moments';
@@ -67,8 +67,9 @@ export default function Home() {
     : nextWash ? `Next wash on ${weekday(nextWash)}. Keep up the daily steps until then.` : plan.target;
   const dayName = (d: Day) => (d.isToday ? 'Today' : d.date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }));
   return (
-    <Screen scroll tab="index">
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+    <Screen scroll tab="index" overlay={<CoinDrop />}>
+      {/* zIndex keeps the coin that drops into the token bag above the rest of the page. */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}>
         <Logo size={36} />
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <TokenBag />

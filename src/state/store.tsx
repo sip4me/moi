@@ -7,6 +7,7 @@ import { type Account, type CloudStatus, type Snapshot, useCloud } from './cloud
 import { buildPlan, type Plan, type Rules } from '../engine/planEngine';
 import { profileFromAnswers } from '../engine/profile';
 import { localKey } from '../lib/dates';
+import { queueCoin } from '../lib/coinDrops';
 
 export { profileFromAnswers };
 
@@ -95,6 +96,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     finishOnboarding: () => setS(p => ({ ...p, onboarded: true })),
     toggleDone: id => {
       const isDone = (s.done[todayKey] ?? []).includes(id);
+      if (!isDone) queueCoin(); // a gold coin drops into the token bag on Home
       setS(p => { const d = p.done[todayKey] ?? []; return { ...p, done: { ...p.done, [todayKey]: d.includes(id) ? d.filter(x => x !== id) : [...d, id] } }; });
       cloud.setDone(id, todayKey, !isDone);
     },

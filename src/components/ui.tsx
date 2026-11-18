@@ -14,7 +14,8 @@ const seal = require('../../assets/seal.png');
 
 // Phone-width column on web so screens look like the Figma frames.
 /** `tab`: the tab this screen belongs to, so tapping that tab again scrolls back to the top. */
-export function Screen({ children, scroll, style, footer, tab }: { children: React.ReactNode; scroll?: boolean; style?: ViewStyle; footer?: React.ReactNode; tab?: string }) {
+/** `overlay` floats above the page (outside the scrolling content), e.g. Home's coin drop. */
+export function Screen({ children, scroll, style, footer, tab, overlay }: { children: React.ReactNode; scroll?: boolean; style?: ViewStyle; footer?: React.ReactNode; tab?: string; overlay?: React.ReactNode }) {
   const narrow = useWindowDimensions().width < 360;
   const px = narrow ? 18 : 24;
   const ref = useRef<ScrollViewInstance>(null);
@@ -29,6 +30,7 @@ export function Screen({ children, scroll, style, footer, tab }: { children: Rea
       <View style={s.col}>
         {body}
         {footer ? <View style={[s.footer, { paddingHorizontal: px }]}>{footer}</View> : null}
+        {overlay}
       </View>
     </SafeAreaView>
   );
