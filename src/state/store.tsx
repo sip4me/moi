@@ -6,6 +6,7 @@ import { planSummary } from '../data/schedule';
 import { type Account, type CloudStatus, type Snapshot, useCloud } from './cloud';
 import { buildPlan, type Plan, type Rules } from '../engine/planEngine';
 import { profileFromAnswers } from '../engine/profile';
+import { localKey } from '../lib/dates';
 
 export { profileFromAnswers };
 
@@ -34,7 +35,8 @@ type State = {
   checked: { label: string; at: string }[];
 };
 
-const today = () => new Date().toISOString().slice(0, 10);
+/** Today's date on the person's own calendar (not UTC), so evenings don't roll over to tomorrow early. */
+const today = () => localKey(new Date());
 const initial: State = { answers: {}, onboarded: false, done: {}, lastWash: null, lifeChange: null, reminders: {}, name: 'Your name', shelf: [], scans: [], overrides: {}, saved: [], checked: [] };
 const KEY = 'moi-state-v1';
 

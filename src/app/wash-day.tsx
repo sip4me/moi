@@ -2,7 +2,9 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { TwoFrameArt } from '../components/TwoFrameArt';
 import { Button, EvidenceChip, Screen, Sub, TopBar } from '../components/ui';
+import { OIL_ART, OIL_TIMING } from '../data/art';
 import { week } from '../data/schedule';
 import { icon3d } from '../data/icons3d';
 import { GOAL_COPY } from '../data/goals';
@@ -65,6 +67,7 @@ export default function WashDay() {
       <Button label={finished === steps.length ? 'Log this wash' : `Log wash · ${finished}/${steps.length} steps`} onPress={() => { haptic('success'); logWash(); router.back(); }} />
     ) : undefined}>
       <TopBar />
+      {steps.some(st => st.id === 'pre_wash_oil') ? <View style={{ alignItems: 'center', marginTop: -24 }}><TwoFrameArt spec={OIL_ART} timing={OIL_TIMING} width={150} /></View> : null}
       <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.gray2, marginTop: 4 }}>{when ? `${when} · ` : ''}{r.minutes} min hands-on</Text>
       <Text style={{ fontFamily: F.bold, fontSize: 28, lineHeight: 32, letterSpacing: -0.5, color: C.ink, marginTop: 4 }}>{r.headline}</Text>
       <Sub style={{ marginTop: 8 }}>{r.summary}</Sub>

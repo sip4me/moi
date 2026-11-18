@@ -7,7 +7,11 @@ import { HomeFeed } from '../../components/Feed';
 import { GlamourEntry } from '../../components/GlamourEntry';
 import { IronMaxxing } from '../../components/IronMaxxing';
 import { Trending } from '../../components/Trending';
+import { MomentCard } from '../../components/MomentCard';
 import { WashDayArt } from '../../components/WashDayArt';
+import { currentMoment } from '../../data/moments';
+import { profileFromAnswers } from '../../engine/profile';
+import { useHour } from '../../lib/useHour';
 import { scanStreakWeeks } from '../../data/progress';
 import { CardGrid, DoctorNote, Glyph, Logo, MoreRow, RecCard, Screen, SectionCard, Sub } from '../../components/ui';
 import { useStore } from '../../state/store';
@@ -16,7 +20,8 @@ import { C, F, evidenceStyle } from '../../theme';
 const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function Home() {
-  const { plan, done, todayKey, lastWash, logWash, lifeChange, scans } = useStore();
+  const { plan, done, todayKey, lastWash, logWash, lifeChange, scans, answers, toggleDone } = useStore();
+  const hour = useHour();
   const [selected, setSelected] = useState(0);
   if (!plan) return null;
   const paused = !!lifeChange && (lifeChange.type === 'Protective style' || lifeChange.type === 'Sick or recovering');
@@ -26,6 +31,8 @@ export default function Home() {
   const streakDays = Object.values(done).filter(v => v.length).length;
   const since = lastWash ? Math.round((new Date(todayKey).getTime() - new Date(lastWash).getTime()) / 86400000) : -1;
   const daysLeft = daysUntilWash(plan, lastWash, todayKey);
+  // A timely nudge: pineapple at night, pre-wash oil on wash day, oil before a workout ahead of wash day.
+  const moment = plan ? currentMoment({ hour, plan, profile: profileFromAnswers(answers), washToday: days[0]?.isWash ?? false, washTomorrow: days[1]?.isWash ?? false, washedToday: since === 0, doneToday }) : null;
   const dayName = (d: Day) => (d.isToday ? 'Today' : d.date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }));
   return (
     <Screen scroll tab="index">
@@ -61,12 +68,13 @@ export default function Home() {
       </View>
 
       <View style={{ alignItems: 'center', marginTop: 20, gap: 6 }}>
-        <WashDayArt width={220} />
+        <WashDayArt width={128} />
         <Text style={{ fontFamily: F.bold, fontSize: 30, color: C.ink, letterSpacing: -0.6 }}>{paused ? 'Wash day paused' : daysLeft === 0 ? 'Wash day today' : `Wash hair in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`}</Text>
         <Pressable onPress={logWash} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: pressed ? '#2E2E2E' : C.ink, borderRadius: 999, paddingHorizontal: 16, paddingVertical: 9, marginTop: 6 })}>
           <Glyph id="wash_interval" color="#fff" size={16} /><Text style={{ fontFamily: F.semibold, fontSize: 14, color: '#fff' }}>{since === 0 ? 'Washed today ✓' : 'Log wash'}</Text>
         </Pressable>
       </View>
+      {moment ? <MomentCard moment={moment} onDone={() => toggleDone(moment.doneId)} /> : null}
       {lifeChange ? (
         <Pressable onPress={() => router.push('/(tabs)/profile')} style={{ marginTop: 18, backgroundColor: C.goldSoft, borderRadius: 18, padding: 14, borderWidth: 1, borderColor: '#F1DDAA' }}>
           <Text style={{ fontFamily: F.semibold, fontSize: 14, color: C.ink }}>{lifeChange.label}</Text>

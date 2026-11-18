@@ -1,6 +1,7 @@
 import type { Card, Plan } from '../engine/planEngine';
 import { stepsForWash, type WashStep } from '../engine/washRoutine';
 import { ironDay } from './ironRecipes';
+import { localKey } from '../lib/dates';
 
 /**
  * Turns the plan into the next seven days, so the calendar shows what's coming and
@@ -19,7 +20,7 @@ const EVERY_N_DAYS: Record<string, (v: number) => number> = { pillowcase: v => v
 export type Day = { key: string; date: Date; isToday: boolean; isWash: boolean; items: Card[]; wash: WashStep[] };
 
 const DAY_MS = 86400000;
-const keyOf = (d: Date) => d.toISOString().slice(0, 10);
+const keyOf = localKey;
 const addDays = (d: Date, n: number) => new Date(d.getTime() + n * DAY_MS);
 const daysBetween = (a: string, b: string) => Math.round((new Date(b).getTime() - new Date(a).getTime()) / DAY_MS);
 
