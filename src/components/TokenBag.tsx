@@ -1,7 +1,7 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Pressable, Text, View } from 'react-native';
-import { SvgXml } from 'react-native-svg';
+import Svg, { Defs, LinearGradient as SvgLinearGradient, Rect, Stop, SvgXml } from 'react-native-svg';
 import { coinSvg } from '../data/tokenArt';
 import { TOKEN_BAG_SVG } from '../data/tokenBag';
 import { getFalling, onCoin, onFalling, setFalling, takeCoins } from '../lib/coinDrops';
@@ -139,9 +139,15 @@ export function CoinProgress() {
           <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.gray2, marginTop: 2 }}>{next ? `${next.at - shown} more to reach ${next.name}` : 'Top level reached. Legendary.'}</Text>
         </View>
       </View>
-      <View style={{ height: 12, borderRadius: 6, backgroundColor: '#F2EEE4', overflow: 'hidden' }}>
-        <Animated.View style={{ height: 12, borderRadius: 6, backgroundColor: '#E2B43F', width: fill.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }}>
-          <View style={{ position: 'absolute', top: 2, left: 6, right: 6, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.55)' }} />
+      {/* Blue glass bar: saturated blue fading to frosted periwinkle, with a soft glow under it. */}
+      <View style={{ height: 14, borderRadius: 7, backgroundColor: '#E8EEFF', overflow: 'hidden' }}>
+        <Animated.View style={{ height: 14, borderRadius: 7, overflow: 'hidden', width: fill.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }),
+          shadowColor: '#3D8BFF', shadowOpacity: 0.5, shadowRadius: 8 }}>
+          <Svg style={{ position: 'absolute', top: 0, left: 0 }} width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 10 10">
+            <Defs><SvgLinearGradient id="coinBarFill" x1="0" y1="0" x2="1" y2="0"><Stop offset="0" stopColor="#3D8BFF" /><Stop offset="1" stopColor="#7C9CFF" /></SvgLinearGradient></Defs>
+            <Rect width="10" height="10" fill="url(#coinBarFill)" />
+          </Svg>
+          <View style={{ position: 'absolute', top: 2, left: 6, right: 6, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.45)' }} />
         </Animated.View>
       </View>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>

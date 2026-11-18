@@ -8,6 +8,7 @@ import { healthScore, scanStreakWeeks } from '../../data/progress';
 import { haptic } from '../../lib/haptics';
 import { loadScanSessions, type ScanSession } from '../../lib/scans';
 import { CoinProgress } from '../../components/TokenBag';
+import { BlueGlass } from '../../components/BlueGlass';
 import { useStore } from '../../state/store';
 import { SectionTitle } from '../../components/Tile';
 import { C, F, SPACE, surface } from '../../theme';
@@ -100,7 +101,10 @@ export default function Progress() {
     <Screen scroll tab="progress">
       <Title>Progress</Title>
 
-      <View style={{ flexDirection: 'row', gap: 14, marginTop: 24 }}>
+      {/* Your numbers on Moi's blue glass: health, streak and coins together, like one dashboard. */}
+      <View style={{ marginTop: 24, borderRadius: 30, padding: 12, overflow: 'hidden' }}>
+      <BlueGlass />
+      <View style={{ flexDirection: 'row', gap: 12 }}>
         <View style={[card, { flex: 1, gap: 6 }]}>
           <Text style={{ fontFamily: F.regular, fontSize: 14, color: C.gray2 }}>Hair health</Text>
           <Text style={{ fontFamily: F.bold, fontSize: 30, letterSpacing: -0.6, color: C.ink }}>{latest?.score ?? '—'}<Text style={{ fontFamily: F.regular, fontSize: 15, color: C.gray }}> /100</Text></Text>
@@ -117,8 +121,9 @@ export default function Progress() {
       </View>
 
       {/* Coins: the gold bar fills as checked recs and wash steps drop coins in the bag. */}
-      <View style={{ marginTop: 14 }}>
+      <View style={{ marginTop: 12 }}>
         <CoinProgress />
+      </View>
       </View>
 
       <View style={{ marginTop: SPACE.section }}>

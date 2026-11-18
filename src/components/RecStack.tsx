@@ -10,6 +10,7 @@ import { icon3d } from '../data/icons3d';
 import * as ImagePicker from 'expo-image-picker';
 import { haptic } from '../lib/haptics';
 import { BreathRecorder } from './BreathRecorder';
+import { BlueGlass } from './BlueGlass';
 import { C, F } from '../theme';
 import { TwoFrameArt } from './TwoFrameArt';
 import { Seal } from './ui';
@@ -114,7 +115,7 @@ function Badge({ c, i, size = 48 }: { c: RecItem; i: number; size?: number }) {
   );
 }
 
-const shadow = { shadowColor: '#5C7699', shadowOpacity: 0.16, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 3 };
+const shadow = { shadowColor: '#4B6BC9', shadowOpacity: 0.16, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 3 };
 
 /** One notification-style rec. */
 function Rec({ c, i, done, sheen }: { c: RecItem; i: number; done: boolean; sheen?: boolean }) {
@@ -160,29 +161,11 @@ export function RecStack({ items, done, canCheck, onToggle, dayLabel, defaultOpe
   return (
     <Uid.Provider value={u}>
     <View style={{ borderRadius: 30, padding: 12, paddingTop: 14, overflow: 'hidden' }}>
-      {/* A light, airy blue gradient behind the glass recs (pale sky with soft brighter glows), so the
-          white cards lift off it the way notifications sit on a wallpaper. */}
-      <Svg style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 100 100" pointerEvents="none">
-        <Defs>
-          <LinearGradient id={`${u}aw`} x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor="#F4F9FF" />
-            <Stop offset="0.45" stopColor="#E9F2FE" />
-            <Stop offset="1" stopColor="#DCE9FB" />
-          </LinearGradient>
-          <RadialGradient id={`${u}a1`} cx="0.1" cy="0.05" r="0.6"><Stop offset="0" stopColor="#FFFFFF" stopOpacity="0.9" /><Stop offset="1" stopColor="#FFFFFF" stopOpacity="0" /></RadialGradient>
-          <RadialGradient id={`${u}a2`} cx="0.95" cy="0.3" r="0.55"><Stop offset="0" stopColor="#C7DFFF" stopOpacity="0.55" /><Stop offset="1" stopColor="#C7DFFF" stopOpacity="0" /></RadialGradient>
-          <RadialGradient id={`${u}a3`} cx="0.25" cy="0.95" r="0.65"><Stop offset="0" stopColor="#D3E3FA" stopOpacity="0.6" /><Stop offset="1" stopColor="#D3E3FA" stopOpacity="0" /></RadialGradient>
-          <RadialGradient id={`${u}a4`} cx="0.9" cy="0.95" r="0.5"><Stop offset="0" stopColor="#BFE0F8" stopOpacity="0.55" /><Stop offset="1" stopColor="#BFE0F8" stopOpacity="0" /></RadialGradient>
-        </Defs>
-        <Rect width="100" height="100" fill={`url(#${u}aw)`} />
-        <Rect width="100" height="100" fill={`url(#${u}a1)`} />
-        <Rect width="100" height="100" fill={`url(#${u}a2)`} />
-        <Rect width="100" height="100" fill={`url(#${u}a3)`} />
-        <Rect width="100" height="100" fill={`url(#${u}a4)`} />
-      </Svg>
+      {/* Moi's blue glass behind the recs, so the white cards lift off it like notifications on a wallpaper. */}
+      <BlueGlass />
 
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 6, marginBottom: 10 }}>
-        <Text style={{ fontFamily: F.semibold, fontSize: 13, color: '#4C5E78' }}>{left ? `${left} ${noun}${left > 1 ? 's' : ''} ${canCheck ? 'left today' : `for ${dayLabel}`}` : canCheck ? 'All done. Nice work.' : 'Nothing left'}</Text>
+        <Text style={{ fontFamily: F.semibold, fontSize: 13, color: '#3E5480' }}>{left ? `${left} ${noun}${left > 1 ? 's' : ''} ${canCheck ? 'left today' : `for ${dayLabel}`}` : canCheck ? 'All done. Nice work.' : 'Nothing left'}</Text>
         {n > 1 ? (
           <Pressable onPress={() => { haptic('tap'); setOpen(o => !o); }} hitSlop={8} accessibilityRole="button"
             style={({ pressed }) => [shadow, { shadowOpacity: 0.08, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999, backgroundColor: pressed ? '#F0F0F2' : '#FAFAFB', borderWidth: 1, borderColor: '#fff' }]}>
@@ -211,7 +194,7 @@ export function RecStack({ items, done, canCheck, onToggle, dayLabel, defaultOpe
         })}
       </Animated.View>
 
-      <Text style={{ fontFamily: F.regular, fontSize: 12, color: '#6F7F96', textAlign: 'center', marginTop: 12 }}>
+      <Text style={{ fontFamily: F.regular, fontSize: 12, color: '#6A7BA0', textAlign: 'center', marginTop: 12 }}>
         {canCheck ? `Press and hold a ${noun} to open it. Tick it off for a coin.` : `Press and hold a ${noun} to see what’s planned.`}
       </Text>
 
