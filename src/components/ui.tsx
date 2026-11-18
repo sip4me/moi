@@ -114,8 +114,8 @@ export function Sub({ children, style }: { children: React.ReactNode; style?: an
  * The box is the text height, so inline baselines line up with the sentence around it.
  */
 const LETTERS: [string, number][] = [['M', -1.9], ['o', 63.8], ['i', 99.5]];
-// Worn, not floating (Figma app-icon reference): wider than the o, tilted left, band over the o's top third.
-const CROWN = { w: 35, h: 35.6, left: 64, top: 4.7, rotate: '-15deg' }; // 852×865 artwork, centred at (81.5, 22.5)
+// Sits on top of the o like a crown on a head: centred, band resting on the o's top edge (counter stays open), tilted 10° left.
+const CROWN = { w: 34, h: 34.6, left: 65, top: 2.2, rotate: '-10deg' }; // 852×865 artwork, centred at (82, 19.5)
 
 export function Logo({ size = 40, color = '#2F3D3B' }: { size?: number; color?: string }) {
   const k = size / 64;
