@@ -13,8 +13,8 @@ export function Trending() {
   const p = profileFromAnswers(answers);
   const trends = trendsFor(p);
   return (
-    <View style={{ marginTop: 22 }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+    <View>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
         <Text style={{ fontFamily: F.bold, fontSize: 19, letterSpacing: -0.3, color: C.ink }}>Trending styles</Text>
         <Text style={{ fontFamily: F.regular, fontSize: 12, color: C.gray2 }}>Winter 2026</Text>
       </View>

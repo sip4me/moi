@@ -85,23 +85,23 @@ export default function Home() {
         })}
       </View>
 
-      <View style={{ alignItems: 'center', marginTop: 20, gap: 6 }}>
+      <View style={{ alignItems: 'center', marginTop: 28, gap: 10 }}>
         {pineapple ? <TwoFrameArt spec={PINEAPPLE_ART} timing={PINEAPPLE_TIMING} width={128} /> : <WashDayArt width={128} />}
         <Text style={{ fontFamily: F.bold, fontSize: 30, color: C.ink, letterSpacing: -0.6 }}>{paused ? 'Wash day paused' : daysLeft === 0 ? 'Wash day today' : `Wash hair in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`}</Text>
       </View>
       {moment && !pineapple ? <MomentCard moment={moment} onDone={() => toggleDone(moment.doneId)} /> : null}
       {lifeChange ? (
-        <Pressable onPress={() => router.push('/(tabs)/profile')} style={{ marginTop: 18, backgroundColor: C.goldSoft, borderRadius: 18, padding: 14, borderWidth: 1, borderColor: '#F1DDAA' }}>
+        <Pressable onPress={() => router.push('/(tabs)/profile')} style={{ marginTop: 24, backgroundColor: C.goldSoft, borderRadius: 18, padding: 14, borderWidth: 1, borderColor: '#F1DDAA' }}>
           <Text style={{ fontFamily: F.semibold, fontSize: 14, color: C.ink }}>{lifeChange.label}</Text>
           <Text style={{ fontFamily: F.regular, fontSize: 12, color: '#7A6A4A', marginTop: 2 }}>{lifeChange.endsAt ? `Until ${new Date(lifeChange.endsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : 'Until you end it'} · your routine is adjusted</Text>
         </Pressable>
       ) : null}
-      <View style={{ marginTop: 22, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <View><Text style={{ fontFamily: F.semibold, fontSize: 19, color: C.ink }}>{day.isToday ? 'Your routine' : dayName(day)}</Text><Sub style={{ fontSize: 12 }}>{day.isWash ? 'Wash day · ' : ''}{plan.target}</Sub></View>
+      <View style={{ marginTop: 36, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <View><Text style={{ fontFamily: F.semibold, fontSize: 19, color: C.ink }}>{day.isToday ? 'Your routine' : dayName(day)}</Text><Sub style={{ fontSize: 12, marginTop: 2 }}>{day.isWash ? 'Wash day · ' : ''}{plan.target}</Sub></View>
         {day.isToday ? <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.gray2 }}>{routineItems.filter(c => doneToday.includes(c.id)).length}/{routineItems.length} today</Text> : null}
       </View>
       {day.wash.length ? (
-        <Locked radius={24} label={plan.washRoutine.headline} style={{ marginTop: 10 }}>
+        <Locked radius={24} label={plan.washRoutine.headline} style={{ marginTop: 14 }}>
         <Pressable onPress={() => router.push({ pathname: '/wash-day', params: { day: day.key } })}
           style={({ pressed }) => ({ borderRadius: 24, padding: 16, backgroundColor: pressed ? '#E4ECFB' : '#EEF3FD' })}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -120,7 +120,7 @@ export default function Home() {
         </Locked>
       ) : null}
       {/* Routine cards in a peek row: the first sits on the page margin, the rest peek in from the right. */}
-      <View style={{ marginTop: 12 }}>
+      <View style={{ marginTop: 14 }}>
         {routineItems.length ? (
           <PeekRow itemWidth={CARD_W}>
             {routineItems.map(c => (
@@ -136,22 +136,24 @@ export default function Home() {
             ))}
           </PeekRow>
         ) : <Sub style={{ fontSize: 14, textAlign: 'center', paddingVertical: 12 }}>Rest day. Nothing planned.</Sub>}
-        <Sub style={{ fontSize: 12, textAlign: 'center', marginTop: 10 }}>{day.isToday ? 'Tap a card to see why and mark it done.' : 'A preview. It updates when you log a wash or change a card.'}</Sub>
+        <Sub style={{ fontSize: 12, textAlign: 'center', marginTop: 12 }}>{day.isToday ? 'Tap a card to see why and mark it done.' : 'A preview. It updates when you log a wash or change a card.'}</Sub>
       </View>
       {/* Everything else, sorted into three tabs: food, care and style. */}
-      <View style={{ marginTop: 26 }}>
+      <View style={{ marginTop: 40 }}>
         <SegmentedTabs tabs={TABS} value={tab} onChange={setTab} />
       </View>
+      {/* One rhythm for every tab: 24 under the switch, 36 between sections. */}
+      <View style={{ marginTop: 24, gap: 36 }}>
       {tab === 0 ? <IronMaxxing /> : null}
       {tab === 1 ? <>
         {plan.learn.length ? (
-          <View style={{ marginTop: 18 }}>
+          <View>
             <PeekRow itemWidth={ROW_W}>{plan.learn.map(l => <Locked key={l.id} label={l.label}><DoctorNote id={l.id} label={l.label} why={l.why} onPress={() => router.push(`/why/${l.id}`)} /></Locked>)}</PeekRow>
           </View>
         ) : null}
         {plan.extras.length ? (
-          <View style={{ gap: 8, marginTop: 18 }}>
-            <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>More you can try</Text>
+          <View style={{ gap: 14 }}>
+            <Text style={{ fontFamily: F.bold, fontSize: 19, letterSpacing: -0.3, color: C.ink }}>More you can try</Text>
             <PeekRow itemWidth={ROW_W}>
               {plan.extras.map(c => (
                 <Locked key={c.id} label={c.label} radius={14}>
@@ -170,6 +172,7 @@ export default function Home() {
         <Trending />
         <HomeFeed streakWeeks={streakWeeksN} only={['styles']} withRecords />
       </> : null}
+      </View>
     </Screen>
   );
 }

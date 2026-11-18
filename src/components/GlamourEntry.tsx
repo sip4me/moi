@@ -11,7 +11,7 @@ export function GlamourEntry() {
   const { todayKey } = useStore();
   const first = todaysGlamour(todayKey)[0];
   return (
-    <Locked radius={26} label="Remind yourself of your glamour" style={{ marginTop: 22 }}>
+    <Locked radius={26} label="Remind yourself of your glamour">
     <Pressable onPress={() => router.push('/glamour')} accessibilityRole="button" accessibilityLabel="Remind yourself of your glamour"
       style={({ pressed }) => ({ borderRadius: 26, overflow: 'hidden', transform: [{ scale: pressed ? 0.985 : 1 }] })}>
       <Svg style={{ position: 'absolute', width: '100%', height: '100%' }}>

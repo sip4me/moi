@@ -44,8 +44,8 @@ function Record({ r }: { r: RecordCard }) {
 
 function Header({ title, note }: { title: string; note?: string }) {
   return (
-    <Text style={{ fontFamily: F.semibold, fontSize: 17, color: C.ink, marginTop: 26, marginBottom: 10 }}>
-      {title}{note ? <Text style={{ fontFamily: F.regular, color: C.gray }}> · {note}</Text> : null}
+    <Text style={{ fontFamily: F.bold, fontSize: 19, letterSpacing: -0.3, color: C.ink, marginBottom: 14 }}>
+      {title}{note ? <Text style={{ fontFamily: F.regular, fontSize: 15, letterSpacing: 0, color: C.gray }}> · {note}</Text> : null}
     </Text>
   );
 }
@@ -59,7 +59,7 @@ function Section({ s }: { s: FeedSection }) {
     <View>
       <Header title={s.title} note={s.note} />
       {s.filters ? (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
           {s.filters.map(f => <Chip key={f} label={f} on={f === filter} onPress={() => setFilter(f)} />)}
         </View>
       ) : null}
@@ -71,12 +71,14 @@ function Section({ s }: { s: FeedSection }) {
 /** Feed sections for a Home tab: `only` picks sections by id; `withRecords` adds Hair records at the end. */
 export function HomeFeed({ streakWeeks, only, withRecords }: { streakWeeks: number; only?: string[]; withRecords?: boolean }) {
   return (
-    <View>
+    <View style={{ gap: 36 }}>
       {feed().filter(s => !only || only.includes(s.id)).map(s => <Section key={s.id} s={s} />)}
-      {withRecords ? <>
-        <Header title="Hair records" />
-        <Row>{records(streakWeeks).map(r => <Locked key={r.id} radius={18} label={r.label}><Record r={r} /></Locked>)}</Row>
-      </> : null}
+      {withRecords ? (
+        <View>
+          <Header title="Hair records" />
+          <Row>{records(streakWeeks).map(r => <Locked key={r.id} radius={18} label={r.label}><Record r={r} /></Locked>)}</Row>
+        </View>
+      ) : null}
     </View>
   );
 }

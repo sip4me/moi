@@ -16,7 +16,7 @@ export function MomentCard({ moment, onDone }: { moment: Moment; onDone: () => v
   const t = THEME[moment.kind];
   const night = moment.kind === 'pineapple';
   return (
-    <View style={{ marginTop: 16, borderRadius: 24, backgroundColor: t.bg, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+    <View style={{ marginTop: 24, borderRadius: 24, backgroundColor: t.bg, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
       <TwoFrameArt spec={night ? PINEAPPLE_ART : OIL_ART} timing={night ? PINEAPPLE_TIMING : OIL_TIMING} width={112} />
       <View style={{ flex: 1, gap: 4 }}>
         <Text style={{ fontFamily: F.semibold, fontSize: 10, letterSpacing: 1.6, color: t.sub }}>{moment.eyebrow}</Text>

@@ -39,7 +39,7 @@ export function IronMaxxing() {
   const { meals, mg } = ironDay(todayKey);
   const target = ironTarget(answers);
   return (
-    <View style={{ marginTop: 22, borderRadius: 24, padding: 16, backgroundColor: '#FBF3F0', gap: 12 }}>
+    <View style={{ borderRadius: 24, padding: 16, paddingVertical: 18, backgroundColor: '#FBF3F0', gap: 14 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Image source={icon3d('food_spinach')} style={{ width: 28, height: 28 }} resizeMode="contain" />
