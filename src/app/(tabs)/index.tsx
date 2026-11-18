@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { type Day, daysUntilWash, week } from '../../data/schedule';
-import { Pressable, Text, View } from 'react-native';
+import { Image, Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { icon3d } from '../../data/icons3d';
 import { HomeFeed } from '../../components/Feed';
 import { GlamourEntry } from '../../components/GlamourEntry';
@@ -21,7 +21,7 @@ import { haptic } from '../../lib/haptics';
 import { profileFromAnswers } from '../../engine/profile';
 import { useHour } from '../../lib/useHour';
 import { scanStreakWeeks } from '../../data/progress';
-import { DoctorNote, Glyph, Logo, MoreRow, Screen, Sub } from '../../components/ui';
+import { DoctorNote, Glyph, Logo, MoreRow, Screen, Seal, Sub } from '../../components/ui';
 import { useStore } from '../../state/store';
 import { C, F, SPACE, evidenceStyle, surface } from '../../theme';
 
@@ -38,6 +38,8 @@ export default function Home() {
   const hour = useHour();
   const [selected, setSelected] = useState(0);
   const [tab, setTab] = useState(0);
+  const [routineY, setRoutineY] = useState(0);
+  const { height } = useWindowDimensions();
   if (!plan) return null;
   const streakWeeksN = scanStreakWeeks(scans);
   const paused = !!lifeChange && (lifeChange.type === 'Protective style' || lifeChange.type === 'Sick or recovering');
@@ -67,7 +69,7 @@ export default function Home() {
     : nextWash ? `Next wash on ${weekday(nextWash)}. Keep up the daily steps until then.` : plan.target;
   const dayName = (d: Day) => (d.isToday ? 'Today' : d.date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }));
   return (
-    <Screen scroll tab="index" overlay={<CoinDrop />}>
+    <Screen scroll tab="index" overlay={<CoinDrop />} stops={routineY ? [0, routineY - 16] : undefined}>
       {/* zIndex keeps the coin that drops into the token bag above the rest of the page. */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}>
         <Logo size={36} />
@@ -110,9 +112,9 @@ export default function Home() {
         <Text style={{ fontFamily: F.regular, fontSize: 15, lineHeight: 21, color: C.gray2, textAlign: 'center', marginTop: 8, paddingHorizontal: 6 }}>{heroSub}</Text>
         {washDay ? (
           <Pressable onPress={subscribed ? () => router.push({ pathname: '/wash-day', params: { day: washDay.key } }) : openPaywall} accessibilityRole="button"
-            style={({ pressed }) => ({ alignSelf: 'stretch', height: 50, borderRadius: 14, marginTop: 24, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#E8E8EA' : '#F2F2F3' })}>
-            {subscribed ? null : <LockIcon size={14} />}
-            <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink }}>{washLabel}</Text>
+            style={({ pressed }) => ({ alignSelf: 'stretch', height: 52, borderRadius: 999, marginTop: 24, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#2E2E2E' : C.ink, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
+            {subscribed ? null : <LockIcon size={14} color="#fff" />}
+            <Text style={{ fontFamily: F.semibold, fontSize: 16, color: '#fff' }}>{washLabel}</Text>
           </Pressable>
         ) : null}
       </View>
@@ -124,7 +126,9 @@ export default function Home() {
         </Pressable>
       ) : null}
 
-      <View style={{ marginTop: SPACE.section + 8 }}>
+      {/* Scrolling down settles here: Your routine fills the screen and the top scrolls away. */}
+      <View onLayout={e => setRoutineY(e.nativeEvent.layout.y)}
+        style={{ marginTop: SPACE.section + 8, minHeight: height - 120 }}>
         <SectionTitle note={`${day.isWash ? 'Wash day · ' : ''}${plan.target}`}
           right={day.isToday ? <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.gray2, marginBottom: 2 }}>{routineItems.filter(c => doneToday.includes(c.id)).length}/{routineItems.length} today</Text> : null}>
           {day.isToday ? 'Your routine' : dayName(day)}
@@ -136,16 +140,39 @@ export default function Home() {
               const bedtime = pineapple && day.isToday && c.id === 'night_braid';
               return (
                 <Locked key={c.id} label={c.label} radius={22}>
-                  <Tile title={c.label} sub={isDone ? 'Done today' : `${c.value}${c.unit ? ` ${c.unit}` : ''}`} done={isDone}
+                  <Tile height={140} imageSize={100} title={c.label} sub={isDone ? 'Done today' : `${c.value}${c.unit ? ` ${c.unit}` : ''}`} done={isDone}
                     image={bedtime ? undefined : icon3d(c.icon ?? c.id)}
-                    art={bedtime ? <TwoFrameArt spec={PINEAPPLE_ART} timing={PINEAPPLE_TIMING} width={84} /> : undefined}
+                    art={bedtime ? <TwoFrameArt spec={PINEAPPLE_ART} timing={PINEAPPLE_TIMING} width={86} /> : undefined}
                     onPress={bedtime ? () => { if (!isDone) haptic('success'); toggleDone(c.id); } : () => router.push(c.id === 'iron_food' ? '/iron' : `/why/${c.id}`)} />
                 </Locked>
               );
             })}
           </PeekRow>
         ) : <Sub style={{ fontSize: 15, paddingVertical: 12 }}>Rest day. Nothing planned.</Sub>}
-        <Sub style={{ fontSize: 13, marginTop: 14 }}>{day.isToday ? 'Tap a card to see why and mark it done.' : 'A preview. It updates when you log a wash or change a card.'}</Sub>
+        {/* Today's checklist: tick a step right here (each tick drops a coin in the bag). */}
+        {day.isToday && routineItems.length ? (
+          <Locked radius={22} label="Today's checklist" style={{ marginTop: 22 }}>
+            <View style={[surface, { borderRadius: 22, paddingHorizontal: 16, paddingVertical: 4 }]}>
+              {routineItems.map((c, i) => {
+                const isDone = doneToday.includes(c.id);
+                return (
+                  <Pressable key={c.id} onPress={() => { if (!isDone) haptic('success'); toggleDone(c.id); }} accessibilityRole="checkbox" accessibilityState={{ checked: isDone }} accessibilityLabel={c.label}
+                    style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderTopWidth: i ? 1 : 0, borderTopColor: '#F0F0F2', opacity: pressed ? 0.6 : 1 })}>
+                    <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: '#F7F7F7', alignItems: 'center', justifyContent: 'center' }}>
+                      <Image source={icon3d(c.icon ?? c.id)} style={{ width: 28, height: 28, opacity: isDone ? 0.45 : 1 }} resizeMode="contain" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text numberOfLines={1} style={{ fontFamily: F.semibold, fontSize: 15, color: isDone ? C.gray : C.ink, textDecorationLine: isDone ? 'line-through' : 'none' }}>{c.label}</Text>
+                      <Text numberOfLines={1} style={{ fontFamily: F.regular, fontSize: 12, color: C.gray }}>{c.value}{c.unit ? ` ${c.unit}` : ''}</Text>
+                    </View>
+                    {isDone ? <Seal size={26} /> : <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 1.6, borderColor: '#CFCFD4' }} />}
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Locked>
+        ) : null}
+        <Sub style={{ fontSize: 13, marginTop: 14 }}>{day.isToday ? 'Tap a card to see why. Tick a step when it’s done and a coin drops in your bag.' : 'A preview. It updates when you log a wash or change a card.'}</Sub>
       </View>
 
       {/* Everything else, sorted into three tabs: food, care and style. */}

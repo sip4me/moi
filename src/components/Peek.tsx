@@ -31,8 +31,8 @@ export function PeekRow({ children, itemWidth, gap = 12, inset }: { children: Re
   );
 }
 
-export const LockIcon = ({ size = 13 }: { size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24"><Rect x={5} y={10.5} width={14} height={10} rx={2.5} stroke={C.ink} strokeWidth={1.8} fill="none" /><Path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke={C.ink} strokeWidth={1.8} fill="none" /></Svg>
+export const LockIcon = ({ size = 13, color = C.ink }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24"><Rect x={5} y={10.5} width={14} height={10} rx={2.5} stroke={color} strokeWidth={1.8} fill="none" /><Path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke={color} strokeWidth={1.8} fill="none" /></Svg>
 );
 
 export const openPaywall = () => router.push({ pathname: '/onboarding/paywall', params: { from: 'home' } });

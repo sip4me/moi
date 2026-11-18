@@ -15,15 +15,42 @@ const seal = require('../../assets/seal.png');
 // Phone-width column on web so screens look like the Figma frames.
 /** `tab`: the tab this screen belongs to, so tapping that tab again scrolls back to the top. */
 /** `overlay` floats above the page (outside the scrolling content), e.g. Home's coin drop. */
-export function Screen({ children, scroll, style, footer, tab, overlay }: { children: React.ReactNode; scroll?: boolean; style?: ViewStyle; footer?: React.ReactNode; tab?: string; overlay?: React.ReactNode }) {
+/**
+ * `overlay` floats above the page (outside the scrolling content), e.g. Home's coin drop.
+ * `stops` are scroll positions the page settles on: when scrolling comes to rest above the last stop,
+ * it eases to the nearest one. Past the last stop, scrolling is free.
+ */
+export function Screen({ children, scroll, style, footer, tab, overlay, stops }: { children: React.ReactNode; scroll?: boolean; style?: ViewStyle; footer?: React.ReactNode; tab?: string; overlay?: React.ReactNode; stops?: number[] }) {
   const narrow = useWindowDimensions().width < 360;
   const px = narrow ? 18 : 24;
   const ref = useRef<ScrollViewInstance>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const settling = useRef(false);
+  const rest = useRef(0); // where the page last came to rest, to tell up from down
+  const settle = (y: number) => {
+    if (!stops?.length) return;
+    if (timer.current) clearTimeout(timer.current);
+    if (settling.current) return;
+    timer.current = setTimeout(() => {
+      timer.current = null;
+      const last = stops[stops.length - 1];
+      if (y <= 2 || y >= last - 2) { rest.current = y; return; }
+      // Page-like: a short push in either direction moves to the next stop that way.
+      const down = y > rest.current;
+      const next = down ? stops.find(s => s > y) : [...stops].reverse().find(s => s < y);
+      const target = next ?? stops.reduce((a, b) => (Math.abs(b - y) < Math.abs(a - y) ? b : a));
+      settling.current = true;
+      ref.current?.scrollTo({ y: target, animated: true });
+      rest.current = target;
+      setTimeout(() => { settling.current = false; }, 500);
+    }, 140);
+  };
   useEffect(() => (tab ? onScrollTop(tab, () => ref.current?.scrollTo({ y: 0, animated: true })) : undefined), [tab]);
   // Tab pages (Home, Progress, Products, Profile) get more air above their first row.
   const top = tab ? { paddingTop: 28 } : null;
   const body = scroll
-    ? <ScrollView ref={ref} contentContainerStyle={[s.pad, { paddingHorizontal: px }, top, { paddingBottom: footer ? 24 : 120 }, style]} showsVerticalScrollIndicator={false}>{children}</ScrollView>
+    ? <ScrollView ref={ref} contentContainerStyle={[s.pad, { paddingHorizontal: px }, top, { paddingBottom: footer ? 24 : 120 }, style]} showsVerticalScrollIndicator={false}
+        scrollEventThrottle={32} onScroll={stops ? e => settle(e.nativeEvent.contentOffset.y) : undefined}>{children}</ScrollView>
     : <View style={[s.pad, { paddingHorizontal: px, flex: 1 }, top, style]}>{children}</View>;
   return (
     <SafeAreaView style={s.outer} edges={['top', 'bottom']}>
