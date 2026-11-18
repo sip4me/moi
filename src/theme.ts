@@ -24,6 +24,8 @@ export const F = {
   semibold: 'Inter_600SemiBold',
   bold: 'Inter_700Bold',
   serif: 'YoungSerif_400Regular',
+  display: 'InstrumentSerif_400Regular',
+  displayItalic: 'InstrumentSerif_400Regular_Italic',
 };
 
 export const evidenceStyle: Record<string, { label: string; bg: string; fg: string }> = {

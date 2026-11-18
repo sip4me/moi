@@ -1,5 +1,6 @@
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, useFonts } from '@expo-google-fonts/inter';
 import { YoungSerif_400Regular } from '@expo-google-fonts/young-serif';
+import { InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic } from '@expo-google-fonts/instrument-serif';
 import { Stack } from 'expo-router';
 import { Platform, Text, useWindowDimensions, View } from 'react-native';
 import { Logo } from '../components/ui';
@@ -23,7 +24,7 @@ function useOpenedReminder() {
 export default function RootLayout() {
   useOpenedReminder();
   useContentProtection();
-  const [loaded] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, YoungSerif_400Regular });
+  const [loaded] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, YoungSerif_400Regular, InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic });
   if (!loaded) return null;
   return (
     <SafeAreaProvider>
@@ -34,6 +35,7 @@ export default function RootLayout() {
           <Stack.Screen name="why/[id]" options={{ presentation: 'transparentModal', animation: 'fade' }} />
           <Stack.Screen name="feed/[id]" options={{ presentation: 'transparentModal', animation: 'fade' }} />
           <Stack.Screen name="change" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="glamour" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
           <Stack.Screen name="reminders" options={{ presentation: 'modal' }} />
         </Stack>
         </Frame>

@@ -4,6 +4,7 @@ import { type Day, daysUntilWash, week } from '../../data/schedule';
 import { Image, Pressable, Text, View } from 'react-native';
 import { icon3d } from '../../data/icons3d';
 import { HomeFeed } from '../../components/Feed';
+import { GlamourEntry } from '../../components/GlamourEntry';
 import { IronMaxxing } from '../../components/IronMaxxing';
 import { Trending } from '../../components/Trending';
 import { WashDayArt } from '../../components/WashDayArt';
@@ -106,6 +107,7 @@ export default function Home() {
           {plan.extras.map(c => <MoreRow key={c.id} id={c.id} label={c.label} meta={`${c.value}${c.unit ? ' ' + c.unit : ''} · ${evidenceStyle[c.evidence ?? 'early'].label.toLowerCase()}`} onPress={() => router.push(`/why/${c.id}`)} />)}
         </View>
       ) : null}
+      <GlamourEntry />
       <IronMaxxing />
       <Trending />
       <HomeFeed streakWeeks={scanStreakWeeks(scans)} />
