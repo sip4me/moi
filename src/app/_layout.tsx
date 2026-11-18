@@ -7,7 +7,8 @@ import { BrandText, Logo } from '../components/ui';
 import { C, F } from '../theme';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { StoreProvider } from '../state/store';
+import { StoreProvider, useStore } from '../state/store';
+import { isActive, loadSubscription } from '../lib/billing';
 import React, { useEffect } from 'react';
 import { markOpened } from '../lib/push';
 import { useContentProtection } from '../lib/protect';
@@ -21,6 +22,25 @@ function useOpenedReminder() {
   }, []);
 }
 
+/**
+ * Keeps `subscribed` in step with Stripe (via the subscriptions row the webhook writes): on launch and
+ * whenever the app comes back to the foreground. With no row yet (Stripe not set up, or never checked
+ * out), the local flag is left as it is.
+ */
+function SubscriptionSync() {
+  const { setSubscribed } = useStore();
+  useEffect(() => {
+    const check = () => loadSubscription().then(s => { if (s) setSubscribed(isActive(s)); }).catch(() => {});
+    check();
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    const onVis = () => { if (document.visibilityState === 'visible') check(); };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return null;
+}
+
 export default function RootLayout() {
   useOpenedReminder();
   useContentProtection();
@@ -30,6 +50,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <StoreProvider>
         <StatusBar style="dark" />
+        <SubscriptionSync />
         <Frame>
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#fff' } }}>
           <Stack.Screen name="why/[id]" options={{ presentation: 'transparentModal', animation: 'fade' }} />

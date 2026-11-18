@@ -22,6 +22,7 @@ export type Day = { key: string; date: Date; isToday: boolean; isWash: boolean; 
 const DAY_MS = 86400000;
 const keyOf = localKey;
 const addDays = (d: Date, n: number) => new Date(d.getTime() + n * DAY_MS);
+const mod = (a: number, n: number) => ((a % n) + n) % n;
 const daysBetween = (a: string, b: string) => Math.round((new Date(b).getTime() - new Date(a).getTime()) / DAY_MS);
 
 export function washInterval(plan: Plan) {
@@ -46,14 +47,19 @@ function perWeek(card: Card): number | null {
   return null;
 }
 
-export function week(plan: Plan, lastWash: string | null, todayKey: string, paused = false): Day[] {
+/** Seven days starting `start` days from today (negative = the past). */
+export function week(plan: Plan, lastWash: string | null, todayKey: string, paused = false, start = 0): Day[] {
   const today = new Date(todayKey + 'T12:00:00');
   const every = washInterval(plan);
   const firstWash = daysUntilWash(plan, lastWash, todayKey);
   const days: Day[] = Array.from({ length: 7 }, (_, i) => {
-    const date = addDays(today, i);
-    const isWash = !paused && i >= firstWash && (i - firstWash) % every === 0;
-    return { key: keyOf(date), date, isToday: i === 0, isWash, items: [], wash: [] };
+    const o = start + i;
+    const date = addDays(today, o);
+    const key = keyOf(date);
+    // The past follows the last logged wash; the future follows the plan from today.
+    const isWash = paused ? false : o >= 0 ? o >= firstWash && (o - firstWash) % every === 0
+      : !!lastWash && key <= lastWash && mod(daysBetween(key, lastWash), every) === 0;
+    return { key, date, isToday: o === 0, isWash, items: [], wash: [] };
   });
   const washDays = days.filter(d => d.isWash);
   if (plan.washRoutine) washDays.forEach((d, i) => { d.wash = stepsForWash(plan.washRoutine, i, washDays.length); });
@@ -64,7 +70,7 @@ export function week(plan: Plan, lastWash: string | null, todayKey: string, paus
     const cycle = EVERY_N_DAYS[card.id];
     if (cycle && Number.isFinite(Number(card.value))) {
       const n = Math.max(1, Math.round(cycle(Number(card.value))));
-      days.forEach((d, i) => { if (i % n === 0) d.items.push(card); });
+      days.forEach((d, i) => { if (mod(start + i, n) === 0) d.items.push(card); });
       continue;
     }
 
@@ -92,6 +98,13 @@ export function week(plan: Plan, lastWash: string | null, todayKey: string, paus
   // A habit that's also a wash step (scalp massage) shows once on wash day: inside the routine.
   for (const d of days) if (d.wash.length) d.items = d.items.filter(c => !d.wash.some(w => w.id === c.id));
   return days;
+}
+
+/** A scrolling calendar: `back` days of history through `ahead` days to come, built a week at a time. */
+export function calendar(plan: Plan, lastWash: string | null, todayKey: string, paused = false, back = 28, ahead = 63): Day[] {
+  const out: Day[] = [];
+  for (let s = -back; s < ahead; s += 7) out.push(...week(plan, lastWash, todayKey, paused, s));
+  return out;
 }
 
 /** Evening habits the 8 PM reminder can mention. */

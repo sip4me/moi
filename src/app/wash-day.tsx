@@ -5,7 +5,7 @@ import Svg, { Path } from 'react-native-svg';
 import { TwoFrameArt } from '../components/TwoFrameArt';
 import { Button, EvidenceChip, Screen, Sub, TopBar } from '../components/ui';
 import { OIL_ART, OIL_TIMING } from '../data/art';
-import { week } from '../data/schedule';
+import { calendar } from '../data/schedule';
 import { icon3d } from '../data/icons3d';
 import { GOAL_COPY } from '../data/goals';
 import { PHASE_LABEL, type Phase, type WashStep } from '../engine/washRoutine';
@@ -49,7 +49,7 @@ export default function WashDay() {
   const { plan, lastWash, todayKey, done, toggleDone, logWash } = useStore();
   const [open, setOpen] = useState<string | null>(null);
   if (!plan?.washRoutine) return null;
-  const days = week(plan, lastWash, todayKey);
+  const days = calendar(plan, lastWash, todayKey);
   const day = days.find(d => d.key === dayKey) ?? days.find(d => d.isWash);
   const r = plan.washRoutine;
   const steps = day?.wash.length ? day.wash : r.steps;

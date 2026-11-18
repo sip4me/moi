@@ -9,6 +9,7 @@ import { HEALTH_FULL, HEALTH_SHORT } from '../data/disclaimer';
 import { deleteAccount, signOut } from '../lib/auth';
 import { enablePush } from '../lib/push';
 import { useStore } from '../state/store';
+import { isActive, loadSubscription, openPortal } from '../lib/billing';
 import { C, F, surface } from '../theme';
 
 // Matches the Figma "Settings" frame (147:571): grouped cards, caps section labels, a danger zone at the end.
@@ -75,6 +76,22 @@ export default function Settings() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const close = () => { setSheet(null); setError(null); };
+  const { setSubscribed } = useStore();
+  const [subMsg, setSubMsg] = useState({ title: '', body: '' });
+  const tell = (title: string, body: string) => { setSubMsg({ title, body }); setSheet('subscription'); };
+  // Stripe's portal handles plan changes, card updates and cancelling.
+  const manage = async () => {
+    const r = await openPortal().catch(() => 'error' as const);
+    if (r === 'none') tell('No subscription yet', 'Start your 3-day free trial from any locked card, and you can manage it here afterwards.');
+    if (r === 'test') tell('No active subscription', 'This is a test build, so payments aren’t switched on and nothing is being charged.');
+    if (r === 'error') tell('Couldn’t open', 'Check your connection and try again.');
+  };
+  // Re-reads the subscription Stripe has on file for this account.
+  const restore = async () => {
+    const sub = await loadSubscription().catch(() => null);
+    if (isActive(sub)) { setSubscribed(true); tell('Subscription restored', 'Everything in Moi is unlocked on this device.'); }
+    else tell('Nothing to restore', 'We couldn’t find an active subscription on this account. Sign in with the email you subscribed with, then try again.');
+  };
   const [pushNote, setPushNote] = useState('Max 2 a day, never 10 PM–7 AM');
   const togglePush = async (v: boolean) => {
     if (!v) { setReminder('all', false); return; }
@@ -86,7 +103,7 @@ export default function Settings() {
 
   const signedIn = account && !account.anonymous;
   const who = account?.email ?? account?.phone ?? '';
-  const version = Constants.expoConfig?.version ?? '1.6.3';
+  const version = Constants.expoConfig?.version ?? '1.7.0';
   const hairProfile = [answers.texture, answers.length, answers.porosity && `${answers.porosity} porosity`].filter(Boolean).join(' · ');
 
   const open = (url: string) => (url ? openLink(url) : setSheet('soon'));
@@ -151,8 +168,8 @@ export default function Settings() {
       </Group>
 
       <Group label="SUBSCRIPTION">
-        <Row first title="Manage subscription" sub="Change or cancel your plan" onPress={() => setSheet('subscription')} />
-        <Row title="Restore purchases" onPress={() => setSheet('subscription')} />
+        <Row first title="Manage subscription" sub="Change plan, update card or cancel" onPress={manage} />
+        <Row title="Restore purchases" sub="Already subscribed on another device?" onPress={restore} />
       </Group>
 
       <Group label="APP">
@@ -187,9 +204,7 @@ export default function Settings() {
       <Sheet open={sheet === 'signout'} busy={busy} onClose={close} onConfirm={confirmSignOut}
         title="Sign out?" confirm="Sign out"
         body="Your plan stays saved to your account. Sign back in any time with your email or phone." />
-      <Sheet open={sheet === 'subscription'} onClose={close} confirm="Got it"
-        title="No active subscription"
-        body="This is a test build, so payments aren’t switched on and nothing is being charged. Once Moi launches, you’ll be able to change or cancel your plan here at any time." />
+      <Sheet open={sheet === 'subscription'} onClose={close} confirm="Got it" title={subMsg.title} body={subMsg.body} />
       <Sheet open={sheet === 'health'} onClose={close} confirm="Got it" title="Health disclaimer" body={HEALTH_FULL.join('\n\n')} />
       <Sheet open={sheet === 'soon'} onClose={close} confirm="Got it"
         title="Coming soon" body="This page isn’t published yet. It will be ready before Moi launches." />

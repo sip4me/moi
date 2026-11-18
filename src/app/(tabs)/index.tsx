@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { type Day, daysUntilWash, week } from '../../data/schedule';
+import { type Day, calendar, daysUntilWash, week } from '../../data/schedule';
+import { HomeCalendar } from '../../components/HomeCalendar';
 import { Image, Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { icon3d } from '../../data/icons3d';
 import { HomeFeed } from '../../components/Feed';
@@ -36,7 +37,7 @@ const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 export default function Home() {
   const { plan, done, todayKey, lastWash, lifeChange, scans, answers, toggleDone, subscribed } = useStore();
   const hour = useHour();
-  const [selected, setSelected] = useState(0);
+  const [selected, setSelected] = useState(todayKey);
   const [tab, setTab] = useState(0);
   const [routineY, setRoutineY] = useState(0);
   const { height } = useWindowDimensions();
@@ -44,7 +45,8 @@ export default function Home() {
   const streakWeeksN = scanStreakWeeks(scans);
   const paused = !!lifeChange && (lifeChange.type === 'Protective style' || lifeChange.type === 'Sick or recovering');
   const days = week(plan, lastWash, todayKey, paused);
-  const day = days[selected] ?? days[0];
+  const cal = calendar(plan, lastWash, todayKey, paused);
+  const day = cal.find(d => d.key === selected) ?? days[0];
   const doneToday = done[todayKey] ?? [];
   const streakDays = Object.values(done).filter(v => v.length).length;
   const since = lastWash ? Math.round((new Date(todayKey).getTime() - new Date(lastWash).getTime()) / 86400000) : -1;
@@ -83,27 +85,8 @@ export default function Home() {
         </View>
       </View>
 
-      {/* The next seven days. Each day shows a drop on wash days and how many steps are planned. */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 24 }}>
-        {days.map((d, i) => {
-          const on = i === selected;
-          const did = (done[d.key] ?? []).length > 0;
-          return (
-            <Pressable key={d.key} onPress={() => setSelected(i)} accessibilityRole="tab" accessibilityState={{ selected: on }}
-              accessibilityLabel={`${dayName(d)}${d.isWash ? ', wash day' : ''}, ${d.items.length} steps`}
-              style={{ flex: 1, maxWidth: 48, alignItems: 'center', gap: 5, paddingVertical: 6, borderRadius: 14, backgroundColor: on ? '#fff' : 'transparent', shadowColor: '#000', shadowOpacity: on ? 0.08 : 0, shadowRadius: 8 }}>
-              <Text style={{ fontFamily: on ? F.semibold : F.regular, fontSize: 12, color: C.ink }}>{d.isToday ? 'Today' : DAY[d.date.getDay()]}</Text>
-              <View style={{ width: 34, height: 34, borderRadius: 17, borderWidth: on ? 2 : 1.5, borderColor: on ? C.gold : did ? C.ink : '#E3E3E6', borderStyle: did || on ? 'solid' : 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: d.isWash ? '#EEF3FD' : 'transparent' }}>
-                <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.ink }}>{d.date.getDate()}</Text>
-              </View>
-              <View style={{ height: 6, flexDirection: 'row', gap: 2 }}>
-                {d.isWash ? <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.blue }} /> : null}
-                {d.items.length > (d.isWash ? 1 : 0) ? <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#CFC9BD' }} /> : null}
-              </View>
-            </Pressable>
-          );
-        })}
-      </View>
+      {/* The calendar: scrolls sideways through past and coming days, or opens the full month. */}
+      <HomeCalendar days={cal} done={done} selected={selected} onSelect={setSelected} />
 
       {/* Hero: one centred card, like a feature card — object, headline, one line of context, one soft button. */}
       <View style={[surface, { marginTop: 36, borderRadius: 28, paddingHorizontal: 24, paddingTop: 32, paddingBottom: 28, alignItems: 'center' }]}>
