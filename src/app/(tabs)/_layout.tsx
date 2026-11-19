@@ -7,15 +7,8 @@ import { useStore } from '../../state/store';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 import { C, F } from '../../theme';
+import { TabIcon } from '../../components/TabIcon';
 
-const ICON: Record<string, (c: string) => React.ReactNode> = {
-  index: c => <Path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1v-8Z" fill={c} />,
-  // Stairs climbing to the right with an arrow riding up along their edge.
-  progress: c => <><Path d="M3.5 21v-4.5h5.5v-4.5h5.5V7.5H20.5V21z" fill={c} /><Path d="M3.5 11.5 12.5 4M12.5 4H8.6M12.5 4v3.9" stroke={c} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" /></>,
-  // A bottle with its cap flipped open on the hinge, so it reads as "products" at a glance.
-  products: c => <><Rect x={7.5} y={10} width={9} height={11.5} rx={2.2} stroke={c} strokeWidth={2} fill="none" /><Rect x={9.75} y={6.8} width={4.5} height={3.2} rx={0.8} stroke={c} strokeWidth={1.8} fill="none" /><Rect x={14} y={2.2} width={5.5} height={3.4} rx={1.2} fill={c} transform="rotate(32 14.2 5.8)" /></>,
-  profile: c => <><Circle cx={12} cy={8} r={4} stroke={c} strokeWidth={2} fill="none" /><Path d="M5 20c1-4 4-6 7-6s6 2 7 6" stroke={c} strokeWidth={2} fill="none" strokeLinecap="round" /></>,
-};
 const LABEL: Record<string, string> = { index: 'Home', progress: 'Progress', products: 'Products', profile: 'Profile' };
 
 function TabBar({ state, navigation }: any) {
@@ -24,6 +17,9 @@ function TabBar({ state, navigation }: any) {
   const fab = narrow ? 54 : 62;
   // Expo Router's tab bar props don't always include navigation on web, so route by path.
   const [menu, setMenu] = useState(false);
+  // Bumped on every tap so a tab's icon replays its little animation, even when it's already open.
+  const [ticks, setTicks] = useState<Record<string, number>>({});
+  const bump = (name: string) => setTicks(t => ({ ...t, [name]: (t[name] ?? 0) + 1 }));
   const go = (name: string) => (navigation?.navigate ? navigation.navigate(name) : router.navigate((name === 'index' ? '/(tabs)' : `/(tabs)/${name}`) as any));
   return (
     <>
@@ -40,8 +36,8 @@ function TabBar({ state, navigation }: any) {
             const on = state.index === i; const col = on ? C.ink : '#8F8F8F';
             return (
               <Pressable key={r.key} accessibilityRole="tab" accessibilityLabel={LABEL[r.name]} accessibilityState={{ selected: on }}
-                onPress={() => { if (on) { haptic('select'); scrollTop(r.name); } else go(r.name); }} style={({ pressed }) => ({ flex: 1, minWidth: 0, alignItems: 'center', justifyContent: 'center', paddingVertical: 13, borderRadius: 999, backgroundColor: on ? '#F0F0F0' : pressed ? '#E6E6E6' : 'transparent' })}>
-                <Svg width={25} height={25} viewBox="0 0 24 24">{ICON[r.name]?.(col)}</Svg>
+                onPress={() => { bump(r.name); if (on) { haptic('select'); scrollTop(r.name); } else go(r.name); }} style={({ pressed }) => ({ flex: 1, minWidth: 0, alignItems: 'center', justifyContent: 'center', paddingVertical: 13, borderRadius: 999, backgroundColor: on ? '#F0F0F0' : pressed ? '#E6E6E6' : 'transparent' })}>
+                <TabIcon name={r.name} color={col} active={on} tick={ticks[r.name] ?? 0} />
               </Pressable>
             );
           })}
