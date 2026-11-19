@@ -133,12 +133,14 @@ function MonthGrid({ days, done, selected, onPick }: { days: Day[]; done: Record
       {Array.from({ length: cells.length / 7 }, (_, r) => (
         <View key={r} style={{ flexDirection: 'row' }}>
           {cells.slice(r * 7, r * 7 + 7).map((c, i) => (
-            <View key={i} style={{ flex: 1, height: 46, alignItems: 'center', justifyContent: 'center' }}>
+            <View key={i} style={{ flex: 1, height: 52, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 3 }}>
               {c === null ? null : typeof c === 'number' ? (
                 <Text style={{ fontFamily: F.regular, fontSize: 14, color: '#C4C4C8' }}>{c}</Text>
               ) : (
                 <Pressable onPress={() => onPick(c.key)} accessibilityRole="button" accessibilityLabel={c.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                   style={{ alignItems: 'center', gap: 2 }}>
+                  {/* Today is labelled "Today", not just by its weekday letter. */}
+                  {c.isToday ? <Text style={{ position: 'absolute', top: -13, fontFamily: F.semibold, fontSize: 10, color: C.ink, letterSpacing: 0.2 }}>Today</Text> : null}
                   <View style={{ borderRadius: 20, padding: 1, backgroundColor: c.key === selected ? '#F4F4F4' : 'transparent' }}>
                     <DayMark d={c} did={(done[c.key] ?? []).length > 0} on={c.key === selected} size={34} />
                   </View>
