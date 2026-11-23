@@ -92,14 +92,14 @@ function Menu({ open, onClose, active }: { open: boolean; onClose: () => void; a
   );
 }
 
-export function Shell({ active, children, side, footer, step }: { active?: string; children: React.ReactNode; side?: React.ReactNode; footer?: React.ReactNode; step?: string }) {
+export function Shell({ active, children, side, footer, step, hideNav }: { active?: string; children: React.ReactNode; side?: React.ReactNode; footer?: React.ReactNode; step?: string; hideNav?: boolean }) {
   const wide = useWide();
   const r = useRoutine();
   const [menu, setMenu] = useState(false);
   const openMenu = () => { setMenu(true); if (!r.menuSeen) setRoutine(x => ({ ...x, menuSeen: true })); };
   const top = (
     <View style={[st.topBar, wide && { paddingHorizontal: 32, paddingTop: 20 }]}>
-      <MenuButton onPress={openMenu} hint={isHydrated() && !r.menuSeen} />
+      {hideNav ? <View style={{ height: 44 }} /> : <MenuButton onPress={openMenu} hint={isHydrated() && !r.menuSeen} />}
       <View style={{ flex: 1 }} />
       {step ? <Text style={st.meta}>{step}</Text> : null}
     </View>

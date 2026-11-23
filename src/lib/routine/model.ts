@@ -28,6 +28,7 @@ export type RoutineState = {
   built: boolean; // a "new" routine has been generated
   welcomed?: boolean; // has seen the Moi welcome screen
   menuSeen?: boolean; // has opened the menu once (stops the tap hint)
+  started?: boolean; // tapped Continue on the start page
 };
 
 // ── Vocabulary ────────────────────────────────────────────────────────────────

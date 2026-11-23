@@ -23,9 +23,9 @@ export default function Start() {
       </Pressable>
     );
   };
-  const go = () => router.push('/routine/goals');
+  const go = () => { setRoutine(r => ({ ...r, started: true })); router.push('/routine/goals'); };
   return (
-    <Shell active="start" footer={wide ? undefined : <><Btn label="Continue" onPress={go} /><Text style={[st.meta, { textAlign: 'center', fontSize: 12 }]}>Free. No account needed.</Text></>}>
+    <Shell active="start" hideNav={!wide && !s.started} footer={wide ? undefined : <><Btn label="Continue" onPress={go} /><Text style={[st.meta, { textAlign: 'center', fontSize: 12 }]}>Free. No account needed.</Text></>}>
       <View style={{ gap: 24, maxWidth: 600 }}>
         <View style={{ gap: 12 }}>
           <Text style={[st.h1, { fontSize: wide ? 60 : 40, lineHeight: wide ? 62 : 42 }]}>Find the gaps in your hair routine.</Text>
