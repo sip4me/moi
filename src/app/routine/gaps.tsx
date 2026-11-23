@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { BLUE, Btn, ChipBtn, GapCard, Heading, money, NeedInfo, Pill, ProductCard, Shell, useWide, WhereToBuy } from '../../components/routine/Kit';
+import { useAccess } from '../../lib/routine/access';
 import { analyze, picksFor, type GapKind } from '../../lib/routine/gaps';
 import { hasInfo, itemKey, setRoutine, useCatalog, useRoutine } from '../../lib/routine/model';
 import { Text } from 'react-native';
@@ -18,9 +19,20 @@ export default function Gaps() {
   const [filter, setFilter] = useState<'all' | GapKind>('all');
   const [open, setOpen] = useState<string | undefined>(params.g);
   const [where, setWhere] = useState<string | undefined>();
+  const access = useAccess();
   const toggleBag = (k: string) => setRoutine(r => ({ ...r, bag: r.bag.includes(k) ? r.bag.filter(x => x !== k) : [...r.bag, k] }));
 
   if (!hasInfo(s)) return <Shell active="gaps"><NeedInfo goals={s.goals.length > 0} /></Shell>;
+  // Paywall: the gaps themselves are shown, the fixes and product picks need a plan.
+  if (!access.ok && !access.loading) {
+    const plans = () => router.push('/routine/plans');
+    return (
+      <Shell active="gaps" step="3 of 3" footer={<Btn label="Claim your crown to see the fixes" onPress={plans} />}>
+        <Heading title={gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'} for ${s.goals.join(' and ')}` : 'No gaps. Nice routine.'} sub="Unlock the fix for each gap and the products matched to your goals." />
+        <View style={{ gap: 12, maxWidth: 720 }}>{gaps.map(g => <GapCard key={g.id} gap={g} onPress={plans} cta="Unlock fix" />)}</View>
+      </Shell>
+    );
+  }
 
   const shown = gaps.filter(g => filter === 'all' || g.kind === filter);
   const goals = s.goals.join(' and ');

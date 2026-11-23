@@ -36,6 +36,8 @@ async function save(sub: Sub) {
     trial_end: iso(sub.trial_end), current_period_end: iso(sub.current_period_end ?? item?.current_period_end),
     cancel_at_period_end: !!sub.cancel_at_period_end, updated_at: new Date().toISOString(),
   });
+  // Founding offer: the first paid yearly founder subscription claims one of the 1,000 lifetime spots.
+  if ((sub.metadata?.plan ?? item?.price?.lookup_key) === 'routine_founder' && sub.status === 'active') await db.rpc('claim_founder', { p_user: userId });
 }
 
 Deno.serve(async req => {

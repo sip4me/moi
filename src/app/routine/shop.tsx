@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { BLUE, Btn, ChipBtn, Heading, iconFor, Label, money, NeedInfo, Pill, ProductCard, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
+import { useAccess } from '../../lib/routine/access';
 import { analyze, picksFor, profileOf, retailerLinks } from '../../lib/routine/gaps';
 import { findByKey, hasInfo, itemKey, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
 import { C, F } from '../../theme';
@@ -10,6 +11,9 @@ export default function Shop() {
   const s = useRoutine();
   const cat = useCatalog();
   const wide = useWide();
+  const access = useAccess();
+  // Paywall: shopping the picks needs a plan.
+  useEffect(() => { if (hasInfo(s) && !access.ok && !access.loading) router.replace('/routine/plans'); }, [access.ok, access.loading]);
   const [budgetOnly, setBudgetOnly] = useState(true);
   const [under15, setUnder15] = useState(false);
   const { score, gaps } = useMemo(() => analyze(s, cat), [s, cat]);

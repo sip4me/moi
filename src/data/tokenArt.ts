@@ -36,6 +36,8 @@ export const TOKEN_ART: Record<string, Glyph> = {
   scrunchie: { paths: ['M26 17.5a8.5 8.5 0 1 1 0 17 8.5 8.5 0 1 1 0-17z'], fills: ['M26 22.5l1 2.3 2.4.3-1.8 1.6.5 2.4-2.1-1.2-2.1 1.2.5-2.4-1.8-1.6 2.4-.3z'] },
   // The Royal Crown — the Moi crown
   crown: { fills: ['M16 31l2-11 5 5 3-7 3 7 5-5 2 11z'] },
+  // Next — an arrow, for the welcome screen's gold coin button
+  next: { paths: ['M17 26h17', 'M28.5 20l6 6-6 6'] },
 };
 
 /** The coin as an SVG string (used for the Figma sheet). */

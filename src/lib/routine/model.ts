@@ -38,6 +38,8 @@ export type RoutineState = {
   v?: number; // saved-state version
   /** Routines the person has submitted: 'wash', 'every', 'occ:<name>'. Editing one reopens it. */
   submitted?: Record<string, boolean>;
+  /** Test build only (Stripe not switched on): the plan tapped on the paywall, unlocking access on this device. */
+  testUnlock?: string;
 };
 
 // ── Vocabulary ────────────────────────────────────────────────────────────────

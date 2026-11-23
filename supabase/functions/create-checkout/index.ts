@@ -1,11 +1,13 @@
 // Starts a Stripe Checkout for Moi's subscription: 3-day free trial, then the chosen plan.
-// Prices are looked up by lookup key (moi_monthly, moi_yearly, moi_yearly_offer), so no IDs live in code.
+// Prices are looked up by lookup key, so no IDs live in code: moi_monthly, moi_yearly, moi_yearly_offer (tracker);
+// routine_monthly ($6/month), routine_founder ($25/year, founding offer with lifetime database access) and
+// routine_yearly ($25/year, once the 1,000 founding spots are gone) for Moi Routine. Routine plans have no trial.
 // Without STRIPE_SECRET_KEY it answers { configured: false } and the app keeps its test-build behaviour.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const STRIPE = Deno.env.get('STRIPE_SECRET_KEY');
 const SITE = Deno.env.get('SITE_URL') ?? 'https://moi-ashy.vercel.app';
-const PLANS = new Set(['moi_monthly', 'moi_yearly', 'moi_yearly_offer']);
+const PLANS = new Set(['moi_monthly', 'moi_yearly', 'moi_yearly_offer', 'routine_monthly', 'routine_founder', 'routine_yearly']);
 const TRIAL_DAYS = 3;
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' };
@@ -29,8 +31,16 @@ Deno.serve(async req => {
     const token = req.headers.get('Authorization')?.replace('Bearer ', '') ?? '';
     const { data: { user } } = await db.auth.getUser(token);
     if (!user) return json({ error: 'Sign in first' }, 401);
-    const { plan } = await req.json().catch(() => ({})) as { plan?: string };
+    const body = await req.json().catch(() => ({})) as { plan?: string };
+    let plan = body.plan;
     if (!plan || !PLANS.has(plan)) return json({ error: 'Unknown plan' }, 400);
+    const routine = plan.startsWith('routine_');
+    // Founding offer closed? Sell the plain yearly plan instead and tell the app.
+    let note: string | undefined;
+    if (plan === 'routine_founder') {
+      const { data: f } = await db.rpc('founding_status');
+      if (f && !(f as { open: boolean }).open) { plan = 'routine_yearly'; note = 'The founding offer is full, so this is the regular yearly plan.'; }
+    }
 
     const prices = await stripe(`prices?lookup_keys[]=${plan}&active=true&limit=1`);
     const price = prices.data?.[0];
@@ -53,14 +63,14 @@ Deno.serve(async req => {
       client_reference_id: user.id,
       'line_items[0][price]': price.id,
       'line_items[0][quantity]': '1',
-      ...(hadTrial ? {} : { 'subscription_data[trial_period_days]': String(TRIAL_DAYS) }),
+      ...(hadTrial || routine ? {} : { 'subscription_data[trial_period_days]': String(TRIAL_DAYS) }),
       'subscription_data[metadata][user_id]': user.id,
       'subscription_data[metadata][plan]': plan,
       payment_method_collection: 'always',
-      success_url: `${SITE}/checkout?status=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${SITE}/checkout?status=cancel`,
+      success_url: routine ? `${SITE}/routine/plans?status=success` : `${SITE}/checkout?status=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: routine ? `${SITE}/routine/plans?status=cancel` : `${SITE}/checkout?status=cancel`,
     });
-    return json({ configured: true, url: session.url });
+    return json({ configured: true, url: session.url, plan, note });
   } catch (e) {
     return json({ error: String(e instanceof Error ? e.message : e) }, 500);
   }
