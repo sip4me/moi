@@ -75,7 +75,7 @@ export default function Plans() {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Text style={{ flex: 1, fontFamily: F.semibold, fontSize: 16, color: C.ink }}>{founder ? (founding ? 'Founding Royal · yearly' : 'Royal · yearly') : 'Royal · monthly'}</Text>
           {founder && founding ? <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: GOLD }}><Text style={{ fontFamily: F.semibold, fontSize: 11, letterSpacing: 0.6, color: '#fff' }}>♛ BEST VALUE</Text></View> : null}
-          <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: on ? '#A8576A' : '#D5D8DE', backgroundColor: on ? '#A8576A' : '#fff', alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: on ? '#6E7BD9' : '#D5D8DE', backgroundColor: on ? '#6E7BD9' : '#fff', alignItems: 'center', justifyContent: 'center' }}>
             {on ? <Text style={{ color: '#fff', fontSize: 13, fontFamily: F.semibold, lineHeight: 15 }}>{'✓'}</Text> : null}
           </View>
         </View>

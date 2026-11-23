@@ -23,7 +23,7 @@ export default function Start() {
           <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink }}>{title}</Text>
           <Text style={[st.sub, { fontSize: 14, lineHeight: 19 }]}>{body}</Text>
         </View>
-        <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: on ? '#A8576A' : '#D5D8DE', backgroundColor: on ? '#A8576A' : '#fff', alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: on ? '#6E7BD9' : '#D5D8DE', backgroundColor: on ? '#6E7BD9' : '#fff', alignItems: 'center', justifyContent: 'center' }}>
           {on ? <Text style={{ color: '#fff', fontSize: 13, fontFamily: F.semibold, lineHeight: 15 }}>{'\u2713'}</Text> : null}
         </View>
       </Pressable>

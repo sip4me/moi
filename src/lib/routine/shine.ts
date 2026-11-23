@@ -38,24 +38,23 @@ const CSS = `
 [data-fill="champagne"] { background-image: linear-gradient(90deg, #E9D6A8 0%, #C9A86A 50%, #9E7F45 100%) !important; }
 [data-fill="champagne-coin"] { background-image: radial-gradient(circle at 32% 28%, #FFF3D1 0%, #E4C98E 38%, #C9A86A 62%, #9E7F45 100%) !important; }
 [data-fill="cobalt-dot"] { background-image: radial-gradient(circle at 34% 30%, #8FA4F0 0%, #4058D8 55%, #2B3FC8 100%) !important; }
-/* Main buttons: the Figma gold seal as a pill. Brushed gold face, raised rim, a row of pearls along the top and bottom, dark ink text. */
-[data-fill="garnet"], [data-fill="lilac"] { position: relative; isolation: isolate; overflow: hidden; background-color: #D9B867 !important;
-  background-image: linear-gradient(180deg, rgba(255,247,220,0.55) 0%, rgba(255,247,220,0) 48%, rgba(110,72,18,0.16) 100%), repeating-linear-gradient(0deg, rgba(255,255,255,0.07) 0 1px, rgba(90,60,10,0.05) 1px 3px), radial-gradient(130% 160% at 28% 18%, #F7E5AC 0%, #DDB966 46%, #B4893A 100%) !important;
-  border-color: #8E6A22 !important; border-width: 1.5px !important;
-  box-shadow: inset 0 0 0 2.5px #EED48C, inset 0 0 0 3.5px #9C7A2E, 0 10px 18px -8px rgba(120,80,10,0.5), 0 2px 0 #7A5A12; transition: filter .2s ease, transform .15s ease, box-shadow .2s ease; }
-[data-fill="garnet"]::before, [data-fill="lilac"]::before { content: ""; position: absolute; left: 20px; right: 20px; top: 4.5px; bottom: 4.5px; z-index: -1; pointer-events: none;
-  background: radial-gradient(circle, #FFFFFF 0 1.1px, #F1E9D6 1.7px, #B79E73 2.3px, transparent 2.7px) 0 0 / 8px 6px repeat-x, radial-gradient(circle, #FFFFFF 0 1.1px, #F1E9D6 1.7px, #B79E73 2.3px, transparent 2.7px) 0 100% / 8px 6px repeat-x; }
-[data-fill="garnet"]:hover, [data-fill="lilac"]:hover { filter: brightness(0.94) saturate(1.12); box-shadow: inset 0 0 0 2.5px #EED48C, inset 0 0 0 3.5px #9C7A2E, 0 8px 14px -8px rgba(120,80,10,0.6), 0 2px 0 #6A4C0E; }
+/* Main buttons and selected chips: soft luxury pill (reference step 6). White-to-lavender face, inner lavender glow,
+   a white halo ring with a faint lavender line, and a soft lavender shadow underneath. Dark ink text. */
+[data-fill="garnet"], [data-fill="lilac"] { position: relative; background-color: #F4F5FC !important; background-image: linear-gradient(180deg, #FFFFFF 0%, #EDEFFB 100%) !important; border-color: rgba(255,255,255,0.95) !important;
+  box-shadow: inset 0 0 0 1px rgba(180,190,240,0.45), inset 0 2px 1px #FFFFFF, inset 0 -8px 14px rgba(150,165,235,0.2), 0 0 0 4px rgba(255,255,255,0.85), 0 0 0 5px rgba(170,180,235,0.4), 0 16px 28px -10px rgba(110,120,220,0.5), 0 4px 8px rgba(60,70,120,0.07);
+  transition: box-shadow .2s ease, transform .15s ease, background-image .2s ease; }
+[data-fill="garnet"]:hover, [data-fill="lilac"]:hover { background-image: linear-gradient(180deg, #F7F8FE 0%, #E3E7FA 100%) !important;
+  box-shadow: inset 0 0 0 1px rgba(160,172,240,0.6), inset 0 2px 1px #FFFFFF, inset 0 -8px 14px rgba(140,155,235,0.28), 0 0 0 4px rgba(255,255,255,0.9), 0 0 0 5px rgba(150,162,235,0.6), 0 12px 22px -10px rgba(110,120,220,0.6), 0 3px 6px rgba(60,70,120,0.08); }
 [data-fill="garnet"]:active, [data-fill="lilac"]:active { transform: translateY(1px); }
-[data-fill="garnet"] div, [data-fill="lilac"] div { color: #3B2A0B !important; text-shadow: 0 1px 0 rgba(255,240,200,0.6) !important; }
-[data-fill="garnet"] svg [stroke]:not([stroke="none"]), [data-fill="lilac"] svg [stroke]:not([stroke="none"]) { stroke: #3B2A0B !important; }
-/* Secondary buttons and chips: raised pearl pills. */
-[data-fill="pearl"] { background-image: linear-gradient(180deg, #FFFFFF 0%, #F1F3F8 100%) !important; border-color: rgba(255,255,255,0.95) !important; box-shadow: 0 12px 24px -12px rgba(40,50,90,0.3), 0 2px 5px rgba(40,50,90,0.06), inset 0 1px 0 #FFFFFF; transition: box-shadow .2s ease; }
-[data-fill="pearl"]:hover { background-image: linear-gradient(180deg, #F2F4F9 0%, #E3E7F0 100%) !important; box-shadow: 0 8px 18px -10px rgba(40,50,90,0.35), 0 1px 3px rgba(40,50,90,0.08), inset 0 1px 0 #FFFFFF; }
-/* Selected choice card: blush pearl with a garnet rim and soft glow. */
-[data-fill="pearl-on"] { background-image: linear-gradient(180deg, #FFF8F7 0%, #F8E6E4 100%) !important; border-color: #A8576A !important; box-shadow: 0 0 0 4px rgba(168,87,106,0.14), 0 14px 26px -12px rgba(126,58,76,0.35), inset 0 1px 0 #FFFFFF; transform: translateY(-1px); transition: box-shadow .2s ease, transform .2s ease; }
-[data-fill="pearl-on"]:hover { border-color: #7E3A4C !important; }
-/* Choice cards when Continue was tapped with nothing picked. */
+[data-fill="garnet"] div, [data-fill="lilac"] div { color: #2A2F45 !important; text-shadow: none !important; }
+[data-fill="garnet"] svg [stroke]:not([stroke="none"]), [data-fill="lilac"] svg [stroke]:not([stroke="none"]) { stroke: #2A2F45 !important; }
+[data-fill="garnet"] svg [data-chev] { stroke: #8E92A8 !important; }
+/* Secondary buttons, unselected chips, menu button: raised white pill (reference step 4). */
+[data-fill="pearl"] { background-image: linear-gradient(180deg, #FFFFFF 0%, #EEF0F6 100%) !important; border-color: rgba(255,255,255,0.95) !important; box-shadow: inset 0 0 0 1.5px #FFFFFF, 0 14px 24px -12px rgba(40,50,90,0.32), 0 3px 6px rgba(40,50,90,0.06); transition: box-shadow .2s ease, background-image .2s ease; }
+[data-fill="pearl"]:hover { background-image: linear-gradient(180deg, #F6F7FA 0%, #E6E9F1 100%) !important; box-shadow: inset 0 0 0 1.5px #FFFFFF, 0 10px 18px -10px rgba(40,50,90,0.36), 0 2px 4px rgba(40,50,90,0.08); }
+/* Selected choice cards (Start, Plans): the same lavender halo. */
+[data-fill="pearl-on"] { background-image: linear-gradient(180deg, #FFFFFF 0%, #EEF0FB 100%) !important; border-color: rgba(170,180,240,0.7) !important; box-shadow: 0 0 0 4px rgba(255,255,255,0.9), 0 0 0 5px rgba(170,180,235,0.45), 0 16px 28px -12px rgba(110,120,220,0.45); }
+[data-fill="pearl-on"]:hover { border-color: rgba(140,152,235,0.9) !important; }
 [data-fill="pearl-ask"] { background-image: linear-gradient(180deg, #FFFFFF 0%, #F1F3F8 100%) !important; border-color: rgba(168,87,106,0.55) !important; border-style: dashed !important; box-shadow: 0 12px 24px -12px rgba(40,50,90,0.3); }
 /* Welcome screen: warm paper with a faint grain. */
 [data-fill="paper"] { background-color: #F3EFE7 !important; }
