@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
-import { BLUE, Btn, GapCard, Heading, money, NeedInfo, Pill, ProductCard, Shell, useWide, WhereToBuy } from '../../components/routine/Kit';
+import { BLUE, Btn, ChipBtn, GapCard, Heading, money, NeedInfo, Pill, ProductCard, Shell, useWide, WhereToBuy } from '../../components/routine/Kit';
 import { analyze, picksFor, type GapKind } from '../../lib/routine/gaps';
 import { hasInfo, itemKey, setRoutine, useCatalog, useRoutine } from '../../lib/routine/model';
 import { Text } from 'react-native';
@@ -46,7 +46,7 @@ export default function Gaps() {
                     {p.map((x, i) => <ProductCard key={x.item.id} item={x.item} fit={x.fit} best={i === 0} inBag={s.bag.includes(itemKey(x.item))} onAdd={() => toggleBag(itemKey(x.item))} />)}
                     {wide && p.length < 3 ? Array.from({ length: 3 - p.length }).map((_, i) => <View key={i} style={{ flex: 1 }} />) : null}
                   </View>
-                  {p[0] ? (where === g.id ? <WhereToBuy item={p[0].item} /> : <Text onPress={() => setWhere(g.id)} style={{ fontFamily: F.semibold, fontSize: 14, color: BLUE }}>Where to buy the top pick</Text>) : null}
+                  {p[0] ? (where === g.id ? <WhereToBuy item={p[0].item} /> : <ChipBtn label="Where to buy the top pick" onPress={() => setWhere(g.id)} />) : null}
                 </View>
               ) : null}
             </View>

@@ -186,7 +186,7 @@ function Rail({ filled, empty }: { filled: boolean; empty: boolean }) {
   );
 }
 
-export function Node({ state }: { state: 'done' | 'next' | 'empty' }) {
+export function Node({ state, check = true }: { state: 'done' | 'next' | 'empty'; check?: boolean }) {
   const pulse = useRef(new Animated.Value(0)).current;
   const pop = useRef(new Animated.Value(state === 'done' ? 1 : 0)).current;
   useEffect(() => {
@@ -201,7 +201,7 @@ export function Node({ state }: { state: 'done' | 'next' | 'empty' }) {
       {state === 'next' ? <Animated.View style={{ position: 'absolute', width: 20, height: 20, borderRadius: 10, backgroundColor: BLUE, opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0] }), transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 2.2] }) }] }} /> : null}
       <View style={[st.node, state === 'empty' && st.nodeEmpty, state === 'next' && st.nodeOn]} />
       <Animated.View style={{ position: 'absolute', width: 20, height: 20, borderRadius: 10, backgroundColor: BLUE, alignItems: 'center', justifyContent: 'center', opacity: pop, transform: [{ scale: pop }] }}>
-        <Svg width={11} height={11} viewBox="0 0 24 24"><Path d="m5 12.5 4.5 4.5L19 7.5" stroke="#fff" strokeWidth={3.4} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
+        {check ? <Svg width={11} height={11} viewBox="0 0 24 24"><Path d="m5 12.5 4.5 4.5L19 7.5" stroke="#fff" strokeWidth={3.4} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg> : null}
       </Animated.View>
     </View>
   );
@@ -238,6 +238,18 @@ function StepRow({ s, state, last, nextFilled, onOpen }: { s: Step; state: 'done
         )}
       </Pressable>
     </View>
+  );
+}
+
+/** A small outlined action button: used wherever an action used to be plain text. */
+export function ChipBtn({ label, onPress, tone = 'default', icon }: { label: string; onPress: () => void; tone?: 'default' | 'danger' | 'dark'; icon?: React.ReactNode }) {
+  const dark = tone === 'dark';
+  return (
+    <Pressable onPress={() => { haptic('select'); onPress(); }} accessibilityRole="button"
+      style={({ pressed, hovered }: PS) => [st.chipBtn, dark && { backgroundColor: C.ink, borderColor: C.ink }, hovered && { ...HOVER_RIM, backgroundColor: dark ? '#000000' : '#ECEDEF' }, pressed && { transform: [{ scale: 0.97 }] }]}>
+      {icon}
+      <Text style={[st.chipBtnText, tone === 'danger' && { color: '#B42318' }, dark && { color: '#fff' }]}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -311,13 +323,13 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename, onSkip 
         <Pressable onPress={() => {}} style={[st.sheet, wide && st.dialog]}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TextInput value={step.label} onChangeText={onRename} style={st.sheetTitle} accessibilityLabel="Step name" />
-            <Pressable onPress={close} hitSlop={12}><Text style={[st.meta, { fontSize: 15 }]}>Done</Text></Pressable>
+            <ChipBtn label="Done" tone="dark" onPress={close} />
           </View>
           {step.item ? (
             <View style={st.current}>
               <Image source={iconFor(step.item.category)} style={{ width: 44, height: 44 }} />
               <View style={{ flex: 1 }}><Text style={st.meta}>{step.item.brand || CATEGORY_LABEL[step.item.category]}</Text><Text style={st.cardTitle}>{step.item.name}</Text></View>
-              <Pressable onPress={onRemove} hitSlop={8}><Text style={{ fontFamily: F.semibold, color: '#C2383D', fontSize: 14 }}>Remove</Text></Pressable>
+              <ChipBtn label="Remove" tone="danger" onPress={onRemove} />
             </View>
           ) : null}
           {step.item && step.item.kind === 'custom' ? (
@@ -334,17 +346,17 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename, onSkip 
               <View style={{ flex: 1 }}><Text style={st.cardTitle}>Snap the ingredient list</Text><Text style={st.meta}>We don’t have this one yet. A photo lets us check it now.</Text></View>
             </Pressable>
           ) : (
-            <View style={{ flexDirection: 'row', gap: 20 }}>
-              {onSkip ? <Pressable onPress={onSkip} hitSlop={8}><Text style={{ fontFamily: F.semibold, color: BLUE, fontSize: 14 }}>{step.skipped ? 'Undo skip' : 'Skip this step'}</Text></Pressable> : null}
-              <Pressable onPress={onRemove} hitSlop={8}><Text style={{ fontFamily: F.medium, color: C.gray, fontSize: 14 }}>Delete this step</Text></Pressable>
+            <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+              {onSkip ? <ChipBtn label={step.skipped ? 'Undo skip' : 'Skip this step'} onPress={onSkip} /> : null}
+              <ChipBtn label="Delete step" tone="danger" onPress={onRemove} />
             </View>
           )}
           <View style={st.search}>
             <TextInput value={q} onChangeText={setQ} placeholder={`Search ${(CATEGORY_LABEL[step.hint] ?? 'products').toLowerCase()}s, brands or tools`} placeholderTextColor={C.gray} style={st.searchInput} autoFocus={wide} returnKeyType="search" />
           </View>
           <View style={{ flexDirection: 'row', gap: 8 }}>
-            <Btn kind="small" label="📷  Scan barcode" onPress={() => scan(false)} />
-            <Btn kind="small" label="Upload photo" onPress={() => scan(true)} style={{ backgroundColor: '#fff', borderWidth: 1, borderColor: '#E3E5E8' }} />
+            <ChipBtn label="Scan barcode" tone="dark" onPress={() => scan(false)} icon={<Svg width={16} height={16} viewBox="0 0 24 24"><Path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M8 9v6M11 9v6M14 9v6M17 9v6" stroke="#fff" strokeWidth={1.8} fill="none" strokeLinecap="round" /></Svg>} />
+            <ChipBtn label="Upload photo" onPress={() => scan(true)} icon={<Svg width={16} height={16} viewBox="0 0 24 24"><Path d="M12 16V5M7 10l5-5 5 5M5 19h14" stroke={C.ink} strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>} />
           </View>
           {busy || msg ? <View style={st.msg}>{busy ? <ActivityIndicator size="small" color={C.ink} /> : null}<Text style={[st.sub, { flex: 1, fontSize: 14 }]}>{msg}</Text></View> : null}
           <ScrollView style={{ maxHeight: wide ? 360 : 320 }} keyboardShouldPersistTaps="handled">
@@ -422,7 +434,7 @@ function TeaserStep({ label, sub, state }: { label: string; sub: string; state: 
   useEffect(() => { Animated.timing(v, { toValue: state === 'done' ? 1 : 0, duration: state === 'done' ? 320 : 0, useNativeDriver: true }).start(); }, [state]);
   return (
     <View style={{ width: 68, alignItems: 'center', gap: 6 }}>
-      <Node state={state} />
+      <Node state={state} check={false} />
       <Text style={{ fontFamily: state === 'empty' ? F.medium : F.semibold, fontSize: 12, color: state === 'empty' ? C.gray : C.ink, textAlign: 'center' }} numberOfLines={1}>{label}</Text>
       <Animated.Text style={{ fontFamily: F.regular, fontSize: 11, color: C.gray, opacity: v, marginTop: -3 }} numberOfLines={1}>{sub}</Animated.Text>
     </View>
@@ -446,7 +458,7 @@ export function LinearTeaser() {
     <View style={{ borderRadius: 24, backgroundColor: '#EEF1FD', paddingHorizontal: 16, paddingTop: 14, paddingBottom: 12, gap: 12, maxWidth: 560 }} accessibilityLabel="Example: adding a wash day routine step by step">
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <Text style={{ fontFamily: F.semibold, fontSize: 13, color: C.ink, flex: 1 }}>Wash day</Text>
-        <Text style={{ fontFamily: F.semibold, fontSize: 12, color: complete ? '#1E7B45' : BLUE }}>{complete ? 'Routine checked ✓' : `${done}/${steps.length} added`}</Text>
+        <Text style={{ fontFamily: F.semibold, fontSize: 12, color: complete ? '#1E7B45' : BLUE }}>{complete ? 'Routine complete' : `${done}/${steps.length} added`}</Text>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
         {steps.map(([label, sub], i) => (
@@ -519,12 +531,14 @@ export const st = StyleSheet.create({
   sub: { fontFamily: F.regular, fontSize: 15, lineHeight: 22, color: C.gray },
   label: { fontFamily: F.semibold, fontSize: 12, letterSpacing: 0.4, color: C.gray },
   meta: { fontFamily: F.medium, fontSize: 13, color: C.gray },
-  pill: { paddingHorizontal: 16, height: 40, borderRadius: 20, justifyContent: 'center', backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#E3E5E8' },
+  pill: { paddingHorizontal: 16, height: 40, borderRadius: 20, justifyContent: 'center', backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#D3D6DB' },
   pillOn: { backgroundColor: C.ink, borderColor: C.ink },
   pillText: { fontFamily: F.medium, fontSize: 14, color: C.ink },
   btn: { height: 54, borderRadius: 27, backgroundColor: C.ink, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28, borderWidth: 1.5, borderColor: C.ink },
-  btnSec: { backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#E3E5E8' },
+  btnSec: { backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#C9CDD3' },
   btnText: { fontFamily: F.semibold, fontSize: 16, color: '#fff' },
+  chipBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 14, borderRadius: 18, borderWidth: 1.5, borderColor: '#C9CDD3', backgroundColor: '#fff', alignSelf: 'flex-start' },
+  chipBtnText: { fontFamily: F.semibold, fontSize: 14, color: C.ink },
   btnSm: { height: 36, borderRadius: 18, backgroundColor: C.ink, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, alignSelf: 'flex-start', borderWidth: 1.5, borderColor: C.ink },
   btnSmText: { fontFamily: F.semibold, fontSize: 13, color: '#fff' },
   seg: { flexDirection: 'row', backgroundColor: '#EEF0F3', borderRadius: 999, padding: 4 },

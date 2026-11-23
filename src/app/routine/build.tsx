@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
-import { BLUE, Btn, Heading, PlusDot, iconFor, Label, PickerSheet, Pill, ScoreBar, Segmented, Shell, st, Timeline, useWide } from '../../components/routine/Kit';
+import { BLUE, Btn, ChipBtn, Heading, PlusDot, iconFor, Label, PickerSheet, Pill, ScoreBar, Segmented, Shell, st, Timeline, useWide } from '../../components/routine/Kit';
 import { icon3d } from '../../data/icons3d';
 import { analyze, buildNew, KIND_COLOR, KIND_LABEL } from '../../lib/routine/gaps';
 import { CATEGORY_LABEL, DAYS, defaultOccasion, newStepId, OCCASION_ICON, OCCASIONS, setRoutine, useCatalog, useRoutine, type RoutineState, type Step } from '../../lib/routine/model';
@@ -55,10 +55,10 @@ export default function Build() {
   const dayNames = s.washDays.map(i => DAYS[i]).join(', ') || 'none yet';
   const body = tab === 'Wash day' ? (
     <View style={{ gap: 20 }}>
-      <Pressable onPress={() => setEditDays(v => !v)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <Text style={st.meta}>{`Wash days: ${dayNames}`}</Text>
-        <Text style={{ fontFamily: F.semibold, fontSize: 13, color: BLUE }}>{editDays ? 'Done' : 'Change'}</Text>
-      </Pressable>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Text style={[st.meta, { flex: 1, fontSize: 14, color: C.gray2 }]}>{`Wash days: ${dayNames}`}</Text>
+        <ChipBtn label={editDays ? 'Done' : 'Change days'} tone={editDays ? 'dark' : 'default'} onPress={() => setEditDays(v => !v)} />
+      </View>
       {editDays ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           {DAYS.map((d, i) => {

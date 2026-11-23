@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Image, Linking, Pressable, ScrollView, Text, View } from 'react-native';
-import { BLUE, Btn, Heading, iconFor, Label, money, NeedInfo, Pill, ProductCard, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
+import { BLUE, Btn, ChipBtn, Heading, iconFor, Label, money, NeedInfo, Pill, ProductCard, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
 import { analyze, picksFor, profileOf, retailerLinks } from '../../lib/routine/gaps';
 import { findByKey, hasInfo, itemKey, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
 import { C, F } from '../../theme';
@@ -36,7 +36,7 @@ export default function Shop() {
           </View>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingLeft: 64 }}>
             {retailerLinks(i).slice(0, 3).map(r => <Pressable key={r.name} onPress={() => Linking.openURL(r.url)} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: '#F1F3F5' }}><Text style={{ fontFamily: F.medium, fontSize: 12, color: C.gray2 }}>{`${r.name} ↗`}</Text></Pressable>)}
-            <Pressable onPress={() => toggle(itemKey(i))} style={{ paddingHorizontal: 10, paddingVertical: 5 }}><Text style={{ fontFamily: F.medium, fontSize: 12, color: '#C2383D' }}>Remove</Text></Pressable>
+            <ChipBtn label="Remove" tone="danger" onPress={() => toggle(itemKey(i))} />
           </View>
         </View>
       ))}
