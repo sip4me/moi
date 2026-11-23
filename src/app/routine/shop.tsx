@@ -100,7 +100,7 @@ export default function Shop() {
         </View>
       ))}
       {!wide && bag.length ? <View style={{ backgroundColor: '#fff', borderRadius: 24, padding: 20 }}>{bagPanel}</View> : null}
-      <Label>{`Product data: Moi database${cat.products.length ? ` · ${cat.products.length} products, ${cat.tools.length} tools` : ''}`}</Label>
+      <Label>{`Product data: Moi database and Open Beauty Facts contributors (ODbL)`}</Label>
     </Shell>
   );
 }

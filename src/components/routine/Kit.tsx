@@ -1,12 +1,13 @@
 import { router } from 'expo-router';
-import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View, type ViewStyle } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import Svg, { Path } from 'react-native-svg';
+import { ActivityIndicator, Animated, Easing, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View, type ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { icon3d } from '../../data/icons3d';
 import { haptic } from '../../lib/haptics';
 import { itemFromPhoto, submitTyped, takeProductPhoto } from '../../lib/routine/capture';
 import { KIND_COLOR, KIND_LABEL, retailerLinks, type Gap } from '../../lib/routine/gaps';
-import { CATEGORY_ICON, CATEGORY_LABEL, classify, searchCatalogLocal, TOOL_KINDS, useCatalog, type Item, type Step } from '../../lib/routine/model';
+import { CATEGORY_ICON, CATEGORY_LABEL, classify, searchCatalogLocal, searchRemote, TOOL_KINDS, useCatalog, type Item, type Step } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 
 export const BLUE = '#5B8DEF';
@@ -125,34 +126,87 @@ export function Segmented({ options, value, onChange }: { options: string[]; val
 }
 
 // ── Timeline ─────────────────────────────────────────────────────────────────
-export function Timeline({ steps, onOpen, active }: { steps: Step[]; onOpen: (s: Step) => void; active?: string }) {
+// Filled steps get a blue check node; the rail below a filled step draws itself down to the next one,
+// and the first empty step pulses as "Up next" so it's clear where to add next.
+function Rail({ filled, empty }: { filled: boolean; empty: boolean }) {
+  const v = useRef(new Animated.Value(filled ? 1 : 0)).current;
+  useEffect(() => { Animated.timing(v, { toValue: filled ? 1 : 0, duration: 520, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start(); }, [filled]);
   return (
-    <View>
-      {steps.map((s, i) => {
-        const last = i === steps.length - 1;
-        const empty = !s.item;
-        const on = s.id === active;
-        return (
-          <View key={s.id} style={{ flexDirection: 'row', gap: 14 }}>
-            <View style={{ width: 18, alignItems: 'center', paddingTop: 20 }}>
-              <View style={[st.node, empty && st.nodeEmpty, on && st.nodeOn]} />
-              {!last ? <View style={[st.rail, empty && { backgroundColor: '#D9DDE2' }]} /> : null}
+    <View style={[st.rail, { backgroundColor: empty ? '#E1E4E8' : '#D6E2FB' }]}>
+      <Animated.View style={{ position: 'absolute', left: 0, right: 0, top: 0, backgroundColor: BLUE, height: v.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }} />
+    </View>
+  );
+}
+
+function Node({ state }: { state: 'done' | 'next' | 'empty' }) {
+  const pulse = useRef(new Animated.Value(0)).current;
+  const pop = useRef(new Animated.Value(state === 'done' ? 1 : 0)).current;
+  useEffect(() => {
+    if (state !== 'next') return;
+    const loop = Animated.loop(Animated.timing(pulse, { toValue: 1, duration: 1400, easing: Easing.out(Easing.quad), useNativeDriver: true }));
+    loop.start();
+    return () => { loop.stop(); pulse.setValue(0); };
+  }, [state]);
+  useEffect(() => { Animated.spring(pop, { toValue: state === 'done' ? 1 : 0, friction: 5, tension: 160, useNativeDriver: true }).start(); }, [state]);
+  return (
+    <View style={{ width: 20, height: 20, alignItems: 'center', justifyContent: 'center' }}>
+      {state === 'next' ? <Animated.View style={{ position: 'absolute', width: 20, height: 20, borderRadius: 10, backgroundColor: BLUE, opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0] }), transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 2.2] }) }] }} /> : null}
+      <View style={[st.node, state === 'empty' && st.nodeEmpty, state === 'next' && st.nodeOn]} />
+      <Animated.View style={{ position: 'absolute', width: 20, height: 20, borderRadius: 10, backgroundColor: BLUE, alignItems: 'center', justifyContent: 'center', opacity: pop, transform: [{ scale: pop }] }}>
+        <Svg width={11} height={11} viewBox="0 0 24 24"><Path d="m5 12.5 4.5 4.5L19 7.5" stroke="#fff" strokeWidth={3.4} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
+      </Animated.View>
+    </View>
+  );
+}
+
+function StepRow({ s, state, last, nextFilled, onOpen }: { s: Step; state: 'done' | 'next' | 'empty'; last: boolean; nextFilled: boolean; onOpen: () => void }) {
+  const empty = !s.item;
+  const appear = useRef(new Animated.Value(1)).current;
+  const prev = useRef(s.item?.name);
+  useEffect(() => {
+    if (s.item?.name && s.item.name !== prev.current) { appear.setValue(0); Animated.spring(appear, { toValue: 1, friction: 7, tension: 120, useNativeDriver: true }).start(); }
+    prev.current = s.item?.name;
+  }, [s.item?.name]);
+  const next = state === 'next';
+  return (
+    <View style={{ flexDirection: 'row', gap: 14 }}>
+      <View style={{ width: 20, alignItems: 'center', paddingTop: 18 }}>
+        <Node state={state} />
+        {!last ? <Rail filled={!empty} empty={empty && !next} /> : null}
+      </View>
+      <Pressable onPress={() => { haptic('select'); onOpen(); }} style={({ pressed }) => [{ flex: 1, paddingBottom: 12 }, pressed && { opacity: 0.85 }]}>
+        <Animated.View style={[st.stepCard, empty && st.stepEmpty, next && st.stepNext, { opacity: appear, transform: [{ scale: appear.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) }] }]}>
+          {!empty ? <Image source={iconFor(s.item!.category)} style={st.stepIcon} /> : null}
+          <View style={{ flex: 1, gap: 3 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={[st.stepTitle, empty && !next && { color: C.gray2 }]} numberOfLines={1}>{empty ? `+ Add ${(CATEGORY_LABEL[s.hint] ?? s.label).toLowerCase()}` : s.label}</Text>
+              {next ? <View style={st.upNext}><Text style={st.upNextText}>Up next</Text></View> : s.when && !empty ? <Text style={st.meta}>{s.when}</Text> : null}
             </View>
-            <Pressable onPress={() => { haptic('select'); onOpen(s); }} style={({ pressed }) => [{ flex: 1, paddingBottom: 12 }, pressed && { opacity: 0.85 }]}>
-              <View style={[st.stepCard, empty && st.stepEmpty, on && st.stepOn]}>
-                {!empty ? <Image source={iconFor(s.item!.category)} style={st.stepIcon} /> : null}
-                <View style={{ flex: 1, gap: 3 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Text style={[st.stepTitle, empty && { color: C.gray2 }, on && { color: '#fff' }]} numberOfLines={1}>{empty ? `+ Add ${(CATEGORY_LABEL[s.hint] ?? s.label).toLowerCase()}` : s.label}</Text>
-                    {s.when && !empty ? <Text style={[st.meta, on && { color: '#E6EEFF' }]}>{s.when}</Text> : null}
-                  </View>
-                  <Text style={[st.stepSub, on && { color: '#E6EEFF' }]} numberOfLines={2}>{empty ? `${s.label} · search, scan a barcode, or skip` : `${s.item!.brand ? `${s.item!.brand} · ` : ''}${s.item!.name}`}</Text>
-                </View>
-              </View>
-            </Pressable>
+            <Text style={st.stepSub} numberOfLines={2}>{empty ? `${s.label} · search, scan a barcode, or skip` : `${s.item!.brand ? `${s.item!.brand} · ` : ''}${s.item!.name}`}</Text>
           </View>
-        );
-      })}
+        </Animated.View>
+      </Pressable>
+    </View>
+  );
+}
+
+export function Timeline({ steps, onOpen }: { steps: Step[]; onOpen: (s: Step) => void; active?: string }) {
+  const nextIdx = steps.findIndex(s => !s.item);
+  const done = steps.filter(s => s.item).length;
+  return (
+    <View style={{ gap: 12 }}>
+      {steps.length ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <View style={[st.bar, { flex: 1, height: 6 }]}><View style={[st.barFill, { height: 6, width: `${Math.round((done / steps.length) * 100)}%` }]} /></View>
+          <Text style={st.meta}>{done === steps.length ? 'All steps added' : `${done} of ${steps.length} added`}</Text>
+        </View>
+      ) : null}
+      <View>
+        {steps.map((s, i) => (
+          <StepRow key={s.id} s={s} last={i === steps.length - 1} nextFilled={!!steps[i + 1]?.item}
+            state={s.item ? 'done' : i === nextIdx ? 'next' : 'empty'} onOpen={() => onOpen(s)} />
+        ))}
+      </View>
     </View>
   );
 }
@@ -164,7 +218,15 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename }: { ste
   const [q, setQ] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
-  const results = useMemo(() => (step ? searchCatalogLocal(cat, q, step.hint).slice(0, 12) : []), [cat, q, step]);
+  const local = useMemo(() => (step ? searchCatalogLocal(cat, q, step.hint).slice(0, 12) : []), [cat, q, step]);
+  const [remote, setRemote] = useState<Item[]>([]);
+  useEffect(() => {
+    if (q.trim().length < 2) { setRemote([]); return; }
+    let live = true;
+    const t = setTimeout(() => { searchRemote(q).then(r => { if (live) setRemote(r); }).catch(() => {}); }, 250);
+    return () => { live = false; clearTimeout(t); };
+  }, [q]);
+  const results = useMemo(() => { const seen = new Set(local.map(i => `${i.kind}${i.id}`)); return [...local, ...remote.filter(i => !seen.has(`${i.kind}${i.id}`))].slice(0, 30); }, [local, remote]);
   if (!step) return null;
   const close = () => { setQ(''); setMsg(''); onClose(); };
   const pick = (i: Item) => { onPick(i); setQ(''); setMsg(''); };
@@ -319,10 +381,13 @@ export const st = StyleSheet.create({
   node: { width: 14, height: 14, borderRadius: 7, borderWidth: 2, borderColor: BLUE, backgroundColor: '#fff' },
   nodeEmpty: { borderColor: '#B8BEC6', borderStyle: 'dashed', borderWidth: 1.5, backgroundColor: C.bg },
   nodeOn: { width: 18, height: 18, borderRadius: 9, borderWidth: 5 },
-  rail: { flex: 1, width: 2, backgroundColor: '#BFD3FA', marginTop: 2 },
+  rail: { flex: 1, width: 2, backgroundColor: '#D6E2FB', marginTop: 2, overflow: 'hidden', borderRadius: 1 },
   stepCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 14 },
   stepEmpty: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#C9CDD2', borderStyle: 'dashed' },
   stepOn: { backgroundColor: BLUE },
+  stepNext: { backgroundColor: '#fff', borderWidth: 1.5, borderColor: BLUE, borderStyle: 'dashed', shadowColor: BLUE, shadowOpacity: 0.16, shadowRadius: 16, shadowOffset: { width: 0, height: 6 } },
+  upNext: { backgroundColor: '#EAF1FF', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
+  upNextText: { fontFamily: F.semibold, fontSize: 11, color: BLUE },
   stepIcon: { width: 40, height: 40 },
   stepTitle: { flex: 1, fontFamily: F.semibold, fontSize: 16, color: C.ink },
   stepSub: { fontFamily: F.regular, fontSize: 14, lineHeight: 19, color: C.gray },

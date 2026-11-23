@@ -119,7 +119,7 @@ export function loadCatalog(): Promise<Catalog> {
     const sb = supabase();
     if (!sb) return catalog;
     const [p, t] = await Promise.all([
-      sb.from('kb_products').select('id,brand,name,category,price_usd,tags,hair_types').order('popularity', { ascending: false }).limit(2000),
+      sb.from('kb_products').select('id,brand,name,category,price_usd,tags,hair_types').eq('hair', true).order('popularity', { ascending: false }).limit(2000),
       sb.from('kb_tools').select('id,brand,name,kind,price_usd,helps,hair_types').limit(1000),
     ]);
     catalog = {
@@ -174,4 +174,16 @@ export function classify(name: string, ingredients = ''): { category: string; ta
   if (category === 'heat_protectant') tags.push('heat_protect');
   if (/shea butter|castor oil|coconut oil/.test(ing)) tags.push('heavy_oil');
   return { category, tags };
+}
+
+/** Searches the whole database (local results only cover the most popular products). */
+export async function searchRemote(q: string): Promise<Item[]> {
+  const sb = supabase();
+  const term = q.trim().toLowerCase().replace(/[%_,()]/g, ' ');
+  if (!sb || term.length < 2) return [];
+  const words = term.split(/\s+/).filter(Boolean).slice(0, 4);
+  let query = sb.from('kb_products').select('id,brand,name,category,price_usd,tags,hair_types').eq('hair', true);
+  for (const w of words) query = query.ilike('search', `%${w}%`);
+  const { data } = await query.order('popularity', { ascending: false }).limit(25);
+  return (data ?? []).map((r: any) => ({ kind: 'product' as const, id: r.id, brand: r.brand, name: r.name, category: r.category, tags: r.tags ?? [], price: r.price_usd, hairTypes: r.hair_types ?? [] }));
 }
