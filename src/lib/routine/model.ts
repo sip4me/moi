@@ -26,6 +26,7 @@ export type RoutineState = {
   occ: Record<string, Step[]>;
   bag: string[]; // item keys: p:<id> / t:<id>
   built: boolean; // a "new" routine has been generated
+  welcomed?: boolean; // has seen the Moi welcome screen
 };
 
 // ── Vocabulary ────────────────────────────────────────────────────────────────
