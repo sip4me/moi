@@ -49,7 +49,7 @@ export default function Start() {
     </View>
   );
   return (
-    <Shell footer={wide ? undefined : <><Btn label="Continue" onPress={go} /><Text style={[st.meta, { textAlign: 'center', fontSize: 12 }]}>Free. No account needed.</Text></>}>
+    <Shell active="start" footer={wide ? undefined : <><Btn label="Continue" onPress={go} /><Text style={[st.meta, { textAlign: 'center', fontSize: 12 }]}>Free. No account needed.</Text></>}>
       {wide ? (
         <View style={{ flexDirection: 'row', gap: 56, alignItems: 'flex-start', paddingTop: 24 }}>
           {left}

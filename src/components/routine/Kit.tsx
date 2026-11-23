@@ -9,6 +9,7 @@ import { ingredientsFromPhoto, itemFromPhoto, submitTyped, takeProductPhoto } fr
 import { KIND_COLOR, KIND_LABEL, retailerLinks, type Gap } from '../../lib/routine/gaps';
 import { CATEGORY_ICON, CATEGORY_LABEL, classify, searchCatalogLocal, searchRemote, TOOL_KINDS, useCatalog, type Item, type Step } from '../../lib/routine/model';
 import { C, F } from '../../theme';
+import { useStore } from '../../state/store';
 
 export const BLUE = '#5B8DEF';
 export const crownImg = require('../../../assets/crown-pink.png');
@@ -22,26 +23,33 @@ const NAV = [
   { key: 'gaps', label: 'Gap report', icon: 'mirror', href: '/routine/gaps' },
   { key: 'shop', label: 'Shop', icon: 'hair_food', href: '/routine/shop' },
   { key: 'goals', label: 'Goals & hair', icon: 'learn', href: '/routine/goals' },
+  { key: 'tracker', label: 'Routine tracker', icon: 'goal_target', href: 'tracker' },
 ] as const;
+
+/** The daily tracker add-on: Moi's original app (its onboarding the first time). */
+function useGo() {
+  const { onboarded } = useStore();
+  return (href: string) => (href === 'tracker' ? router.push((onboarded ? '/(tabs)' : '/onboarding') as any) : router.replace(href as any));
+}
 
 export function Shell({ active, children, side, footer, step }: { active?: string; children: React.ReactNode; side?: React.ReactNode; footer?: React.ReactNode; step?: string }) {
   const wide = useWide();
+  const go = useGo();
   if (wide) {
     return (
       <View style={{ flex: 1, flexDirection: 'row', backgroundColor: C.bg }}>
         <View style={st.sidebar}>
-          <Pressable onPress={() => router.push('/')} style={st.brand}><Image source={crownImg} style={{ width: 24, height: 24 }} /><Text style={st.brandText}>Moi Routine</Text></Pressable>
+          <Pressable onPress={() => router.replace('/routine')} style={st.brand}><Image source={crownImg} style={{ width: 24, height: 24 }} /><Text style={st.brandText}>Moi Routine</Text></Pressable>
           {NAV.map(n => {
             const on = n.key === active;
             return (
-              <Pressable key={n.key} onPress={() => { haptic('select'); router.replace(n.href as any); }} style={({ pressed }) => [st.nav, on && st.navOn, pressed && { opacity: 0.7 }]}>
+              <Pressable key={n.key} onPress={() => { haptic('select'); go(n.href); }} style={({ pressed }) => [st.nav, on && st.navOn, pressed && { opacity: 0.7 }, n.key === 'tracker' && st.navAddon]}>
                 <Image source={icon3d(n.icon)} style={{ width: 24, height: 24, opacity: on ? 1 : 0.6 }} />
                 <Text style={[st.navText, on && { fontFamily: F.semibold, color: C.ink }]}>{n.label}</Text>
               </Pressable>
             );
           })}
           <View style={{ flex: 1 }} />
-          <Pressable onPress={() => router.push('/')} style={st.nav}><Text style={[st.navText, { color: C.gray }]}>← Back to Moi</Text></Pressable>
         </View>
         <View style={{ flex: 1 }}>
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 56, paddingTop: 48, paddingBottom: 48, maxWidth: 860, width: '100%', gap: 32 }}>
@@ -56,7 +64,7 @@ export function Shell({ active, children, side, footer, step }: { active?: strin
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top', 'bottom']}>
       <View style={st.mHeader}>
-        <Pressable onPress={() => router.push('/')} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><Image source={crownImg} style={{ width: 22, height: 22 }} /><Text style={st.brandText}>Moi Routine</Text></Pressable>
+        <Pressable onPress={() => router.replace('/routine')} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><Image source={crownImg} style={{ width: 22, height: 22 }} /><Text style={st.brandText}>Moi Routine</Text></Pressable>
         <View style={{ flex: 1 }} />
         {step ? <Text style={st.meta}>{step}</Text> : null}
       </View>
@@ -70,9 +78,9 @@ export function Shell({ active, children, side, footer, step }: { active?: strin
           {NAV.map(n => {
             const on = n.key === active;
             return (
-              <Pressable key={n.key} onPress={() => { haptic('select'); router.replace(n.href as any); }} style={st.tab}>
+              <Pressable key={n.key} onPress={() => { haptic('select'); go(n.href); }} style={st.tab}>
                 <Image source={icon3d(n.icon)} style={{ width: 26, height: 26, opacity: on ? 1 : 0.5 }} />
-                <Text style={[st.tabText, on && { color: C.ink, fontFamily: F.semibold }]}>{n.label === 'Goals & hair' ? 'Goals' : n.label === 'Gap report' ? 'Gaps' : n.label}</Text>
+                <Text style={[st.tabText, on && { color: C.ink, fontFamily: F.semibold }]}>{n.label === 'Goals & hair' ? 'Goals' : n.label === 'Gap report' ? 'Gaps' : n.label === 'Routine tracker' ? 'Tracker' : n.label}</Text>
               </Pressable>
             );
           })}
@@ -382,6 +390,7 @@ export const st = StyleSheet.create({
   brandText: { fontFamily: F.bold, fontSize: 17, color: C.ink },
   nav: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 12, height: 44, borderRadius: 14 },
   navOn: { backgroundColor: '#fff' },
+  navAddon: { marginTop: 12, borderTopWidth: 1, borderTopColor: '#E3E5E8', borderTopLeftRadius: 0, borderTopRightRadius: 0, paddingTop: 12, height: 56 },
   navText: { fontFamily: F.medium, fontSize: 15, color: C.gray2 },
   side: { width: 360, flexGrow: 0, backgroundColor: '#fff', borderLeftWidth: 1, borderLeftColor: '#EEF0F3' },
   mHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, height: 52 },
