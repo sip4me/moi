@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import React from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Image, Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { Btn, Label, Shell, st, Timeline, useWide } from '../../components/routine/Kit';
 import { icon3d } from '../../data/icons3d';
 import { haptic } from '../../lib/haptics';
@@ -18,6 +18,7 @@ const PREVIEW: Step[] = [
 export default function Start() {
   const s = useRoutine();
   const wide = useWide();
+  const roomy = useWindowDimensions().width >= 1100;
   const choice = (mode: 'check' | 'new', title: string, body: string, icon: string) => {
     const on = s.mode === mode;
     return (
@@ -50,7 +51,7 @@ export default function Start() {
   );
   return (
     <Shell active="start" footer={wide ? undefined : <><Btn label="Continue" onPress={go} /><Text style={[st.meta, { textAlign: 'center', fontSize: 12 }]}>Free. No account needed.</Text></>}>
-      {wide ? (
+      {wide && roomy ? (
         <View style={{ flexDirection: 'row', gap: 56, alignItems: 'flex-start', paddingTop: 24 }}>
           {left}
           <View style={{ width: 380, borderRadius: 32, padding: 24, backgroundColor: '#EEF1FD', gap: 16 }}>
