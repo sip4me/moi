@@ -34,7 +34,7 @@ function tagsFrom(ing, category) {
 }
 
 function toRow(get) {
-  const code = get('code'); const name = (get('product_name') || '').trim(); const brand = (get('brands') || '').split(',')[0].trim();
+  const code = get('code'); const name = (get('product_name') || '').trim(); const brand = (get('brands_en') || get('brands') || (get('brands_tags') || '').split(',')[0].replace(/^xx:/, '').replace(/-/g, ' ') || '').split(',')[0].trim();
   if (!code || !name || !brand || name.length > 200 || brand.length > 80) return null;
   const cats = (get('categories_tags') || '').replace(/,/g, ' ');
   const lname = name.toLowerCase();
