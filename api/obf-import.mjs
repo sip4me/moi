@@ -80,14 +80,18 @@ export default async function handler(req, res) {
   if (!secret || req.headers['x-cron-secret'] !== secret) return res.status(403).send('Forbidden');
   const t0 = Date.now();
   const cur = await call(secret, { mode: 'cursor', feed: FEED });
-  if (cur.done) return res.json({ done: true });
+  if (cur.done && !req.body?.debug) return res.json({ done: true });
   let resp = null;
   for (const u of DUMPS) { const r = await fetch(u, { headers: { 'User-Agent': 'MoiRoutine/1.0 (hello@moi.app)' } }); if (r.ok && r.body) { resp = { r, gz: u.endsWith('.gz') }; break; } }
   if (!resp) return res.status(502).json({ error: 'dump not reachable' });
   const body = resp.gz ? resp.r.body.pipeThrough(new DecompressionStream('gzip')) : resp.r.body;
   let header = null; let row = 0; let batch = []; let saved = 0; let finished = true;
   for await (const line of lines(body)) {
-    if (!header) { header = line.split('\t'); continue; }
+    if (!header) {
+      header = line.replace(/^\uFEFF/, '').split('\t').map(h => h.trim());
+      if (req.body?.debug) { const sample = []; return res.json({ header, url: resp.r.url }); }
+      continue;
+    }
     row++;
     if (row <= cur.next_page) continue;
     const cols = line.split('\t');
