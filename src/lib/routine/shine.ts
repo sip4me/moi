@@ -38,15 +38,21 @@ const CSS = `
 [data-fill="champagne"] { background-image: linear-gradient(90deg, #E9D6A8 0%, #C9A86A 50%, #9E7F45 100%) !important; }
 [data-fill="champagne-coin"] { background-image: radial-gradient(circle at 32% 28%, #FFF3D1 0%, #E4C98E 38%, #C9A86A 62%, #9E7F45 100%) !important; }
 [data-fill="cobalt-dot"] { background-image: radial-gradient(circle at 34% 30%, #8FA4F0 0%, #4058D8 55%, #2B3FC8 100%) !important; }
-/* Main buttons: frosted glass with blurred colour inside and an iridescent rim (the reference "+" pill). */
-[data-fill="garnet"] { position: relative; isolation: isolate; overflow: hidden; background-color: #DCE2F1 !important; background-image: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(228,233,245,0.3)) !important; border-color: rgba(255,255,255,0.92) !important;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.65), inset 0 0 14px rgba(255,255,255,0.55), -8px 0 22px -8px rgba(110,160,255,0.65), 8px 0 22px -8px rgba(245,140,190,0.65), 0 12px 24px -10px rgba(60,70,140,0.38); transition: box-shadow .25s ease; }
-[data-fill="garnet"]::before { content: ""; position: absolute; inset: -25%; z-index: -1; pointer-events: none;
-  background: radial-gradient(22% 50% at 24% 52%, #2E6B7E 0%, rgba(46,107,126,0) 72%), radial-gradient(22% 55% at 78% 50%, #16263D 0%, rgba(22,38,61,0) 74%), radial-gradient(40% 75% at 51% 50%, rgba(168,87,106,0.9) 0%, rgba(168,87,106,0) 72%), radial-gradient(70% 100% at 50% 60%, rgba(91,110,220,0.5), rgba(91,110,220,0) 78%);
-  filter: blur(9px); transition: filter .25s ease, transform .4s ease; }
-[data-fill="garnet"]:hover { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.75), inset 0 0 16px rgba(255,255,255,0.45), -10px 0 26px -8px rgba(110,160,255,0.8), 10px 0 26px -8px rgba(245,140,190,0.8), 0 10px 20px -10px rgba(60,70,140,0.45); }
-[data-fill="garnet"]:hover::before { filter: blur(9px) brightness(0.78) saturate(1.25); transform: scale(1.06); }
-[data-fill="garnet"] div, [data-fill="garnet"] svg { text-shadow: 0 1px 2px rgba(10,14,30,0.45); }
+/* Main buttons: frosted soft glass. Milky white, blush and peach glow along the top, lilac on round buttons, soft shadow. */
+[data-fill="garnet"], [data-fill="lilac"] { position: relative; isolation: isolate; overflow: hidden; background-color: #F7F2F5 !important; background-image: linear-gradient(180deg, rgba(255,255,255,0.78) 0%, rgba(246,240,246,0.62) 100%) !important; border-color: rgba(255,255,255,0.95) !important;
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.9), inset 0 1px 0 #FFFFFF, 0 18px 26px -14px rgba(40,45,60,0.28), 0 4px 8px -4px rgba(40,45,60,0.12); transition: box-shadow .25s ease, transform .2s ease; }
+[data-fill="garnet"]::before, [data-fill="lilac"]::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(60% 70% at 18% 0%, rgba(255,170,190,0.55), rgba(255,170,190,0) 70%), radial-gradient(55% 70% at 85% 0%, rgba(255,215,170,0.5), rgba(255,215,170,0) 70%), radial-gradient(70% 60% at 50% 100%, rgba(250,222,232,0.6), rgba(250,222,232,0) 75%);
+  transition: filter .25s ease, opacity .25s ease; }
+/* Round buttons (the + and the welcome arrow) lean lilac, like the circle in the reference. */
+[data-fill="garnet"]:hover, [data-fill="lilac"]:hover { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.95), inset 0 1px 0 #FFFFFF, 0 14px 22px -12px rgba(40,45,60,0.34), 0 3px 6px -3px rgba(40,45,60,0.16); }
+[data-fill="garnet"]:hover::before, [data-fill="lilac"]:hover::before { filter: saturate(1.6) brightness(0.96); }
+[data-fill="garnet"]:active, [data-fill="lilac"]:active { transform: translateY(1px); }
+[data-fill="garnet"] div, [data-fill="lilac"] div { color: #1F2430 !important; text-shadow: none !important; }
+[data-fill="garnet"] svg [stroke]:not([stroke="none"]), [data-fill="lilac"] svg [stroke]:not([stroke="none"]) { stroke: #1F2430 !important; }
+[data-fill="garnet"] svg [fill="#fff"], [data-fill="garnet"] svg [fill="#FFFFFF"], [data-fill="garnet"] svg [fill="white"], [data-fill="lilac"] svg [fill="#fff"], [data-fill="lilac"] svg [fill="#FFFFFF"], [data-fill="lilac"] svg [fill="white"] { fill: #1F2430 !important; }
+[data-fill="lilac"]::before { background: radial-gradient(70% 70% at 30% 10%, rgba(175,190,255,0.6), rgba(175,190,255,0) 70%), radial-gradient(70% 70% at 80% 90%, rgba(235,215,250,0.55), rgba(235,215,250,0) 75%); }
 /* Secondary buttons and chips: raised pearl pills. */
 [data-fill="pearl"] { background-image: linear-gradient(180deg, #FFFFFF 0%, #F1F3F8 100%) !important; border-color: rgba(255,255,255,0.95) !important; box-shadow: 0 12px 24px -12px rgba(40,50,90,0.3), 0 2px 5px rgba(40,50,90,0.06), inset 0 1px 0 #FFFFFF; transition: box-shadow .2s ease; }
 [data-fill="pearl"]:hover { background-image: linear-gradient(180deg, #F2F4F9 0%, #E3E7F0 100%) !important; box-shadow: 0 8px 18px -10px rgba(40,50,90,0.35), 0 1px 3px rgba(40,50,90,0.08), inset 0 1px 0 #FFFFFF; }
@@ -68,4 +74,4 @@ if (Platform.OS === 'web' && typeof document !== 'undefined' && !document.getEle
 /** Props that give a Text shiny letters (web) — spread onto <Text>. */
 export const shine = (kind: 'chrome' | 'rose' | 'titanium' | 'blush') => (Platform.OS === 'web' ? ({ dataSet: { shine: kind } } as any) : {});
 /** Props that give a View a jewellery fill (web). */
-export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'pearl' | 'pearl-on' | 'pearl-ask') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});
+export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'lilac' | 'pearl' | 'pearl-on' | 'pearl-ask') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});

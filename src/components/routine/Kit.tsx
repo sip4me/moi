@@ -258,7 +258,7 @@ export function ChipBtn({ label, onPress, tone = 'default', icon }: { label: str
 /** The round "+" that says: tap here to add a product. */
 export function PlusDot({ solid, size = 32 }: { solid?: boolean; size?: number }) {
   return (
-    <View {...fill(solid ? 'garnet' : 'pearl')} style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: solid ? PALETTE.garnet : '#fff', borderWidth: 1.5, borderColor: solid ? PALETTE.garnet : '#C4C8CE' }} accessibilityElementsHidden importantForAccessibility="no">
+    <View {...fill(solid ? 'lilac' : 'pearl')} style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: solid ? PALETTE.garnet : '#fff', borderWidth: 1.5, borderColor: solid ? PALETTE.garnet : '#C4C8CE' }} accessibilityElementsHidden importantForAccessibility="no">
       <Svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24"><Path d="M12 5v14M5 12h14" stroke={solid ? '#fff' : PALETTE.garnet} strokeWidth={2.6} strokeLinecap="round" /></Svg>
     </View>
   );

@@ -67,8 +67,8 @@ export default function Welcome() {
             <Animated.Text {...shine('blush')} style={{ fontFamily: F.display, fontSize: 28, lineHeight: 34, letterSpacing: 0.2, color: '#C99A96', marginTop: 22, transform: [{ translateY: float.interpolate({ inputRange: [0, 1], outputRange: [0, -7] }) }] }}>beauty is genius</Animated.Text>
           </Animated.View>
           <Animated.View style={[{ marginTop: 56 }, rise(arrow)]}>
-            <Pressable {...fill('garnet')} onPress={go} accessibilityRole="button" accessibilityLabel="Continue to Find the gaps in your hair routine"
-              style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => ({ width: 64, height: 64, borderRadius: 22, borderWidth: 1.5, borderColor: hovered ? PALETTE.garnetDeep : PALETTE.garnet, backgroundColor: hovered ? PALETTE.garnetDeep : PALETTE.garnet, alignItems: 'center', justifyContent: 'center', shadowColor: PALETTE.garnetDeep, shadowOpacity: 0.3, shadowRadius: 14, shadowOffset: { width: 0, height: 12 }, transform: [{ scale: pressed ? 0.94 : 1 }] })}>
+            <Pressable {...fill('lilac')} onPress={go} accessibilityRole="button" accessibilityLabel="Continue to Find the gaps in your hair routine"
+              style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => ({ width: 64, height: 64, borderRadius: 32, borderWidth: 1.5, borderColor: hovered ? PALETTE.garnetDeep : PALETTE.garnet, backgroundColor: hovered ? PALETTE.garnetDeep : PALETTE.garnet, alignItems: 'center', justifyContent: 'center', shadowColor: PALETTE.garnetDeep, shadowOpacity: 0.3, shadowRadius: 14, shadowOffset: { width: 0, height: 12 }, transform: [{ scale: pressed ? 0.94 : 1 }] })}>
               <Animated.View style={{ transform: [{ translateX: nudge.interpolate({ inputRange: [0, 1], outputRange: [-3, 4] }) }] }}>
                 <Svg width={24} height={24} viewBox="0 0 24 24"><Path d="M5 12h13M13 6l6 6-6 6" stroke="#fff" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
               </Animated.View>
