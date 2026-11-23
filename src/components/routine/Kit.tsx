@@ -7,7 +7,7 @@ import { icon3d } from '../../data/icons3d';
 import { haptic } from '../../lib/haptics';
 import { ingredientsFromPhoto, itemFromPhoto, submitTyped, takeProductPhoto } from '../../lib/routine/capture';
 import { KIND_COLOR, KIND_LABEL, retailerLinks, type Gap } from '../../lib/routine/gaps';
-import { CATEGORY_ICON, CATEGORY_LABEL, classify, searchCatalogLocal, searchRemote, TOOL_KINDS, useCatalog, type Item, type Step } from '../../lib/routine/model';
+import { CATEGORY_ICON, CATEGORY_LABEL, classify, isHydrated, searchCatalogLocal, searchRemote, setRoutine, useRoutine, TOOL_KINDS, useCatalog, type Item, type Step } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 import { useStore } from '../../state/store';
 
@@ -32,60 +32,95 @@ function useGo() {
   return (href: string) => (href === 'tracker' ? router.push((onboarded ? '/(tabs)' : '/onboarding') as any) : router.replace(href as any));
 }
 
+function MenuButton({ onPress, hint }: { onPress: () => void; hint: boolean }) {
+  const pulse = useRef(new Animated.Value(0)).current;
+  const tip = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (!hint) return;
+    const loop = Animated.loop(Animated.sequence([
+      Animated.timing(pulse, { toValue: 1, duration: 1300, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+      Animated.delay(250),
+    ]));
+    loop.start();
+    Animated.timing(tip, { toValue: 1, duration: 400, delay: 1200, useNativeDriver: true }).start();
+    return () => { loop.stop(); pulse.setValue(0); };
+  }, [hint]);
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      <View style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+        {hint ? <Animated.View pointerEvents="none" style={{ position: 'absolute', width: 44, height: 44, borderRadius: 22, backgroundColor: BLUE, opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0] }), transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.9] }) }] }} /> : null}
+        <Pressable onPress={() => { haptic('select'); onPress(); }} accessibilityRole="button" accessibilityLabel="Open menu"
+          style={({ pressed }) => [st.menuBtn, pressed && { transform: [{ scale: 0.94 }] }]}>
+          <Image source={crownImg} style={{ width: 24, height: 24 }} />
+        </Pressable>
+      </View>
+      {hint ? (
+        <Animated.View pointerEvents="none" style={[st.tip, { opacity: tip, transform: [{ translateX: tip.interpolate({ inputRange: [0, 1], outputRange: [-6, 0] }) }] }]}>
+          <View style={st.tipArrow} />
+          <Text style={st.tipText}>Tap to explore</Text>
+        </Animated.View>
+      ) : null}
+    </View>
+  );
+}
+
+function Menu({ open, onClose, active }: { open: boolean; onClose: () => void; active?: string }) {
+  const go = useGo();
+  const wide = useWide();
+  const x = useRef(new Animated.Value(0)).current;
+  useEffect(() => { Animated.timing(x, { toValue: open ? 1 : 0, duration: 240, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start(); }, [open]);
+  if (!open) return null;
+  return (
+    <Modal transparent visible animationType="fade" onRequestClose={onClose}>
+      <Pressable style={st.menuScrim} onPress={onClose}>
+        <Animated.View style={[st.menuPanel, { width: wide ? 300 : '82%', transform: [{ translateX: x.interpolate({ inputRange: [0, 1], outputRange: [-40, 0] }) }] }]}>
+          <Pressable onPress={() => {}} style={{ flex: 1, gap: 4 }}>
+            <View style={[st.brand, { paddingBottom: 20 }]}><Image source={crownImg} style={{ width: 24, height: 24 }} /><Text style={st.brandText}>Moi Routine</Text></View>
+            {NAV.map(n => {
+              const on = n.key === active;
+              return (
+                <Pressable key={n.key} onPress={() => { haptic('select'); onClose(); go(n.href); }} style={({ pressed }) => [st.nav, on && st.navOn, pressed && { opacity: 0.7 }, n.key === 'tracker' && st.navAddon]}>
+                  <Image source={icon3d(n.icon)} style={{ width: 26, height: 26, opacity: on ? 1 : 0.75 }} />
+                  <Text style={[st.navText, on && { fontFamily: F.semibold, color: C.ink }]}>{n.label}</Text>
+                </Pressable>
+              );
+            })}
+          </Pressable>
+        </Animated.View>
+      </Pressable>
+    </Modal>
+  );
+}
+
 export function Shell({ active, children, side, footer, step }: { active?: string; children: React.ReactNode; side?: React.ReactNode; footer?: React.ReactNode; step?: string }) {
   const wide = useWide();
-  const go = useGo();
-  if (wide) {
-    return (
-      <View style={{ flex: 1, flexDirection: 'row', backgroundColor: C.bg }}>
-        <View style={st.sidebar}>
-          <Pressable onPress={() => router.replace('/routine')} style={st.brand}><Image source={crownImg} style={{ width: 24, height: 24 }} /><Text style={st.brandText}>Moi Routine</Text></Pressable>
-          {NAV.map(n => {
-            const on = n.key === active;
-            return (
-              <Pressable key={n.key} onPress={() => { haptic('select'); go(n.href); }} style={({ pressed }) => [st.nav, on && st.navOn, pressed && { opacity: 0.7 }, n.key === 'tracker' && st.navAddon]}>
-                <Image source={icon3d(n.icon)} style={{ width: 24, height: 24, opacity: on ? 1 : 0.6 }} />
-                <Text style={[st.navText, on && { fontFamily: F.semibold, color: C.ink }]}>{n.label}</Text>
-              </Pressable>
-            );
-          })}
-          <View style={{ flex: 1 }} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 56, paddingTop: 48, paddingBottom: 48, maxWidth: 860, width: '100%', gap: 32 }}>
-            {children}
-          </ScrollView>
-          {footer ? <View style={st.wFooter}><View style={{ maxWidth: 860 - 112, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 12 }}>{footer}</View></View> : null}
-        </View>
-        {side ? <ScrollView style={st.side} contentContainerStyle={{ padding: 24, gap: 16 }}>{side}</ScrollView> : null}
-      </View>
-    );
-  }
+  const r = useRoutine();
+  const [menu, setMenu] = useState(false);
+  const openMenu = () => { setMenu(true); if (!r.menuSeen) setRoutine(x => ({ ...x, menuSeen: true })); };
+  const top = (
+    <View style={[st.topBar, wide && { paddingHorizontal: 32, paddingTop: 20 }]}>
+      <MenuButton onPress={openMenu} hint={isHydrated() && !r.menuSeen} />
+      <View style={{ flex: 1 }} />
+      {step ? <Text style={st.meta}>{step}</Text> : null}
+    </View>
+  );
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top', 'bottom']}>
-      <View style={st.mHeader}>
-        <Pressable onPress={() => router.replace('/routine')} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><Image source={crownImg} style={{ width: 22, height: 22 }} /><Text style={st.brandText}>Moi Routine</Text></Pressable>
-        <View style={{ flex: 1 }} />
-        {step ? <Text style={st.meta}>{step}</Text> : null}
-      </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 40, gap: 24 }} showsVerticalScrollIndicator={false}>
-        {children}
-        {side ? <View style={{ gap: 16 }}>{side}</View> : null}
-      </ScrollView>
-      {footer ? <View style={st.mFooter}>{footer}</View> : null}
-      {active ? (
-        <View style={st.tabbar}>
-          {NAV.map(n => {
-            const on = n.key === active;
-            return (
-              <Pressable key={n.key} onPress={() => { haptic('select'); go(n.href); }} style={st.tab}>
-                <Image source={icon3d(n.icon)} style={{ width: 26, height: 26, opacity: on ? 1 : 0.5 }} />
-                <Text style={[st.tabText, on && { color: C.ink, fontFamily: F.semibold }]}>{n.label === 'Goals & hair' ? 'Goals' : n.label === 'Gap report' ? 'Gaps' : n.label === 'Routine tracker' ? 'Tracker' : n.label}</Text>
-              </Pressable>
-            );
-          })}
+      {top}
+      <View style={{ flex: 1, flexDirection: 'row' }}>
+        <View style={{ flex: 1 }}>
+          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}
+            contentContainerStyle={wide ? { paddingHorizontal: 56, paddingTop: 24, paddingBottom: 48, gap: 32, width: '100%', maxWidth: 920, alignSelf: 'center' } : { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 40, gap: 24 }}>
+            {children}
+            {!wide && side ? <View style={{ gap: 16 }}>{side}</View> : null}
+          </ScrollView>
+          {footer ? (wide
+            ? <View style={st.wFooter}><View style={{ maxWidth: 808, width: '100%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 12 }}>{footer}</View></View>
+            : <View style={st.mFooter}>{footer}</View>) : null}
         </View>
-      ) : null}
+        {wide && side ? <ScrollView style={st.side} contentContainerStyle={{ padding: 24, gap: 16 }}>{side}</ScrollView> : null}
+      </View>
+      <Menu open={menu} onClose={() => setMenu(false)} active={active} />
     </SafeAreaView>
   );
 }
@@ -448,6 +483,13 @@ export const st = StyleSheet.create({
   navText: { fontFamily: F.medium, fontSize: 15, color: C.gray2 },
   side: { width: 360, flexGrow: 0, backgroundColor: '#fff', borderLeftWidth: 1, borderLeftColor: '#EEF0F3' },
   mHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, height: 52 },
+  topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4, minHeight: 56 },
+  menuBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 3 } },
+  tip: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.ink, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7 },
+  tipArrow: { position: 'absolute', left: -4, top: '50%', marginTop: -4, width: 8, height: 8, backgroundColor: C.ink, transform: [{ rotate: '45deg' }] },
+  tipText: { fontFamily: F.semibold, fontSize: 13, color: '#fff' },
+  menuScrim: { flex: 1, backgroundColor: 'rgba(20,20,24,0.28)' },
+  menuPanel: { position: 'absolute', left: 0, top: 0, bottom: 0, backgroundColor: '#F8F9FA', paddingHorizontal: 16, paddingTop: 28, paddingBottom: 24, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 24, shadowOffset: { width: 6, height: 0 } },
   wFooter: { paddingHorizontal: 56, paddingVertical: 16, borderTopWidth: 1, borderTopColor: '#EEF0F3', backgroundColor: C.bg },
   mFooter: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12, backgroundColor: C.bg, gap: 8 },
   tabbar: { flexDirection: 'row', backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#F0F1F3', paddingTop: 8, paddingBottom: 6 },

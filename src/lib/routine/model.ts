@@ -27,6 +27,7 @@ export type RoutineState = {
   bag: string[]; // item keys: p:<id> / t:<id>
   built: boolean; // a "new" routine has been generated
   welcomed?: boolean; // has seen the Moi welcome screen
+  menuSeen?: boolean; // has opened the menu once (stops the tap hint)
 };
 
 // ── Vocabulary ────────────────────────────────────────────────────────────────
@@ -97,7 +98,7 @@ let hydrated = false;
 const subs = new Set<() => void>();
 const emit = () => subs.forEach(f => f());
 let saveT: ReturnType<typeof setTimeout> | null = null;
-AsyncStorage.getItem(KEY).then(v => { if (v) { try { const saved = { ...initial(), ...JSON.parse(v) }; state = { ...saved, wash: withOilSteps(saved.wash) }; } catch {} } hydrated = true; emit(); }).catch(() => { hydrated = true; emit(); });
+AsyncStorage.getItem(KEY).then(v => { if (v) { try { const saved = { ...initial(), ...JSON.parse(v) }; state = { ...saved, wash: withOilSteps(saved.wash) }; } catch {} } else state = { ...state }; hydrated = true; emit(); }).catch(() => { state = { ...state }; hydrated = true; emit(); });
 
 export function setRoutine(fn: (s: RoutineState) => RoutineState) {
   state = fn(state);
