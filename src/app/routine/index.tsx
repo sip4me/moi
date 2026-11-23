@@ -7,11 +7,12 @@ import { haptic } from '../../lib/haptics';
 import { setRoutine, useRoutine, type Step } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 
+// Generic steps only: no product names until the person has told us about their hair and routine.
 const PREVIEW: Step[] = [
-  { id: 'a', label: 'Cleanse', hint: 'shampoo', when: 'Every wash', item: { kind: 'product', brand: 'Kristin Ess', name: 'The One Signature Shampoo', category: 'shampoo', tags: [] } },
-  { id: 'b', label: 'Condition', hint: 'conditioner', when: '3 min', item: { kind: 'product', brand: 'Olaplex', name: 'No. 5 Bond Maintenance Conditioner', category: 'conditioner', tags: [] } },
+  { id: 'a', label: 'Cleanse', hint: 'shampoo', when: 'Every wash', item: { kind: 'custom', brand: '', name: 'Your shampoo', category: 'shampoo', tags: [] } },
+  { id: 'b', label: 'Condition', hint: 'conditioner', when: '3 min', item: { kind: 'custom', brand: '', name: 'Your conditioner', category: 'conditioner', tags: [] } },
   { id: 'c', label: 'Heat protectant', hint: 'heat_protectant' },
-  { id: 'd', label: 'Style', hint: 'flat_iron', when: 'Next day', item: { kind: 'tool', brand: 'GHD', name: 'Platinum+ Styler', category: 'flat_iron', tags: [] } },
+  { id: 'd', label: 'Style', hint: 'flat_iron' },
 ];
 
 export default function Start() {
@@ -53,7 +54,7 @@ export default function Start() {
         <View style={{ flexDirection: 'row', gap: 56, alignItems: 'flex-start', paddingTop: 24 }}>
           {left}
           <View style={{ width: 380, borderRadius: 32, padding: 24, backgroundColor: '#EEF1FD', gap: 16 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}><Text style={[st.h1, { fontSize: 24, flex: 1 }]}>Wash day</Text><Text style={[st.meta, { color: '#5B8DEF', fontFamily: F.semibold }]}>Routine fit 64</Text></View>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}><Text style={[st.h1, { fontSize: 24, flex: 1 }]}>Wash day</Text><Text style={[st.meta, { color: '#5B8DEF', fontFamily: F.semibold }]}>Example</Text></View>
             <Timeline steps={PREVIEW} onOpen={go} active="b" />
           </View>
         </View>

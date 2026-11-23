@@ -20,6 +20,7 @@ export default function Build() {
   const cat = useCatalog();
   const wide = useWide();
   const [tab, setTab] = useState('Wash day');
+  const [editDays, setEditDays] = useState(false);
   const [open, setOpen] = useState<{ w: Where; id: string } | null>(null);
   const { score, gaps } = useMemo(() => analyze(s, cat), [s, cat]);
 
@@ -51,21 +52,26 @@ export default function Build() {
     </View>
   );
 
+  const dayNames = s.washDays.map(i => DAYS[i]).join(', ') || 'none yet';
   const body = tab === 'Wash day' ? (
     <View style={{ gap: 20 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: wide ? 8 : 0, justifyContent: wide ? 'flex-start' : 'space-between' }}>
-        {DAYS.map((d, i) => {
-          const on = s.washDays.includes(i);
-          return (
-            <Pressable key={d} accessibilityRole="checkbox" accessibilityState={{ checked: on }} onPress={() => setRoutine(r => ({ ...r, washDays: on ? r.washDays.filter(x => x !== i) : [...r.washDays, i].sort() }))}
-              style={{ width: 44, height: 64, borderRadius: 16, alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: on ? '#EAF1FF' : 'transparent' }}>
-              <Text style={{ fontFamily: on ? F.semibold : F.medium, fontSize: 13, color: on ? BLUE : C.gray }}>{d}</Text>
-              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: on ? BLUE : '#D9DDE2' }} />
-            </Pressable>
-          );
-        })}
-      </View>
-      <Label>{`${s.washDays.length} wash day${s.washDays.length === 1 ? '' : 's'} a week · ${s.wash.length} steps`}</Label>
+      <Pressable onPress={() => setEditDays(v => !v)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <Text style={st.meta}>{`Wash days: ${dayNames}`}</Text>
+        <Text style={{ fontFamily: F.semibold, fontSize: 13, color: BLUE }}>{editDays ? 'Done' : 'Change'}</Text>
+      </Pressable>
+      {editDays ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          {DAYS.map((d, i) => {
+            const on = s.washDays.includes(i);
+            return (
+              <Pressable key={d} accessibilityRole="checkbox" accessibilityState={{ checked: on }} onPress={() => setRoutine(r => ({ ...r, washDays: on ? r.washDays.filter(x => x !== i) : [...r.washDays, i].sort() }))}
+                style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? BLUE : '#fff', borderWidth: 1, borderColor: on ? BLUE : '#E3E5E8' }}>
+                <Text style={{ fontFamily: F.semibold, fontSize: 12, color: on ? '#fff' : C.gray2 }}>{d.slice(0, 2)}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      ) : null}
       {list({ list: 'wash' }, s.wash)}
     </View>
   ) : tab === 'Everyday' ? (
@@ -91,31 +97,13 @@ export default function Build() {
     </View>
   );
 
-  const live = (
-    <View style={{ gap: 14 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <Text style={{ fontFamily: F.bold, fontSize: 40, color: C.ink }}>{score}</Text>
-        <View><Text style={st.meta}>Routine fit</Text><Text style={[st.meta, { fontFamily: F.regular }]}>Updates as you add</Text></View>
-      </View>
-      <ScoreBar score={score} />
-      <Label>{gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'} so far` : 'No gaps. Nice routine.'}</Label>
-      {gaps.slice(0, 6).map(g => (
-        <Pressable key={g.id} onPress={() => router.push({ pathname: '/routine/gaps', params: { g: g.id } })} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 4 }}>
-          <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: KIND_COLOR[g.kind].bg, alignItems: 'center', justifyContent: 'center' }}><Image source={iconFor(g.fills[0])} style={{ width: 32, height: 32 }} /></View>
-          <View style={{ flex: 1 }}><Text style={{ fontFamily: F.semibold, fontSize: 12, color: KIND_COLOR[g.kind].fg }}>{KIND_LABEL[g.kind]}</Text><Text style={st.cardTitle}>{g.title}</Text></View>
-        </Pressable>
-      ))}
-      <Btn label="See full gap report" onPress={() => router.push('/routine/gaps')} />
-    </View>
-  );
-
-  const summary = `Wash day ${s.wash.filter(x => x.item).length} · Everyday ${s.every.filter(x => x.item).length} · Occasions ${s.occasions.length}`;
   return (
-    <Shell active="build" step="2 of 3" side={wide ? live : undefined}
-      footer={wide ? undefined : <><Btn label={`See my gaps · fit ${score}`} onPress={() => router.push('/routine/gaps')} /><Text style={[st.meta, { textAlign: 'center', fontSize: 12 }]}>{summary}</Text></>}>
-      <Heading title={s.mode === 'new' ? 'Your new routine' : 'Your routine'} sub={s.mode === 'new' ? 'We picked a product for every step your goals need. Tap a step to swap it.' : 'Add each product in the order you use it. Leave a step empty if you skip it.'}
-        right={wide ? <View style={{ width: 380 }}><Segmented options={['Wash day', 'Everyday', 'Occasions']} value={tab} onChange={setTab} /></View> : undefined} />
-      {!wide ? <Segmented options={['Wash day', 'Everyday', 'Occasions']} value={tab} onChange={setTab} /> : null}
+    <Shell active="build" step="2 of 3"
+      footer={wide
+        ? <><Text style={[st.meta, { flex: 1 }]}>{`Routine fit ${score} · ${gaps.length} gap${gaps.length === 1 ? '' : 's'} so far`}</Text><Btn label="See my gaps" onPress={() => router.push('/routine/gaps')} /></>
+        : <Btn label={`See my gaps · fit ${score}`} onPress={() => router.push('/routine/gaps')} />}>
+      <Heading title={s.mode === 'new' ? 'Your new routine' : 'Your routine'} sub={s.mode === 'new' ? 'We picked a product for each step. Tap one to swap it.' : 'Add products in the order you use them.'} />
+      <View style={{ maxWidth: 420 }}><Segmented options={['Wash day', 'Everyday', 'Occasions']} value={tab} onChange={setTab} /></View>
       {s.mode === 'new' && !s.goals.length ? <Text style={st.sub}>Pick your goals first so we know what to build.</Text> : null}
       {body}
       <PickerSheet step={openStep} onClose={() => setOpen(null)}

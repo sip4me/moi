@@ -91,10 +91,14 @@ export function fitOf(i: Item, s: RoutineState): number {
 }
 
 /** Ranked picks that fill a gap. */
+/** Hides rows whose names are too thin to recommend (e.g. brand repeated as the name). */
+export const goodName = (i: Item) => !!i.name && !!i.brand && i.name.trim().length >= 6 && i.name.trim().toLowerCase() !== i.brand.trim().toLowerCase();
+
 export function picksFor(g: Gap, s: RoutineState, cat: Catalog, n = 3): { item: Item; fit: number }[] {
-  const pool = (g.kind === 'tool' ? cat.tools : cat.products).filter(i => g.fills.includes(i.category) && i.id !== g.replace?.id && (!g.needTag || i.tags.includes(g.needTag)));
+  const pool = (g.kind === 'tool' ? cat.tools : cat.products).filter(i => g.fills.includes(i.category) && i.id !== g.replace?.id && (!g.needTag || i.tags.includes(g.needTag)) && (i.kind === 'tool' || goodName(i)));
   const cheaper = g.kind === 'budget' && g.replace?.price ? pool.filter(i => (i.price ?? 999) <= g.replace!.price! * 0.6) : pool;
-  return cheaper.map(item => ({ item, fit: fitOf(item, s) })).sort((a, b) => b.fit - a.fit || (a.item.price ?? 0) - (b.item.price ?? 0)).slice(0, n);
+  // Products we can price and link come first, then best fit.
+  return cheaper.map(item => ({ item, fit: fitOf(item, s) })).sort((a, b) => Number(b.item.price != null) - Number(a.item.price != null) || b.fit - a.fit || (a.item.price ?? 0) - (b.item.price ?? 0)).slice(0, n);
 }
 
 /** For "Build me a new one": the steps a routine for these goals should have, each filled with the best pick. */

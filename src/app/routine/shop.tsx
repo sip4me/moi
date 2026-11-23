@@ -1,9 +1,9 @@
 import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Image, Linking, Pressable, ScrollView, Text, View } from 'react-native';
-import { BLUE, Btn, Heading, iconFor, Label, money, Pill, ProductCard, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
+import { BLUE, Btn, Heading, iconFor, Label, money, NeedInfo, Pill, ProductCard, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
 import { analyze, picksFor, profileOf, retailerLinks } from '../../lib/routine/gaps';
-import { findByKey, itemKey, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
+import { findByKey, hasInfo, itemKey, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 
 export default function Shop() {
@@ -17,7 +17,7 @@ export default function Shop() {
   const after = useMemo(() => analyze(s, cat, bag).score, [s, cat, bag.length]);
   const max = profileOf(s).budgetMax;
   const rows = gaps.map(g => ({ g, picks: picksFor(g, s, cat, 6).filter(p => (!budgetOnly || (p.item.price ?? 0) <= max || max > 999) && (!under15 || (p.item.price ?? 0) <= 15)).slice(0, 3) })).filter(r => r.picks.length);
-  const bundle = rows.map(r => r.picks[0].item);
+  const bundle = rows.map(r => r.picks[0].item).filter(i => i.price != null);
   const bundleAfter = useMemo(() => analyze(s, cat, bundle).score, [s, cat, bundle.length]);
   const total = (items: Item[]) => items.reduce((a, i) => a + (i.price ?? 0), 0);
   const toggle = (k: string) => setRoutine(r => ({ ...r, bag: r.bag.includes(k) ? r.bag.filter(x => x !== k) : [...r.bag, k] }));
@@ -68,8 +68,9 @@ export default function Shop() {
     </View>
   );
 
+  if (!hasInfo(s)) return <Shell active="shop"><NeedInfo goals={s.goals.length > 0} /></Shell>;
   return (
-    <Shell active="shop" side={wide ? bagPanel : undefined}
+    <Shell active="shop" side={wide && bag.length ? bagPanel : undefined}
       footer={!wide && bag.length ? <Pressable onPress={() => {}} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><View style={{ flex: 1 }}><Text style={st.cardTitle}>{`${bag.length} in bag · about ${money(Math.round(total(bag)))}`}</Text><Text style={st.meta}>{`Routine fit ${score} → ${after}`}</Text></View></Pressable> : undefined}>
       <Heading title="Complete your routine" sub="Only products that fill one of your gaps, ranked by fit for your hair and budget." />
       {bundle.length > 1 ? (

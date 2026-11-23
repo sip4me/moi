@@ -43,8 +43,8 @@ export const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export const CATEGORY_LABEL: Record<string, string> = {
   shampoo: 'Shampoo', clarifying: 'Clarifying shampoo', conditioner: 'Conditioner', deep_conditioner: 'Deep conditioner',
-  leave_in: 'Leave-in', heat_protectant: 'Heat protectant', styler: 'Styler', oil: 'Oil or serum', scalp_treatment: 'Scalp treatment',
-  bond_builder: 'Bond repair', color: 'Hair color', relaxer: 'Relaxer or perm', dry_shampoo: 'Dry shampoo', swim: 'Swim care', anti_dandruff: 'Anti-dandruff shampoo', pre_wash: 'Pre-wash',
+  leave_in: 'Leave-in', heat_protectant: 'Heat protectant', styler: 'Styler', oil: 'Hair oil', scalp_treatment: 'Scalp treatment',
+  bond_builder: 'Bond repair', color: 'Hair color', relaxer: 'Relaxer or perm', dry_shampoo: 'Dry shampoo', swim: 'Swim care', anti_dandruff: 'Anti-dandruff shampoo', pre_wash: 'Pre-poo oil',
   flat_iron: 'Flat iron', blow_dryer: 'Blow dryer', diffuser: 'Diffuser', curling_iron: 'Curling iron', fine_comb: 'Fine-tooth comb',
   wide_tooth_comb: 'Wide-tooth comb', wet_brush: 'Wet brush', satin_pillowcase: 'Satin pillowcase', bonnet: 'Bonnet',
   microfiber_towel: 'Microfiber towel', swim_cap: 'Swim cap', scrunchie_soft: 'Soft scrunchies', scalp_massager: 'Scalp massager',
@@ -64,7 +64,18 @@ let n = 0;
 const sid = () => `s${Date.now().toString(36)}${(n++).toString(36)}`;
 const step = (label: string, hint: string, when?: string): Step => ({ id: sid(), label, hint, when });
 
-export const defaultWash = () => [step('Cleanse', 'shampoo', 'Every wash'), step('Condition', 'conditioner', '3 min'), step('Leave-in', 'leave_in'), step('Detangle', 'wide_tooth_comb', 'Wet'), step('Style', 'styler')];
+export const defaultWash = () => [step('Pre-poo oil', 'pre_wash', 'Before washing'), step('Cleanse', 'shampoo', 'Every wash'), step('Condition', 'conditioner', '3 min'), step('Oil after conditioner', 'oil', 'Damp ends'), step('Leave-in', 'leave_in'), step('Detangle', 'wide_tooth_comb', 'Wet'), step('Style', 'styler')];
+
+/** Older saved routines get the pre-poo and after-conditioner oil spots too. */
+function withOilSteps(wash: Step[]): Step[] {
+  let out = [...wash];
+  if (!out.some(x => x.hint === 'pre_wash')) out = [step('Pre-poo oil', 'pre_wash', 'Before washing'), ...out];
+  if (!out.some(x => x.hint === 'oil')) {
+    const i = out.findIndex(x => x.hint === 'conditioner');
+    out.splice(i >= 0 ? i + 1 : out.length, 0, step('Oil after conditioner', 'oil', 'Damp ends'));
+  }
+  return out;
+}
 export const defaultEvery = () => [step('Morning refresh', 'leave_in', 'Morning'), step('Style', 'styler'), step('Night', 'satin_pillowcase', 'Night')];
 export const defaultOccasion = (o: string): Step[] => ({
   Swimming: [step('Before', 'leave_in', 'Pool'), step('Protect', 'swim_cap'), step('After', 'swim', 'Rinse')],
@@ -85,7 +96,7 @@ let hydrated = false;
 const subs = new Set<() => void>();
 const emit = () => subs.forEach(f => f());
 let saveT: ReturnType<typeof setTimeout> | null = null;
-AsyncStorage.getItem(KEY).then(v => { if (v) { try { state = { ...initial(), ...JSON.parse(v) }; } catch {} } hydrated = true; emit(); }).catch(() => { hydrated = true; emit(); });
+AsyncStorage.getItem(KEY).then(v => { if (v) { try { const saved = { ...initial(), ...JSON.parse(v) }; state = { ...saved, wash: withOilSteps(saved.wash) }; } catch {} } hydrated = true; emit(); }).catch(() => { hydrated = true; emit(); });
 
 export function setRoutine(fn: (s: RoutineState) => RoutineState) {
   state = fn(state);
@@ -148,7 +159,7 @@ export function searchCatalogLocal(c: Catalog, q: string, hint?: string): Item[]
   const scored = all.map(i => {
     const hay = `${i.brand} ${i.name} ${CATEGORY_LABEL[i.category] ?? i.category}`.toLowerCase();
     const hit = words.every(w => hay.includes(w));
-    return { i, s: (hit ? 10 : 0) + (hint && i.category === hint ? 5 : 0) };
+    return { i, s: (hit ? 10 : 0) + (hint && (i.category === hint || (hint === 'pre_wash' && i.category === 'oil')) ? 5 : 0) };
   }).filter(x => (words.length ? x.s >= 10 : x.s > 0));
   return scored.sort((a, b) => b.s - a.s).slice(0, 30).map(x => x.i);
 }
@@ -187,3 +198,6 @@ export async function searchRemote(q: string): Promise<Item[]> {
   const { data } = await query.order('popularity', { ascending: false }).limit(25);
   return (data ?? []).map((r: any) => ({ kind: 'product' as const, id: r.id, brand: r.brand, name: r.name, category: r.category, tags: r.tags ?? [], price: r.price_usd, hairTypes: r.hair_types ?? [] }));
 }
+
+/** True once the person has told us enough to judge: goals, plus a routine (entered or built). */
+export const hasInfo = (s: RoutineState) => s.goals.length > 0 && (s.mode === 'new' ? s.built : allSteps(s).some(x => !!x.step.item));

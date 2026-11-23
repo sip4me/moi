@@ -103,7 +103,7 @@ export default function Settings() {
 
   const signedIn = account && !account.anonymous;
   const who = account?.email ?? account?.phone ?? '';
-  const version = Constants.expoConfig?.version ?? '2.0.3';
+  const version = Constants.expoConfig?.version ?? '2.0.4';
   const hairProfile = [answers.texture, answers.length, answers.porosity && `${answers.porosity} porosity`].filter(Boolean).join(' · ');
 
   const open = (url: string) => (url ? openLink(url) : setSheet('soon'));

@@ -43,10 +43,12 @@ export function Shell({ active, children, side, footer, step }: { active?: strin
           <View style={{ flex: 1 }} />
           <Pressable onPress={() => router.push('/')} style={st.nav}><Text style={[st.navText, { color: C.gray }]}>← Back to Moi</Text></Pressable>
         </View>
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 48, paddingTop: 44, paddingBottom: 64, maxWidth: 1000, width: '100%', gap: 32 }}>
-          {children}
-          {footer ? <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12 }}>{footer}</View> : null}
-        </ScrollView>
+        <View style={{ flex: 1 }}>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 56, paddingTop: 48, paddingBottom: 48, maxWidth: 860, width: '100%', gap: 32 }}>
+            {children}
+          </ScrollView>
+          {footer ? <View style={st.wFooter}><View style={{ maxWidth: 860 - 112, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 12 }}>{footer}</View></View> : null}
+        </View>
         {side ? <ScrollView style={st.side} contentContainerStyle={{ padding: 24, gap: 16 }}>{side}</ScrollView> : null}
       </View>
     );
@@ -83,8 +85,8 @@ export function Shell({ active, children, side, footer, step }: { active?: strin
 export function Heading({ title, sub, right }: { title: string; sub?: string; right?: React.ReactNode }) {
   const wide = useWide();
   return (
-    <View style={{ flexDirection: wide ? 'row' : 'column', alignItems: wide ? 'flex-end' : 'stretch', gap: wide ? 24 : 16 }}>
-      <View style={{ flex: wide ? 1 : undefined, gap: 6 }}>
+    <View style={{ gap: 16, maxWidth: 720 }}>
+      <View style={{ gap: 6 }}>
         <Text style={[st.h1, { fontSize: wide ? 44 : 34, lineHeight: wide ? 48 : 38 }]}>{title}</Text>
         {sub ? <Text style={st.sub}>{sub}</Text> : null}
       </View>
@@ -175,14 +177,14 @@ function StepRow({ s, state, last, nextFilled, onOpen }: { s: Step; state: 'done
         {!last ? <Rail filled={!empty} empty={empty && !next} /> : null}
       </View>
       <Pressable onPress={() => { haptic('select'); onOpen(); }} style={({ pressed }) => [{ flex: 1, paddingBottom: 12 }, pressed && { opacity: 0.85 }]}>
-        <Animated.View style={[st.stepCard, empty && st.stepEmpty, next && st.stepNext, { opacity: appear, transform: [{ scale: appear.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) }] }]}>
+        <Animated.View style={[st.stepCard, empty && !next && st.stepQuiet, next && st.stepNext, { opacity: appear, transform: [{ scale: appear.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) }] }]}>
           {!empty ? <Image source={iconFor(s.item!.category)} style={st.stepIcon} /> : null}
           <View style={{ flex: 1, gap: 3 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Text style={[st.stepTitle, empty && !next && { color: C.gray2 }]} numberOfLines={1}>{empty ? `+ Add ${(CATEGORY_LABEL[s.hint] ?? s.label).toLowerCase()}` : s.label}</Text>
               {next ? <View style={st.upNext}><Text style={st.upNextText}>Up next</Text></View> : s.when && !empty ? <Text style={st.meta}>{s.when}</Text> : null}
             </View>
-            <Text style={st.stepSub} numberOfLines={2}>{empty ? `${s.label} · search, scan a barcode, or skip` : `${s.item!.brand ? `${s.item!.brand} · ` : ''}${s.item!.name}`}</Text>
+            {empty && !next ? null : <Text style={st.stepSub} numberOfLines={2}>{empty ? 'Search, scan a barcode, or skip' : `${s.item!.brand ? `${s.item!.brand} · ` : ''}${s.item!.name}`}</Text>}
           </View>
         </Animated.View>
       </Pressable>
@@ -198,7 +200,7 @@ export function Timeline({ steps, onOpen }: { steps: Step[]; onOpen: (s: Step) =
       {steps.length ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <View style={[st.bar, { flex: 1, height: 6 }]}><View style={[st.barFill, { height: 6, width: `${Math.round((done / steps.length) * 100)}%` }]} /></View>
-          <Text style={st.meta}>{done === steps.length ? 'All steps added' : `${done} of ${steps.length} added`}</Text>
+          <Text style={st.meta}>{done === steps.length ? 'All added' : `${done}/${steps.length}`}</Text>
         </View>
       ) : null}
       <View>
@@ -341,6 +343,17 @@ export function ProductCard({ item, fit, best, inBag, onAdd, width }: { item: It
   );
 }
 
+export function NeedInfo({ goals }: { goals: boolean }) {
+  return (
+    <View style={{ gap: 16, maxWidth: 520, paddingTop: 8 }}>
+      <Image source={icon3d(goals ? 'conditioner' : 'learn')} style={{ width: 72, height: 72 }} />
+      <Text style={[st.h1, { fontSize: 30, lineHeight: 34 }]}>{goals ? 'Add your routine first' : 'Tell us about your hair first'}</Text>
+      <Text style={st.sub}>{goals ? 'Add at least one product you use, and we\u2019ll check it against your goals.' : 'Pick your goals and a few details about your hair. Then we can judge your routine.'}</Text>
+      <Btn label={goals ? 'Add my routine' : 'Start with my goals'} onPress={() => router.push(goals ? '/routine/build' : '/routine/goals')} style={{ alignSelf: 'flex-start' }} />
+    </View>
+  );
+}
+
 export function WhereToBuy({ item }: { item: Item }) {
   return (
     <View style={st.wtb}>
@@ -372,6 +385,7 @@ export const st = StyleSheet.create({
   navText: { fontFamily: F.medium, fontSize: 15, color: C.gray2 },
   side: { width: 360, flexGrow: 0, backgroundColor: '#fff', borderLeftWidth: 1, borderLeftColor: '#EEF0F3' },
   mHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, height: 52 },
+  wFooter: { paddingHorizontal: 56, paddingVertical: 16, borderTopWidth: 1, borderTopColor: '#EEF0F3', backgroundColor: C.bg },
   mFooter: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12, backgroundColor: C.bg, gap: 8 },
   tabbar: { flexDirection: 'row', backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#F0F1F3', paddingTop: 8, paddingBottom: 6 },
   tab: { flex: 1, alignItems: 'center', gap: 3 },
@@ -399,6 +413,7 @@ export const st = StyleSheet.create({
   stepCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 14 },
   stepEmpty: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#C9CDD2', borderStyle: 'dashed' },
   stepOn: { backgroundColor: BLUE },
+  stepQuiet: { backgroundColor: 'transparent', paddingVertical: 10 },
   stepNext: { backgroundColor: '#fff', borderWidth: 1.5, borderColor: BLUE, borderStyle: 'dashed', shadowColor: BLUE, shadowOpacity: 0.16, shadowRadius: 16, shadowOffset: { width: 0, height: 6 } },
   upNext: { backgroundColor: '#EAF1FF', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
   upNextText: { fontFamily: F.semibold, fontSize: 11, color: BLUE },
