@@ -64,7 +64,7 @@ export default function Welcome() {
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 20, paddingHorizontal: 24 }}>
           <Animated.View style={rise(logo)}><Logo size={104} color={C.ink} letterProps={shine('chrome')} /></Animated.View>
           <Animated.View style={rise(line)}>
-            <Animated.Text {...shine('blush')} style={{ fontFamily: F.display, fontSize: 28, lineHeight: 34, letterSpacing: 0.2, color: '#C99A96', marginTop: -2, transform: [{ translateY: float.interpolate({ inputRange: [0, 1], outputRange: [0, -7] }) }] }}>beauty is genius</Animated.Text>
+            <Animated.Text {...shine('blush')} style={{ fontFamily: F.display, fontSize: 28, lineHeight: 34, letterSpacing: 0.2, color: '#C99A96', marginTop: 22, transform: [{ translateY: float.interpolate({ inputRange: [0, 1], outputRange: [0, -7] }) }] }}>beauty is genius</Animated.Text>
           </Animated.View>
           <Animated.View style={[{ marginTop: 56 }, rise(arrow)]}>
             <Pressable {...fill('garnet')} onPress={go} accessibilityRole="button" accessibilityLabel="Continue to Find the gaps in your hair routine"
