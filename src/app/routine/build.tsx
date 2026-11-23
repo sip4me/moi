@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
-import { BLUE, Btn, Heading, iconFor, Label, PickerSheet, Pill, ScoreBar, Segmented, Shell, st, Timeline, useWide } from '../../components/routine/Kit';
+import { BLUE, Btn, Heading, PlusDot, iconFor, Label, PickerSheet, Pill, ScoreBar, Segmented, Shell, st, Timeline, useWide } from '../../components/routine/Kit';
 import { icon3d } from '../../data/icons3d';
 import { analyze, buildNew, KIND_COLOR, KIND_LABEL } from '../../lib/routine/gaps';
 import { CATEGORY_LABEL, DAYS, defaultOccasion, newStepId, OCCASION_ICON, OCCASIONS, setRoutine, useCatalog, useRoutine, type RoutineState, type Step } from '../../lib/routine/model';
@@ -48,7 +48,7 @@ export default function Build() {
   const list = (w: Where, steps: Step[]) => (
     <View style={{ gap: 4 }}>
       <Timeline steps={steps} onOpen={x => setOpen({ w, id: x.id })} />
-      <Pressable onPress={() => addStep(w)} style={({ hovered }: { pressed: boolean; hovered?: boolean }) => ({ marginLeft: 26, paddingHorizontal: 6, paddingVertical: 6, alignSelf: 'flex-start', borderRadius: 10, borderWidth: 1.5, borderColor: hovered ? C.ink : 'transparent', backgroundColor: hovered ? '#ECEDEF' : 'transparent' })}><Text style={{ fontFamily: F.semibold, fontSize: 15, color: BLUE }}>+ Add another step</Text></Pressable>
+      <Pressable onPress={() => addStep(w)} style={({ hovered }: { pressed: boolean; hovered?: boolean }) => ({ marginLeft: 26, paddingHorizontal: 6, paddingVertical: 6, alignSelf: 'flex-start', borderRadius: 10, borderWidth: 1.5, borderColor: hovered ? C.ink : 'transparent', backgroundColor: hovered ? '#ECEDEF' : 'transparent' })}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}><PlusDot size={28} /><Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>Add another step</Text></View></Pressable>
     </View>
   );
 
@@ -72,6 +72,7 @@ export default function Build() {
           })}
         </View>
       ) : null}
+      <View style={{ height: 1, backgroundColor: '#E6E8EB' }} accessibilityElementsHidden importantForAccessibility="no" />
       {list({ list: 'wash' }, s.wash)}
     </View>
   ) : tab === 'Everyday' ? (

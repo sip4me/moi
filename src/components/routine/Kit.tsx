@@ -180,7 +180,7 @@ function Rail({ filled, empty }: { filled: boolean; empty: boolean }) {
   const v = useRef(new Animated.Value(filled ? 1 : 0)).current;
   useEffect(() => { Animated.timing(v, { toValue: filled ? 1 : 0, duration: 520, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start(); }, [filled]);
   return (
-    <View style={[st.rail, { backgroundColor: empty ? '#E1E4E8' : '#D6E2FB' }]}>
+    <View style={[st.rail, { backgroundColor: '#E1E4E8' }]}>
       <Animated.View style={{ position: 'absolute', left: 0, right: 0, top: 0, backgroundColor: BLUE, height: v.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }} />
     </View>
   );
@@ -225,10 +225,10 @@ function StepRow({ s, state, last, nextFilled, onOpen }: { s: Step; state: 'done
       <Pressable onPress={() => { haptic('select'); onOpen(); }} style={({ pressed }) => [{ flex: 1, paddingBottom: 12 }, pressed && { opacity: 0.85 }]}>
         {({ hovered }: PS) => (
         <Animated.View style={[st.stepCard, empty && !next && st.stepQuiet, next && st.stepNext, hovered && { ...HOVER_RIM, borderStyle: 'solid', backgroundColor: '#EDEEF0' }, { opacity: appear, transform: [{ scale: appear.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) }] }]}>
-          {!empty ? <Image source={iconFor(s.item!.category)} style={st.stepIcon} /> : null}
+          {!empty ? <Image source={iconFor(s.item!.category)} style={st.stepIcon} /> : state === 'skipped' ? null : <PlusDot solid={next} />}
           <View style={{ flex: 1, gap: 3 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text style={[st.stepTitle, empty && !next && { color: C.gray2 }, state === 'skipped' && { color: C.gray, textDecorationLine: 'line-through' }]} numberOfLines={1}>{state === 'skipped' ? s.label : empty ? `+ Add ${(CATEGORY_LABEL[s.hint] ?? s.label).toLowerCase()}` : s.label}</Text>
+              <Text style={[st.stepTitle, empty && !next && { color: C.gray2 }, state === 'skipped' && { color: C.gray, textDecorationLine: 'line-through' }]} numberOfLines={1}>{state === 'skipped' ? s.label : empty ? `Add ${(CATEGORY_LABEL[s.hint] ?? s.label).toLowerCase()}` : s.label}</Text>
               {state === 'skipped' ? <Text style={st.meta}>Skipped</Text> : null}
               {next ? <View style={st.upNext}><Text style={st.upNextText}>Up next</Text></View> : s.when && !empty ? <Text style={st.meta}>{s.when}</Text> : null}
             </View>
@@ -237,6 +237,15 @@ function StepRow({ s, state, last, nextFilled, onOpen }: { s: Step; state: 'done
         </Animated.View>
         )}
       </Pressable>
+    </View>
+  );
+}
+
+/** The round "+" that says: tap here to add a product. */
+export function PlusDot({ solid, size = 32 }: { solid?: boolean; size?: number }) {
+  return (
+    <View style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: solid ? C.ink : '#fff', borderWidth: 1.5, borderColor: solid ? C.ink : '#C4C8CE' }} accessibilityElementsHidden importantForAccessibility="no">
+      <Svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24"><Path d="M12 5v14M5 12h14" stroke={solid ? '#fff' : C.ink} strokeWidth={2.6} strokeLinecap="round" /></Svg>
     </View>
   );
 }
@@ -525,7 +534,7 @@ export const st = StyleSheet.create({
   node: { width: 14, height: 14, borderRadius: 7, borderWidth: 2, borderColor: BLUE, backgroundColor: '#fff' },
   nodeEmpty: { borderColor: '#B8BEC6', borderStyle: 'dashed', borderWidth: 1.5, backgroundColor: C.bg },
   nodeOn: { width: 18, height: 18, borderRadius: 9, borderWidth: 5 },
-  rail: { flex: 1, width: 2, backgroundColor: '#D6E2FB', marginTop: 2, overflow: 'hidden', borderRadius: 1 },
+  rail: { flex: 1, width: 2, backgroundColor: '#E1E4E8', marginTop: 2, overflow: 'hidden', borderRadius: 1 },
   stepCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1.5, borderColor: 'transparent' },
   stepEmpty: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#C9CDD2', borderStyle: 'dashed' },
   stepOn: { backgroundColor: BLUE },
