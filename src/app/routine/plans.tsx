@@ -7,6 +7,7 @@ import { checkoutRoutine, FOUNDING_CAP, refreshAccess, ROUTINE_PLANS, useAccess,
 import { analyze } from '../../lib/routine/gaps';
 import { hasInfo, useCatalog, useRoutine } from '../../lib/routine/model';
 import { fill } from '../../lib/routine/shine';
+import { useStore } from '../../state/store';
 import { C, F } from '../../theme';
 
 const crown = require('../../../assets/crown-pink.png');
@@ -26,6 +27,10 @@ export default function Plans() {
   const [pick, setPick] = useState<RoutinePlan>('routine_founder');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const { account } = useStore();
+  const signedIn = !!account && !account.anonymous;
+  // After payment: make the account profile (the tracker's sign-up screen attaches an email or phone to this account).
+  const toProfile = () => (signedIn ? router.replace('/routine/profile') : router.replace({ pathname: '/sign-in', params: { mode: 'signup', next: '/routine/profile' } }));
   const gapCount = useMemo(() => (hasInfo(s) ? analyze(s, cat).gaps.length : 0), [s, cat]);
 
   // Back from Stripe: wait for the webhook to mark the subscription, then go to the report.
@@ -43,14 +48,14 @@ export default function Plans() {
     setBusy(true); setErr('');
     try {
       const r = await checkoutRoutine(pick);
-      if (r === 'test') { haptic('success'); router.replace(hasInfo(s) ? '/routine/gaps' : '/routine/goals'); }
+      if (r === 'test') { haptic('success'); toProfile(); }
     } catch { setErr('Checkout couldn’t open. Check your connection and try again.'); }
     setBusy(false);
   };
 
   if (a.ok) {
     return (
-      <Shell active="plans" footer={<Btn label={hasInfo(s) ? 'See my gap report' : 'Start with my goals'} onPress={() => router.replace(hasInfo(s) ? '/routine/gaps' : '/routine/goals')} />}>
+      <Shell active="plans" footer={<View style={{ gap: 8, width: wide ? undefined : '100%', flexDirection: wide ? 'row' : 'column' }}><Btn label={signedIn ? 'See my profile' : 'Create my royal profile'} onPress={toProfile} /><Btn kind="secondary" label={hasInfo(s) ? 'See my gap report' : 'Start with my goals'} onPress={() => router.replace(hasInfo(s) ? '/routine/gaps' : '/routine/goals')} /></View>}>
         <Image source={crown} style={{ width: 72, height: 72, transform: [{ rotate: '-12deg' }] }} resizeMode="contain" />
         <Heading title={a.founder ? `Long live Founding Royal #${a.spot}` : 'You’ve been crowned'} sub={a.founder ? 'Lifetime access to the product database is yours, even if you cancel the yearly plan.' : a.test ? 'Test mode: payments aren’t switched on yet, so this device is unlocked.' : 'Your plan is active. Manage it any time in Settings.'} />
       </Shell>

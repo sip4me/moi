@@ -24,6 +24,7 @@ export const money = (n?: number | null) => (n == null ? '' : `$${n % 1 ? n.toFi
 
 const CROWN_ART = require('../../../assets/crown-pink.png');
 const COIN_PLUS = require('../../../assets/coin-plus.png');
+const AVATAR_ART = require('../../../assets/avatar.png');
 
 // ── Layout ───────────────────────────────────────────────────────────────────
 const NAV = [
@@ -32,6 +33,7 @@ const NAV = [
   { key: 'shop', label: 'Shop', icon: 'hair_food', href: '/routine/shop' },
   { key: 'goals', label: 'Goals & hair', icon: 'learn', href: '/routine/goals' },
   { key: 'plans', label: 'Royal plans', icon: 'crown', href: '/routine/plans' },
+  { key: 'profile', label: 'My profile', icon: 'avatar', href: '/routine/profile' },
   { key: 'tracker', label: 'Routine tracker', icon: 'goal_target', href: 'tracker' },
 ] as const;
 
@@ -89,7 +91,7 @@ function Menu({ open, onClose, active }: { open: boolean; onClose: () => void; a
               const on = n.key === active;
               return (
                 <Pressable key={n.key} onPress={() => { haptic('select'); onClose(); go(n.href); }} style={({ pressed, hovered }: PS) => [st.nav, on && st.navOn, n.key === 'tracker' && st.navAddon, hovered && { ...HOVER_RIM, backgroundColor: on ? '#EDEEF0' : '#E6E8EB' }, pressed && { opacity: 0.7 }]}>
-                  <Image source={n.icon === 'crown' ? CROWN_ART : icon3d(n.icon)} resizeMode="contain" style={{ width: 26, height: 26, opacity: on ? 1 : 0.75 }} />
+                  <Image source={n.icon === 'crown' ? CROWN_ART : n.icon === 'avatar' ? AVATAR_ART : icon3d(n.icon)} resizeMode="contain" style={{ width: 26, height: 26, opacity: on ? 1 : 0.75 }} />
                   <Text style={[st.navText, on && { fontFamily: F.semibold, color: C.ink }]}>{n.label}</Text>
                 </Pressable>
               );
