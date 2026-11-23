@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
-import { BLUE, Btn, ChipBtn, GapCard, Heading, money, NeedInfo, Pill, ProductCard, Shell, useWide, WhereToBuy } from '../../components/routine/Kit';
+import { BLUE, Btn, ChipBtn, GapCard, Heading, InputsPanel, money, NeedInfo, Pill, ProductCard, Shell, useWide, WhereToBuy } from '../../components/routine/Kit';
 import { useAccess } from '../../lib/routine/access';
 import { analyze, picksFor, type GapKind } from '../../lib/routine/gaps';
 import { hasInfo, itemKey, setRoutine, useCatalog, useRoutine } from '../../lib/routine/model';
@@ -27,8 +27,8 @@ export default function Gaps() {
   if (!access.ok && !access.loading) {
     const plans = () => router.push('/routine/plans');
     return (
-      <Shell active="gaps" step="3 of 3" footer={<Btn label="Claim your crown to see the fixes" onPress={plans} />}>
-        <Heading title={gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'} for ${s.goals.join(' and ')}` : 'No gaps. Nice routine.'} sub="Unlock the fix for each gap and the products matched to your goals." />
+      <Shell active="gaps" step="3 of 3" side={wide ? <InputsPanel s={s} /> : undefined} footer={<Btn label="Unlock the fixes" onPress={plans} />}>
+        <Heading title={gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'} for ${s.goals.join(' and ')}` : 'No gaps. Nice routine.'} sub="Unlock each fix and the products matched to you." />
         <View style={{ gap: 12, maxWidth: 720 }}>{gaps.map(g => <GapCard key={g.id} gap={g} onPress={plans} cta="Unlock fix" />)}</View>
       </Shell>
     );
@@ -38,10 +38,10 @@ export default function Gaps() {
   const goals = s.goals.join(' and ');
   const kinds = FILTERS.filter(f => f.key === 'all' || gaps.some(g => g.kind === f.key));
   return (
-    <Shell active="gaps" step="3 of 3"
-      footer={gaps.length ? <Btn label="Shop to fill these gaps" onPress={() => router.push('/routine/shop')} /> : <Btn kind="secondary" label="Edit my routine" onPress={() => router.push('/routine/build')} />}>
+    <Shell active="gaps" step="3 of 3" side={wide ? <InputsPanel s={s} /> : undefined}
+      footer={gaps.length ? <Btn label="Shop the fixes" onPress={() => router.push('/routine/shop')} /> : <Btn kind="secondary" label="Edit routine" onPress={() => router.push('/routine/build')} />}>
       <Heading title={gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'} for ${goals}` : 'No gaps. Nice routine.'}
-        sub={`Routine fit ${score}. Judged against your goals, hair and the routines you entered.`} />
+        sub={`Routine fit ${score} of 100.`} />
       {kinds.length > 2 ? <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{kinds.map(f => <Pill key={f.key} label={f.label} on={filter === f.key} onPress={() => setFilter(f.key)} />)}</View> : null}
       <View style={{ gap: 12, maxWidth: 720 }}>
         {shown.map(g => {
@@ -58,7 +58,7 @@ export default function Gaps() {
                     {p.map((x, i) => <ProductCard key={x.item.id} item={x.item} fit={x.fit} why={x.why} best={i === 0} inBag={s.bag.includes(itemKey(x.item))} onAdd={() => toggleBag(itemKey(x.item))} />)}
                     {wide && p.length < 3 ? Array.from({ length: 3 - p.length }).map((_, i) => <View key={i} style={{ flex: 1 }} />) : null}
                   </View>
-                  {p[0] ? (where === g.id ? <WhereToBuy item={p[0].item} /> : <ChipBtn label="Where to buy the top pick" icon="store" onPress={() => setWhere(g.id)} />) : null}
+                  {p[0] ? (where === g.id ? <WhereToBuy item={p[0].item} /> : <ChipBtn label="Where to buy" icon="store" onPress={() => setWhere(g.id)} />) : null}
                 </View>
               ) : null}
             </View>

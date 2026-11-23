@@ -39,16 +39,16 @@ export default function Start() {
       <View style={{ gap: 24, maxWidth: 600 }}>
         <View style={{ gap: 12 }}>
           <Text {...shine('chrome')} style={[st.h1, { fontSize: wide ? 60 : 40, lineHeight: wide ? 62 : 42 }]}>Find the gaps in your hair routine.</Text>
-          <Text style={[st.sub, { fontSize: wide ? 17 : 15, lineHeight: wide ? 25 : 22 }]}>Add what you use, step by step. We check it against your goals and show what is missing.</Text>
+          <Text style={[st.sub, { fontSize: wide ? 17 : 15, lineHeight: wide ? 25 : 22 }]}>Add what you use. We show what’s missing.</Text>
         </View>
         <LinearTeaser />
         <View style={{ gap: 12 }}>
-          <Label>Where are you starting?</Label>
+          <Label>Start with</Label>
           <View style={{ flexDirection: wide ? 'row' : 'column', gap: 12 }}>
-            {choice('check', 'Check my routine', 'Add what you use now.', 'mirror')}
-            {choice('new', 'Build me a new one', 'Start fresh from your goals.', 'learn')}
+            {choice('check', 'My routine', 'Check what you use now', 'mirror')}
+            {choice('new', 'A new routine', 'Built from your goals', 'learn')}
           </View>
-          {ask ? <Text accessibilityRole="alert" style={{ fontFamily: F.semibold, fontSize: 14, color: '#A8576A' }}>Please select one of the options.</Text> : null}
+          {ask ? <Text accessibilityRole="alert" style={{ fontFamily: F.semibold, fontSize: 14, color: '#A8576A' }}>Please select an option.</Text> : null}
         </View>
         {wide ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}><Btn label="Continue" onPress={go} /><Text style={st.meta}>Free. No account needed.</Text></View> : null}
       </View>

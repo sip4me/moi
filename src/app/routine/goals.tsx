@@ -18,7 +18,7 @@ export default function Goals() {
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{opts.map(o => <Pill key={o} label={o} on={on(o)} onPress={() => press(o)} />)}</View>
     </View>
   );
-  const goals = group('Goals · pick up to 3', GOALS, o => s.goals.includes(o), toggleGoal);
+  const goals = group('Goals · up to 3', GOALS, o => s.goals.includes(o), toggleGoal);
   const qs = HAIR_Q.map(q => group(q.label, q.options, o => s.hair[q.key] === o, o => setRoutine(r => ({ ...r, hair: { ...r.hair, [q.key]: r.hair[q.key] === o ? undefined : o } }))));
   const next = () => router.push('/routine/build');
   const ready = s.goals.length > 0;
@@ -26,22 +26,22 @@ export default function Goals() {
   const plan = ready ? planFor(s) : null;
   const steps = plan ? [...new Set(planSteps(plan).map(x => x.title))] : [];
   const preview = plan ? (
-    <View style={{ gap: 10, padding: 18, borderRadius: 20, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ECEEF2' }}>
-      <Label>Your picks mean we look for</Label>
-      {s.goals.some(g => counts[g]) ? <Text style={[st.sub, { fontSize: 14, lineHeight: 20, color: C.ink }]}>Matching products: {s.goals.filter(g => counts[g]).map(g => `${counts[g].toLocaleString()} for ${g.toLowerCase()}`).join(', ')}</Text> : null}
+    <View style={wide ? { gap: 10 } : { gap: 10, padding: 18, borderRadius: 20, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ECEEF2' }}>
+      <Label>We’ll look for</Label>
+      {s.goals.some(g => counts[g]) ? <Text style={[st.sub, { fontSize: 14, lineHeight: 20, color: C.ink }]}>{s.goals.filter(g => counts[g]).map(g => `${counts[g].toLocaleString()} ${g.toLowerCase()} products`).join(' · ')}</Text> : null}
       {steps.length ? <Text style={[st.sub, { fontSize: 14, lineHeight: 20 }]}>Steps: {steps.join(', ')}</Text> : null}
       {plan.ingredients.lookFor.length ? <Text style={[st.sub, { fontSize: 14, lineHeight: 20 }]}>Ingredients: {plan.ingredients.lookFor.join(', ')}</Text> : null}
       {plan.ingredients.avoid.length ? <Text style={[st.sub, { fontSize: 14, lineHeight: 20, color: '#7E3A4C' }]}>Avoid: {plan.ingredients.avoid.join(', ')}</Text> : null}
     </View>
   ) : null;
   return (
-    <Shell active="goals" step="1 of 3"
-      footer={wide ? <><ChipBtn label="Back" icon="back" iconOnly onPress={() => router.back()} /><Btn label="Next: your routine" onPress={next} disabled={!ready} /></> : <Btn label={ready ? 'Next: your routine' : 'Pick at least one goal'} onPress={next} disabled={!ready} />}>
-      <Heading title="What are you working toward?" sub="We judge your routine against these. Change them any time." />
+    <Shell active="goals" step="1 of 3" side={wide ? (preview ?? <Text style={st.sub}>Pick a goal to see what we’ll look for.</Text>) : undefined}
+      footer={wide ? <><ChipBtn label="Back" icon="back" iconOnly onPress={() => router.back()} /><Btn label={ready ? 'Next' : 'Pick a goal'} onPress={next} disabled={!ready} /></> : <Btn label={ready ? 'Next' : 'Pick a goal'} onPress={next} disabled={!ready} />}>
+      <Heading title="Your goals and hair" sub="Your routine is judged on these." />
       {wide ? (
         <View style={{ flexDirection: 'row', gap: 48 }}>
           <View style={{ flex: 1, gap: 28 }}>{goals}{qs.slice(0, 3)}</View>
-          <View style={{ flex: 1, gap: 28 }}>{qs.slice(3)}{preview}</View>
+          <View style={{ flex: 1, gap: 28 }}>{qs.slice(3)}</View>
         </View>
       ) : <View style={{ gap: 28 }}>{goals}{qs}{preview}</View>}
     </Shell>

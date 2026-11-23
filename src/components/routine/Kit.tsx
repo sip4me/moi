@@ -8,7 +8,7 @@ import { icon3d } from '../../data/icons3d';
 import { haptic } from '../../lib/haptics';
 import { ingredientsFromPhoto, itemFromPhoto, submitTyped, takeProductPhoto } from '../../lib/routine/capture';
 import { KIND_COLOR, KIND_LABEL, retailerLinks, type Gap } from '../../lib/routine/gaps';
-import { CATEGORY_ICON, CATEGORY_LABEL, classify, isHydrated, searchCatalogLocal, searchRemote, setRoutine, useRoutine, TOOL_KINDS, useCatalog, type Item, type Step } from '../../lib/routine/model';
+import { allSteps, CATEGORY_ICON, CATEGORY_LABEL, classify, DAYS, isHydrated, searchCatalogLocal, searchRemote, setRoutine, useRoutine, TOOL_KINDS, useCatalog, type Item, type RoutineState, type Step } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 import { fill, PALETTE, shine } from '../../lib/routine/shine';
 import { useStore } from '../../state/store';
@@ -247,7 +247,7 @@ function StepRow({ s, state, last, nextFilled, onOpen }: { s: Step; state: 'done
               {state === 'skipped' ? <Text style={st.meta}>Skipped</Text> : null}
               {next ? <View style={st.upNext}><Text style={st.upNextText}>Up next</Text></View> : s.when && !empty ? <Text style={st.meta}>{s.when}</Text> : null}
             </View>
-            {empty && !next ? null : <Text style={st.stepSub} numberOfLines={2}>{empty ? 'Search, scan a barcode, or skip' : `${s.item!.brand ? `${s.item!.brand} · ` : ''}${s.item!.name}`}</Text>}
+            {empty && !next ? null : <Text style={st.stepSub} numberOfLines={2}>{empty ? 'Search, scan or skip' : `${s.item!.brand ? `${s.item!.brand} · ` : ''}${s.item!.name}`}</Text>}
           </View>
         </Animated.View>
         )}
@@ -325,12 +325,12 @@ function RoutineEnd({ submitted, canSubmit, onSubmit }: { submitted: boolean; ca
       {submitted ? (
         <Animated.View style={{ flex: 1, opacity: pop }}>
           <Text style={[st.cardTitle, { color: '#8C6D35' }]}>Routine saved</Text>
-          <Text style={st.meta}>Edit any step to update it.</Text>
+          <Text style={st.meta}>Tap a step to edit.</Text>
         </Animated.View>
       ) : (
         <View style={{ flex: 1, gap: 6 }}>
           <ChipBtn label="Submit routine" tone="dark" onPress={canSubmit ? onSubmit : () => {}} />
-          {!canSubmit ? <Text style={st.meta}>Add or skip at least one step first.</Text> : null}
+          {!canSubmit ? <Text style={st.meta}>Add or skip a step first.</Text> : null}
         </View>
       )}
     </View>
@@ -447,7 +447,7 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename, onSkip 
               } catch { setMsg('That photo didn\u2019t work. Try again in good light.'); } finally { setBusy(false); }
             }} style={({ hovered }: PS) => [st.ingCta, hovered && { ...HOVER_RIM, borderStyle: 'solid', backgroundColor: '#E3EAFB' }]}>
               <Text style={{ fontSize: 18 }}>🧴</Text>
-              <View style={{ flex: 1 }}><Text style={st.cardTitle}>Snap the ingredient list</Text><Text style={st.meta}>We don’t have this one yet. A photo lets us check it now.</Text></View>
+              <View style={{ flex: 1 }}><Text style={st.cardTitle}>Snap the ingredient list</Text><Text style={st.meta}>Not in our database yet. Snap the label so we can check it.</Text></View>
             </Pressable>
           ) : (
             <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
@@ -473,13 +473,13 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename, onSkip 
               <View style={[st.msg, { marginBottom: 6 }]}><Text style={[st.sub, { flex: 1, fontSize: 14 }]}>Search didn’t go through. Check your connection.</Text><ChipBtn label="Try again" icon="retry" iconOnly onPress={() => setRetry(n => n + 1)} /></View>
             ) : null}
             {search.phase === 'done' && !results.length ? (
-              <Text style={[st.sub, { fontSize: 14, paddingVertical: 6 }]}>{`No matches for \u201c${search.q}\u201d. Check the spelling, try the brand alone, or add it below.`}</Text>
+              <Text style={[st.sub, { fontSize: 14, paddingVertical: 6 }]}>{`No matches for \u201c${search.q}\u201d. Try the brand alone, or add it below.`}</Text>
             ) : null}
             {search.phase === 'done' && results.length ? <Text style={[st.meta, { paddingVertical: 4 }]}>{`${results.length} result${results.length === 1 ? '' : 's'}`}</Text> : null}
             {search.phase === 'done' || search.phase === 'error' ? (
               <Pressable onPress={typed} style={({ hovered }: PS) => [st.result, hovered && { ...HOVER_RIM, backgroundColor: '#ECEDEF' }]}>
                 <View style={[st.resultIcon, { backgroundColor: '#EEF0F3', alignItems: 'center', justifyContent: 'center' }]}><Text style={{ fontSize: 20 }}>+</Text></View>
-                <View style={{ flex: 1 }}><Text style={st.cardTitle}>Add “{q.trim()}”</Text><Text style={st.meta}>Not listed? We’ll add it to the database</Text></View>
+                <View style={{ flex: 1 }}><Text style={st.cardTitle}>Add “{q.trim()}”</Text><Text style={st.meta}>Not listed? We’ll add it.</Text></View>
               </Pressable>
             ) : null}
             {results.map(i => (
@@ -499,6 +499,53 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename, onSkip 
 }
 
 // ── Gaps and products ────────────────────────────────────────────────────────
+/** Laptop side panel: everything the person entered, with edit links. The report is judged on exactly this. */
+export function InputsPanel({ s }: { s: RoutineState }) {
+  const hair = [s.hair.texture, s.hair.strands, s.hair.scalp && `${s.hair.scalp} scalp`, s.hair.treated && s.hair.treated !== 'No' && s.hair.treated, s.hair.heat && `Heat ${s.hair.heat.toLowerCase()}`].filter(Boolean).join(' · ');
+  const logged = allSteps(s).filter(x => x.step.item?.addedAt).length;
+  const skipped = allSteps(s).filter(x => x.step.skipped).length;
+  const row = (k: string, v: string, href: string) => (
+    <Pressable key={k} onPress={() => router.push(href as any)} accessibilityRole="button" accessibilityLabel={`Edit ${k}`}
+      style={({ hovered }: PS) => ({ gap: 2, paddingVertical: 10, paddingHorizontal: 12, marginHorizontal: -12, borderRadius: 12, backgroundColor: hovered ? '#F4F5F8' : 'transparent' })}>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}><Text style={[st.label, { flex: 1 }]}>{k}</Text><Text style={{ fontFamily: F.semibold, fontSize: 12, color: '#6E7BD9' }}>Edit</Text></View>
+      <Text style={{ fontFamily: F.medium, fontSize: 14, lineHeight: 20, color: v ? C.ink : C.gray }}>{v || 'Not set'}</Text>
+    </Pressable>
+  );
+  return (
+    <View style={{ gap: 4 }}>
+      <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink, marginBottom: 6 }}>Judged on</Text>
+      {row('Goals', s.goals.join(', '), '/routine/goals')}
+      {row('Hair', hair, '/routine/goals')}
+      {row('Budget', s.hair.budget ?? '', '/routine/goals')}
+      {row('Routine', `${logged} product${logged === 1 ? '' : 's'}${skipped ? ` · ${skipped} skipped` : ''} · wash ${s.washDays.map(d => DAYS[d]).join(', ') || 'days not set'}`, '/routine/build')}
+      {s.occasions.length ? row('Occasions', s.occasions.join(', '), '/routine/build') : null}
+    </View>
+  );
+}
+
+/** Laptop side panel on the routine builder: fit and gaps update as products are added. */
+export function LivePanel({ score, gaps, onOpen }: { score: number; gaps: Gap[]; onOpen: () => void }) {
+  return (
+    <View style={{ gap: 14 }}>
+      <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>Live check</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
+        <Text style={{ fontFamily: F.display, fontSize: 44, lineHeight: 48, color: C.ink }}>{score}</Text>
+        <Text style={st.meta}>routine fit</Text>
+      </View>
+      <ScoreBar score={score} />
+      <Text style={st.label}>{gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'}` : 'No gaps'}</Text>
+      {gaps.slice(0, 6).map(g => (
+        <View key={g.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: KIND_COLOR[g.kind].fg }} />
+          <Text style={{ flex: 1, fontFamily: F.medium, fontSize: 14, color: C.ink }} numberOfLines={1}>{g.title}</Text>
+        </View>
+      ))}
+      {gaps.length > 6 ? <Text style={st.meta}>{`+${gaps.length - 6} more`}</Text> : null}
+      {gaps.length ? <ChipBtn label="See my gaps" icon="search" onPress={onOpen} /> : null}
+    </View>
+  );
+}
+
 export function GapCard({ gap, onPress, selected, cta, price }: { gap: Gap; onPress?: () => void; selected?: boolean; cta?: string; price?: string }) {
   const c = KIND_COLOR[gap.kind];
   return (
@@ -595,8 +642,8 @@ export function NeedInfo({ goals }: { goals: boolean }) {
   return (
     <View style={{ gap: 16, maxWidth: 520, paddingTop: 8 }}>
       <Image source={icon3d(goals ? 'conditioner' : 'learn')} style={{ width: 72, height: 72 }} />
-      <Text {...shine('chrome')} style={[st.h1, { fontSize: 30, lineHeight: 34 }]}>{goals ? 'Add your routine first' : 'Tell us about your hair first'}</Text>
-      <Text style={st.sub}>{goals ? 'Add at least one product you use, and we\u2019ll check it against your goals.' : 'Pick your goals and a few details about your hair. Then we can judge your routine.'}</Text>
+      <Text {...shine('chrome')} style={[st.h1, { fontSize: 30, lineHeight: 34 }]}>{goals ? 'Add your routine first' : 'Your goals come first'}</Text>
+      <Text style={st.sub}>{goals ? 'Add one product you use to see your gaps.' : 'Pick your goals and hair type to see your gaps.'}</Text>
       <Btn label={goals ? 'Add my routine' : 'Start with my goals'} onPress={() => router.push(goals ? '/routine/build' : '/routine/goals')} style={{ alignSelf: 'flex-start' }} />
     </View>
   );

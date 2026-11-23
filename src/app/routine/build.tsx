@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
-import { BLUE, Btn, ChipBtn, Heading, PlusDot, iconFor, Label, PickerSheet, Pill, ScoreBar, Segmented, Shell, st, Timeline, useWide } from '../../components/routine/Kit';
+import { BLUE, Btn, ChipBtn, Heading, InputsPanel, LivePanel, PlusDot, iconFor, Label, PickerSheet, Pill, ScoreBar, Segmented, Shell, st, Timeline, useWide } from '../../components/routine/Kit';
 import { icon3d } from '../../data/icons3d';
 import { analyze, buildNew, KIND_COLOR, KIND_LABEL } from '../../lib/routine/gaps';
 import { CATEGORY_LABEL, DAYS, defaultOccasion, newStepId, OCCASION_ICON, OCCASIONS, setRoutine, useCatalog, useRoutine, type RoutineState, type Step } from '../../lib/routine/model';
@@ -88,7 +88,7 @@ export default function Build() {
           {OCCASIONS.map(o => <Pill key={o} label={o} on={s.occasions.includes(o)} onPress={() => setRoutine(r => r.occasions.includes(o) ? { ...r, occasions: r.occasions.filter(x => x !== o) } : { ...r, occasions: [...r.occasions, o], occ: { ...r.occ, [o]: r.occ[o] ?? defaultOccasion(o) } })} />)}
         </View>
       </View>
-      {s.occasions.length === 0 ? <Text style={st.sub}>Pick the moments that are hard on your hair, like swimming or sleep. Each gets its own short routine.</Text> : null}
+      {s.occasions.length === 0 ? <Text style={st.sub}>Add moments that are hard on hair, like swimming or sleep.</Text> : null}
       {s.occasions.map(o => (
         <View key={o} style={{ gap: 14 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -102,13 +102,13 @@ export default function Build() {
   );
 
   return (
-    <Shell active="build" step="2 of 3"
+    <Shell active="build" step="2 of 3" side={wide ? <View style={{ gap: 28 }}><LivePanel score={score} gaps={gaps} onOpen={() => router.push('/routine/gaps')} /><View style={{ height: 1, backgroundColor: '#EEF0F3' }} /><InputsPanel s={s} /></View> : undefined}
       footer={wide
-        ? <><Text style={[st.meta, { flex: 1 }]}>{`Routine fit ${score} · ${gaps.length} gap${gaps.length === 1 ? '' : 's'} so far`}</Text><Btn label="See my gaps" onPress={() => router.push('/routine/gaps')} /></>
+        ? <Btn label="See my gaps" onPress={() => router.push('/routine/gaps')} />
         : <Btn label={`See my gaps · fit ${score}`} onPress={() => router.push('/routine/gaps')} />}>
-      <Heading title={s.mode === 'new' ? 'Your new routine' : 'Your routine'} sub={s.mode === 'new' ? 'These are the steps your goals need. Add what you use, or skip any step.' : 'Add products in the order you use them. Skip any step you don\u2019t do.'} />
+      <Heading title={s.mode === 'new' ? 'Your new routine' : 'Your routine'} sub={s.mode === 'new' ? 'Steps your goals need. Add or skip each.' : 'Add what you use, in order. Skip any step.'} />
       <View style={{ maxWidth: 420 }}><Segmented options={['Wash day', 'Everyday', 'Occasions']} value={tab} onChange={setTab} /></View>
-      {s.mode === 'new' && !s.goals.length ? <Text style={st.sub}>Pick your goals first so we know what to build.</Text> : null}
+      {s.mode === 'new' && !s.goals.length ? <Text style={st.sub}>Pick your goals first.</Text> : null}
       {body}
       <PickerSheet step={openStep} onClose={() => setOpen(null)}
         onPick={item => { edit(x => ({ ...x, item: { ...item, addedAt: Date.now() }, skipped: false, label: x.label === 'New step' ? CATEGORY_LABEL[item.category] ?? x.label : x.label })); if (item.kind !== 'custom' || item.tags.length) setOpen(null); }}

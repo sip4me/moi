@@ -30,7 +30,7 @@ export default function Shop() {
   const bagPanel = (
     <View style={{ gap: 16 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}><Text style={[st.h1, { fontSize: 24, flex: 1 }]}>Your bag</Text><Text style={st.meta}>{`${bag.length} item${bag.length === 1 ? '' : 's'}`}</Text></View>
-      {bag.length === 0 ? <Text style={st.sub}>Add picks to see what your routine looks like with them.</Text> : null}
+      {bag.length === 0 ? <Text style={st.sub}>Add picks to see your new fit.</Text> : null}
       {bag.map(i => (
         <View key={itemKey(i)} style={{ gap: 8 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -47,7 +47,7 @@ export default function Shop() {
       {bag.length ? (
         <>
           <View style={{ backgroundColor: '#F4F7FE', borderRadius: 16, padding: 16, gap: 10 }}>
-            <View style={{ flexDirection: 'row' }}><Text style={[st.meta, { flex: 1, color: C.gray2 }]}>Routine fit with your bag</Text><Text style={{ fontFamily: F.bold, fontSize: 13, color: BLUE }}>{`${score} → ${after}`}</Text></View>
+            <View style={{ flexDirection: 'row' }}><Text style={[st.meta, { flex: 1, color: C.gray2 }]}>Fit with your bag</Text><Text style={{ fontFamily: F.bold, fontSize: 13, color: BLUE }}>{`${score} → ${after}`}</Text></View>
             <ScoreBar score={score} after={after} />
           </View>
           <View style={{ flexDirection: 'row' }}><Text style={[st.cardTitle, { flex: 1 }]}>Estimated total</Text><Text style={st.price}>{`about ${money(Math.round(total(bag) * 100) / 100)}`}</Text></View>
@@ -66,7 +66,7 @@ export default function Shop() {
             });
             router.push('/routine/build');
           }} />
-          <Text style={[st.meta, { fontSize: 12, textAlign: 'center' }]}>You buy from the retailer. Prices are estimates; check the store for today's price.</Text>
+          <Text style={[st.meta, { fontSize: 12, textAlign: 'center' }]}>Prices are estimates. You buy from the store.</Text>
         </>
       ) : null}
     </View>
@@ -76,13 +76,13 @@ export default function Shop() {
   return (
     <Shell active="shop" side={wide && bag.length ? bagPanel : undefined}
       footer={!wide && bag.length ? <Pressable onPress={() => {}} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><View style={{ flex: 1 }}><Text style={st.cardTitle}>{`${bag.length} in bag · about ${money(Math.round(total(bag)))}`}</Text><Text style={st.meta}>{`Routine fit ${score} → ${after}`}</Text></View></Pressable> : undefined}>
-      <Heading title="Complete your routine" sub="Only products that fill one of your gaps, ranked by fit for your hair and budget." />
+      <Heading title="Shop your gaps" sub="Only products that fill a gap, ranked for your hair and budget." />
       {bundle.length > 1 ? (
         <View style={{ flexDirection: wide ? 'row' : 'column', alignItems: wide ? 'center' : 'stretch', gap: 16, padding: 20, borderRadius: 24, backgroundColor: '#EEF1FD' }}>
           <View style={{ flexDirection: 'row' }}>{bundle.slice(0, 4).map((i, n) => <View key={n} style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: '#fff', borderWidth: 3, borderColor: '#fff', marginLeft: n ? -14 : 0, alignItems: 'center', justifyContent: 'center' }}><Image source={iconFor(i.category)} style={{ width: 40, height: 40 }} /></View>)}</View>
           <View style={{ flex: wide ? 1 : undefined, gap: 4 }}>
             <Text style={{ fontFamily: F.semibold, fontSize: 18, color: C.ink }}>{`Fill ${bundle.length} gaps for about ${money(Math.round(total(bundle)))}`}</Text>
-            <Text style={st.sub}>{`Your top picks together · routine fit goes from ${score} to ${bundleAfter}`}</Text>
+            <Text style={st.sub}>{`Top picks together · fit ${score} → ${bundleAfter}`}</Text>
           </View>
           <Btn label="Add all to bag" onPress={addAll} />
         </View>
@@ -91,7 +91,7 @@ export default function Shop() {
         <Pill label="Fits my budget" on={budgetOnly} onPress={() => setBudgetOnly(v => !v)} />
         <Pill label="Under $15" on={under15} onPress={() => setUnder15(v => !v)} />
       </View>
-      {rows.length === 0 ? <Text style={st.sub}>{gaps.length ? 'Nothing matches these filters yet. Try turning one off.' : 'No gaps to fill. Your routine covers your goals.'}</Text> : null}
+      {rows.length === 0 ? <Text style={st.sub}>{gaps.length ? 'No matches. Turn a filter off.' : 'No gaps to fill.'}</Text> : null}
       {rows.map(({ g, picks }) => (
         <View key={g.id} style={{ gap: 16 }}>
           <View style={{ gap: 4 }}><Text style={{ fontFamily: F.semibold, fontSize: 20, color: C.ink }}>{g.title}</Text><Text style={st.meta}>{g.why}</Text></View>
