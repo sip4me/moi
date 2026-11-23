@@ -78,7 +78,14 @@ const CSS = `
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 30px 60px -30px rgba(25,40,70,0.35); }
 [data-fill="glass-bar"] { background-color: rgba(255,255,255,0.32) !important; -webkit-backdrop-filter: blur(16px) saturate(140%); backdrop-filter: blur(16px) saturate(140%);
   border-color: rgba(255,255,255,0.65) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,0.75), 0 10px 24px -14px rgba(25,40,70,0.35); }
-@media (prefers-reduced-motion: reduce) { [data-shine], [data-fill="cateye"]::after { animation: none !important; } }
+/* Ready to go: the main button's lavender halo breathes. */
+[data-glow="1"] { animation: moi-glow 1.8s ease-in-out infinite; }
+@keyframes moi-glow {
+  0%, 100% { box-shadow: inset 0 0 0 1px rgba(180,190,240,0.45), inset 0 2px 1px #FFFFFF, 0 0 0 4px rgba(255,255,255,0.85), 0 0 0 5px rgba(170,180,235,0.45), 0 16px 28px -10px rgba(110,120,220,0.5); }
+  50% { box-shadow: inset 0 0 0 1px rgba(160,172,240,0.7), inset 0 2px 1px #FFFFFF, 0 0 0 5px rgba(255,255,255,0.95), 0 0 0 7px rgba(130,145,240,0.75), 0 0 34px 6px rgba(130,145,240,0.55), 0 16px 28px -10px rgba(110,120,220,0.6); }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-glow="1"] { animation: none; } [data-shine], [data-fill="cateye"]::after { animation: none !important; } }
 `;
 
 if (Platform.OS === 'web' && typeof document !== 'undefined' && !document.getElementById('moi-shine')) {

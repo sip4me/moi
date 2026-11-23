@@ -42,6 +42,8 @@ export type RoutineState = {
   submitted?: Record<string, boolean>;
   /** Test build only (Stripe not switched on): the plan tapped on the paywall, unlocking access on this device. */
   testUnlock?: string;
+  /** True once the person has saved (made an account or has a plan). Until then nothing survives a refresh. */
+  saved?: boolean;
   /** Which routines the person wants: hair, skin, makeup, body. */
   areas: Area[];
   /** Answers to the skin, makeup and body questions, by question key (single answers are one-item lists). */
@@ -61,13 +63,13 @@ export const AREAS: { key: Area; label: string; icon: string }[] = [
 export const AREA_Q: { area: Area; key: string; label: string; options: string[]; max?: number }[] = [
   { area: 'skin', key: 'skin_type', label: 'Skin type', options: ['Dry', 'Normal', 'Oily', 'Combination', 'Sensitive'] },
   { area: 'skin', key: 'skin_concerns', label: 'Concerns · up to 3', options: ['Breakouts', 'Dark spots', 'Fine lines', 'Redness', 'Dullness', 'Large pores', 'Dehydration'], max: 3 },
-  { area: 'skin', key: 'skin_flags', label: 'Avoid', options: ['Fragrance', 'Retinoids (pregnant or nursing)'], max: 2 },
+  { area: 'skin', key: 'skin_flags', label: 'Avoid', options: ['Nothing', 'Fragrance', 'Retinoids (pregnant or nursing)'], max: 2 },
   { area: 'makeup', key: 'mk_tone', label: 'Skin tone', options: ['Fair', 'Light', 'Medium', 'Tan', 'Deep', 'Rich'] },
   { area: 'makeup', key: 'mk_undertone', label: 'Undertone', options: ['Cool', 'Warm', 'Neutral', 'Olive', 'Not sure'] },
   { area: 'makeup', key: 'mk_coverage', label: 'Coverage', options: ['Sheer', 'Medium', 'Full'] },
   { area: 'makeup', key: 'mk_finish', label: 'Finish', options: ['Matte', 'Natural', 'Dewy'] },
   { area: 'makeup', key: 'mk_look', label: 'Your look', options: ['Minimal', 'Everyday', 'Full glam'] },
-  { area: 'makeup', key: 'mk_musts', label: 'Must-haves', options: ['Long-wear', 'Waterproof', 'SPF in base', 'Clean or vegan'], max: 4 },
+  { area: 'makeup', key: 'mk_musts', label: 'Must-haves', options: ['Nothing', 'Long-wear', 'Waterproof', 'SPF in base', 'Clean or vegan'], max: 4 },
   { area: 'body', key: 'body_feel', label: 'Body skin', options: ['Dry', 'Normal', 'Oily'] },
   { area: 'body', key: 'body_concerns', label: 'Concerns', options: ['Dryness', 'Bumps', 'Body breakouts', 'Uneven tone', 'Odor'], max: 3 },
 ];
@@ -183,18 +185,21 @@ let hydrated = false;
 const subs = new Set<() => void>();
 const emit = () => subs.forEach(f => f());
 let saveT: ReturnType<typeof setTimeout> | null = null;
-AsyncStorage.getItem(KEY).then(v => { if (v) { try { const raw = JSON.parse(v); const saved = { ...initial(), ...raw }; const clean = (st: Step[] = []) => st.map(x => ({ ...x, when: undefined, label: x.label === 'Cleanse' ? 'Shampoo' : x.label }));
+AsyncStorage.getItem(KEY).then(v => { if (v) { try { const raw0 = JSON.parse(v);
+      // Not saved yet: leaving or refreshing starts fresh. Only the 'seen it' flags carry over.
+      const raw = raw0.saved || raw0.testUnlock ? raw0 : { v: 2, welcomed: raw0.welcomed, menuSeen: raw0.menuSeen }; const saved = { ...initial(), ...raw }; const clean = (st: Step[] = []) => st.map(x => ({ ...x, when: undefined, label: x.label === 'Cleanse' ? 'Shampoo' : x.label }));
       // Before v2, "Build me a new one" pre-filled steps with products nobody logged: clear those so
       // checkmarks only ever mean "I added this".
       const autoFilled = !raw.v && !!raw.built;
       const strip = (st: Step[]) => (autoFilled ? st.map(x => ({ ...x, item: undefined })) : st.map(x => (x.item && !x.item.addedAt ? { ...x, item: { ...x.item, addedAt: 1 } } : x)));
-      state = { ...saved, v: 2, areas: (raw.areas ?? ['hair']).slice(0, 1), prefs: raw.prefs ?? {}, beauty: { ...initialBeauty(), ...(raw.beauty ?? {}) }, wash: withOilSteps(strip(clean(saved.wash))), every: strip(clean(saved.every)), occ: Object.fromEntries(Object.entries(saved.occ ?? {}).map(([k, v]) => [k, strip(clean(v as Step[]))])) }; } catch {} } else state = { ...state }; hydrated = true; emit(); }).catch(() => { state = { ...state }; hydrated = true; emit(); });
+      state = { ...saved, v: 2, areas: (raw.areas ?? (raw.goals ? ['hair'] : [])).slice(0, 1), prefs: raw.prefs ?? {}, beauty: { ...initialBeauty(), ...(raw.beauty ?? {}) }, wash: withOilSteps(strip(clean(saved.wash))), every: strip(clean(saved.every)), occ: Object.fromEntries(Object.entries(saved.occ ?? {}).map(([k, v]) => [k, strip(clean(v as Step[]))])) }; } catch {} } else state = { ...state }; hydrated = true; emit(); }).catch(() => { state = { ...state }; hydrated = true; emit(); });
 
 export function setRoutine(fn: (s: RoutineState) => RoutineState) {
   state = fn(state);
   emit();
   if (saveT) clearTimeout(saveT);
-  saveT = setTimeout(() => { AsyncStorage.setItem(KEY, JSON.stringify(state)).catch(() => {}); }, 250);
+  // Unsaved work stays in memory only; just the 'seen it' flags are written.
+  saveT = setTimeout(() => { AsyncStorage.setItem(KEY, JSON.stringify(state.saved || state.testUnlock ? state : { v: 2, welcomed: state.welcomed, menuSeen: state.menuSeen })).catch(() => {}); }, 250);
 }
 export const resetRoutine = () => setRoutine(() => initial());
 export function useRoutine() {

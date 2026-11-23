@@ -37,7 +37,7 @@ export default function Start() {
     setRoutine(r => ({ ...r, started: true, ...(picked === 'new' ? { beauty: { ...(r.beauty ?? {}), ...Object.fromEntries(BEAUTY_ROUTINES.filter(b => (r.areas ?? []).includes(b.area)).map(b => [b.key, tailoredBeauty(r, b.key)])) } } : {}) }));
     router.push({ pathname: '/routine/build', params: { area: (s.areas ?? ['hair'])[0] ?? 'hair' } }); };
   return (
-    <Shell glass active="start" hideNav={!wide && !s.started} footer={wide ? undefined : <><Btn label="Continue" onPress={go} /><Text style={[st.meta, { textAlign: 'center', fontSize: 12, color: 'rgba(255,255,255,0.88)' }]}>Free. No account needed.</Text></>}>
+    <Shell glass active="start" hideNav={!wide && !s.started} footer={wide ? undefined : <><Btn label="Continue" onPress={go} glow={!!picked} /><Text style={[st.meta, { textAlign: 'center', fontSize: 12, color: 'rgba(255,255,255,0.88)' }]}>Free. No account needed.</Text></>}>
       <GlassCard solid style={{ gap: 24, maxWidth: 640, padding: wide ? 32 : 20 }}>
         <View style={{ gap: 12 }}>
           <Text style={[st.h1, { fontSize: wide ? 60 : 40, lineHeight: wide ? 62 : 42 }]}>Find the gaps in your routine.</Text>
@@ -52,7 +52,7 @@ export default function Start() {
           </View>
           {ask ? <Text accessibilityRole="alert" style={{ fontFamily: F.semibold, fontSize: 14, color: '#A8576A' }}>Please select an option.</Text> : null}
         </View>
-        {wide ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}><Btn label="Continue" onPress={go} /><Text style={st.meta}>Free. No account needed.</Text></View> : null}
+        {wide ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}><Btn label="Continue" onPress={go} glow={!!picked} /><Text style={st.meta}>Free. No account needed.</Text></View> : null}
       </GlassCard>
     </Shell>
   );

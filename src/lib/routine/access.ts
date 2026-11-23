@@ -43,6 +43,7 @@ export function useAccess() {
   const s = useRoutine();
   if (!loadP) refreshAccess();
   const test = !!s.testUnlock;
+  useEffect(() => { if ((a.paid || a.founder) && !s.saved) setRoutine(r => ({ ...r, saved: true })); }, [a.paid, a.founder, s.saved]);
   return { ...a, test, ok: a.paid || a.founder || test, loading: a.loading && !test };
 }
 
@@ -51,11 +52,11 @@ const open = (url: string) => (Platform.OS === 'web' ? window.location.assign(ur
 /** Opens Stripe Checkout. Returns 'test' when Stripe isn't switched on yet: access is then unlocked on this device. */
 export async function checkoutRoutine(plan: RoutinePlan): Promise<'opened' | 'test'> {
   const sb = supabase();
-  if (!sb) { setRoutine(r => ({ ...r, testUnlock: plan })); return 'test'; }
+  if (!sb) { setRoutine(r => ({ ...r, testUnlock: plan, saved: true })); return 'test'; }
   await ensureUser();
   const { data, error } = await sb.functions.invoke<{ configured: boolean; url?: string; error?: string }>('create-checkout', { body: { plan } });
   if (error) throw error;
-  if (!data?.configured) { setRoutine(r => ({ ...r, testUnlock: plan })); return 'test'; }
+  if (!data?.configured) { setRoutine(r => ({ ...r, testUnlock: plan, saved: true })); return 'test'; }
   if (!data.url) throw new Error(data.error ?? 'Checkout unavailable');
   open(data.url);
   return 'opened';
