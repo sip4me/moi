@@ -2,7 +2,7 @@ import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, us
 import { YoungSerif_400Regular } from '@expo-google-fonts/young-serif';
 import { InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic } from '@expo-google-fonts/instrument-serif';
 import { AbrilFatface_400Regular } from '@expo-google-fonts/abril-fatface';
-import { Stack } from 'expo-router';
+import { Stack, usePathname } from 'expo-router';
 import { Platform, Text, useWindowDimensions, View } from 'react-native';
 import { BrandText, Logo } from '../components/ui';
 import { C, F } from '../theme';
@@ -73,7 +73,10 @@ export default function RootLayout() {
 // frame on a warm canvas, so every screen keeps the proportions it was designed at.
 function Frame({ children }: { children: React.ReactNode }) {
   const { width, height } = useWindowDimensions();
-  const framed = Platform.OS === 'web' && width >= 600 && height >= 560;
+  const path = usePathname();
+  // The front door and the routine builder are designed for laptops too, so they run full width.
+  const fullWidth = path === '/' || path.startsWith('/routine');
+  const framed = Platform.OS === 'web' && width >= 600 && height >= 560 && !fullWidth;
   if (!framed) return <View style={{ flex: 1 }}>{children}</View>;
   const h = Math.min(height - 48, 900);
   const side = width >= 1024;
