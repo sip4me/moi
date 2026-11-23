@@ -151,12 +151,12 @@ export const LETTERS: [string, number][] = [['M', -1.9], ['o', 63.8], ['i', 99.5
 // scripts/make-icons.py renders the app icon from these same numbers.
 export const CROWN = { w: 32.3, h: 32.8, left: 59.85, top: 6.6, rotate: '-14deg' }; // 852×865 artwork, centred at (76, 23)
 
-export function Logo({ size = 40, color = '#2F3D3B' }: { size?: number; color?: string }) {
+export function Logo({ size = 40, color = '#2F3D3B', letterProps }: { size?: number; color?: string; letterProps?: object }) {
   const k = size / 64;
   return (
     <View style={{ width: 123 * k, height: 64 * k }} accessibilityRole="image" accessibilityLabel="Moi">
       {LETTERS.map(([ch, x]) => (
-        <Text key={ch} style={{ position: 'absolute', left: x * k, top: -3.7 * k, fontFamily: F.serif, fontSize: size, lineHeight: 90 * k, color }}>{ch}</Text>
+        <Text key={ch} {...letterProps} style={{ position: 'absolute', left: x * k, top: -3.7 * k, fontFamily: F.serif, fontSize: size, lineHeight: 90 * k, color }}>{ch}</Text>
       ))}
       <Image source={crown} resizeMode="contain" style={{ position: 'absolute', left: CROWN.left * k, top: CROWN.top * k, width: CROWN.w * k, height: CROWN.h * k, transform: [{ rotate: CROWN.rotate }] }} />
     </View>

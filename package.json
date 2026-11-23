@@ -1,6 +1,6 @@
 {
   "name": "moi",
-  "version": "2.2.2",
+  "version": "2.3.0",
   "main": "expo-router/entry",
   "dependencies": {
     "@expo-google-fonts/abril-fatface": "^0.4.1",

@@ -9,10 +9,11 @@ import { ingredientsFromPhoto, itemFromPhoto, submitTyped, takeProductPhoto } fr
 import { KIND_COLOR, KIND_LABEL, retailerLinks, type Gap } from '../../lib/routine/gaps';
 import { CATEGORY_ICON, CATEGORY_LABEL, classify, isHydrated, searchCatalogLocal, searchRemote, setRoutine, useRoutine, TOOL_KINDS, useCatalog, type Item, type Step } from '../../lib/routine/model';
 import { C, F } from '../../theme';
+import { fill, PALETTE, shine } from '../../lib/routine/shine';
 import { useStore } from '../../state/store';
 
-export const BLUE = '#5B8DEF';
-export const GOLD = '#C9A24A';
+export const BLUE = PALETTE.cobalt;
+export const GOLD = PALETTE.champagne;
 /** Hover (web): every button gets a black rim and a slightly darker fill than it has at rest. */
 export const HOVER_RIM = { borderColor: C.ink, borderWidth: 1.5 } as const;
 type PS = { pressed: boolean; hovered?: boolean };
@@ -109,7 +110,7 @@ export function Shell({ active, children, side, footer, step, hideNav }: { activ
     </View>
   );
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top', 'bottom']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: PALETTE.pearl }} edges={['top', 'bottom']}>
       {top}
       <View style={{ flex: 1, flexDirection: 'row' }}>
         <View style={{ flex: 1 }}>
@@ -134,7 +135,7 @@ export function Heading({ title, sub, right }: { title: string; sub?: string; ri
   return (
     <View style={{ gap: 16, maxWidth: 720 }}>
       <View style={{ gap: 6 }}>
-        <Text style={[st.h1, { fontSize: wide ? 44 : 34, lineHeight: wide ? 48 : 38 }]}>{title}</Text>
+        <Text {...shine('chrome')} style={[st.h1, { fontSize: wide ? 44 : 34, lineHeight: wide ? 48 : 38 }]}>{title}</Text>
         {sub ? <Text style={st.sub}>{sub}</Text> : null}
       </View>
       {right}
@@ -201,7 +202,7 @@ export function Node({ state, check = true }: { state: 'done' | 'next' | 'empty'
     <View style={{ width: 20, height: 20, alignItems: 'center', justifyContent: 'center' }}>
       {state === 'next' ? <Animated.View style={{ position: 'absolute', width: 20, height: 20, borderRadius: 10, backgroundColor: BLUE, opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0] }), transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 2.2] }) }] }} /> : null}
       <View style={[st.node, state === 'empty' && st.nodeEmpty, state === 'next' && st.nodeOn]} />
-      <Animated.View style={{ position: 'absolute', width: 20, height: 20, borderRadius: 10, backgroundColor: BLUE, alignItems: 'center', justifyContent: 'center', opacity: pop, transform: [{ scale: pop }] }}>
+      <Animated.View {...fill('cobalt-dot')} style={{ position: 'absolute', width: 20, height: 20, borderRadius: 10, backgroundColor: BLUE, alignItems: 'center', justifyContent: 'center', opacity: pop, transform: [{ scale: pop }] }}>
         {check ? <Svg width={11} height={11} viewBox="0 0 24 24"><Path d="m5 12.5 4.5 4.5L19 7.5" stroke="#fff" strokeWidth={3.4} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg> : null}
       </Animated.View>
     </View>
@@ -269,7 +270,7 @@ function ProgressBar({ value, submitted }: { value: number; submitted: boolean }
   useEffect(() => { Animated.timing(v, { toValue: value, duration: 520, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start(); }, [value]);
   return (
     <View style={[st.bar, { flex: 1, height: 6 }]}>
-      <Animated.View style={[st.barFill, { height: 6, backgroundColor: submitted ? GOLD : BLUE, width: v.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }]} />
+      <Animated.View {...fill(submitted ? 'champagne' : 'cateye')} style={[st.barFill, { height: 6, backgroundColor: submitted ? GOLD : BLUE, width: v.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }]} />
     </View>
   );
 }
@@ -287,7 +288,7 @@ function RoutineEnd({ submitted, canSubmit, onSubmit }: { submitted: boolean; ca
       </View>
       {submitted ? (
         <Animated.View style={{ flex: 1, opacity: pop }}>
-          <Text style={[st.cardTitle, { color: '#8A6A1F' }]}>Routine saved</Text>
+          <Text style={[st.cardTitle, { color: '#8C6D35' }]}>Routine saved</Text>
           <Text style={st.meta}>Edit any step to update it.</Text>
         </Animated.View>
       ) : (
@@ -303,7 +304,7 @@ function RoutineEnd({ submitted, canSubmit, onSubmit }: { submitted: boolean; ca
 /** Moi's gold check: a gold coin with a white tick. */
 export function GoldCheck({ size = 28 }: { size?: number }) {
   return (
-    <View style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: GOLD, borderWidth: 2, borderColor: '#E9CF86', shadowColor: '#8A6A1F', shadowOpacity: 0.35, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } }}>
+    <View {...fill('champagne-coin')} style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: GOLD, borderWidth: 2, borderColor: '#EFE0B8', shadowColor: '#8A6A1F', shadowOpacity: 0.35, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } }}>
       <Svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24"><Path d="m5 12.5 4.5 4.5L19 7.5" stroke="#fff" strokeWidth={3.4} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
     </View>
   );
@@ -319,7 +320,7 @@ export function Timeline({ steps, onOpen, submitted = false, onSubmit, extra }: 
       {steps.length ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <ProgressBar value={value} submitted={submitted} />
-          <Text style={[st.meta, submitted && { color: '#8A6A1F', fontFamily: F.semibold }]}>{submitted ? 'Complete' : `${done}/${steps.length}`}</Text>
+          <Text style={[st.meta, submitted && { color: '#8C6D35', fontFamily: F.semibold }]}>{submitted ? 'Complete' : `${done}/${steps.length}`}</Text>
         </View>
       ) : null}
       <View>
@@ -474,8 +475,8 @@ function HRail({ filled }: { filled: boolean }) {
   const v = useRef(new Animated.Value(filled ? 1 : 0)).current;
   useEffect(() => { Animated.timing(v, { toValue: filled ? 1 : 0, duration: filled ? 480 : 0, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start(); }, [filled]);
   return (
-    <View style={{ flex: 1, height: 2, marginTop: 9, borderRadius: 1, backgroundColor: '#E1E4E8', overflow: 'hidden' }}>
-      <Animated.View style={{ height: 2, backgroundColor: BLUE, width: v.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }} />
+    <View style={{ flex: 1, height: 2, marginTop: 9, borderRadius: 1, backgroundColor: '#DDE1E8', overflow: 'hidden' }}>
+      <Animated.View {...fill('cateye')} style={{ height: 2, backgroundColor: BLUE, width: v.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }} />
     </View>
   );
 }
@@ -506,10 +507,10 @@ export function LinearTeaser() {
   const done = Math.min(n, steps.length);
   const complete = done === steps.length;
   return (
-    <View style={{ borderRadius: 24, backgroundColor: '#EEF1FD', paddingHorizontal: 16, paddingTop: 14, paddingBottom: 12, gap: 12, maxWidth: 560 }} accessibilityLabel="Example: adding a wash day routine step by step">
+    <View style={{ borderRadius: 24, backgroundColor: PALETTE.frost, borderWidth: 1, borderColor: '#FFFFFF', paddingHorizontal: 16, paddingTop: 14, paddingBottom: 12, gap: 12, maxWidth: 560 }} accessibilityLabel="Example: adding a wash day routine step by step">
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <Text style={{ fontFamily: F.semibold, fontSize: 13, color: C.ink, flex: 1 }}>Wash day</Text>
-        <Text style={{ fontFamily: F.semibold, fontSize: 12, color: complete ? '#1E7B45' : BLUE }}>{complete ? 'Routine complete' : `${done}/${steps.length} added`}</Text>
+        <Text style={{ fontFamily: F.semibold, fontSize: 12, color: complete ? '#8C6D35' : BLUE }}>{complete ? 'Routine complete' : `${done}/${steps.length} added`}</Text>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
         {steps.map(([label, sub], i) => (
@@ -527,7 +528,7 @@ export function NeedInfo({ goals }: { goals: boolean }) {
   return (
     <View style={{ gap: 16, maxWidth: 520, paddingTop: 8 }}>
       <Image source={icon3d(goals ? 'conditioner' : 'learn')} style={{ width: 72, height: 72 }} />
-      <Text style={[st.h1, { fontSize: 30, lineHeight: 34 }]}>{goals ? 'Add your routine first' : 'Tell us about your hair first'}</Text>
+      <Text {...shine('chrome')} style={[st.h1, { fontSize: 30, lineHeight: 34 }]}>{goals ? 'Add your routine first' : 'Tell us about your hair first'}</Text>
       <Text style={st.sub}>{goals ? 'Add at least one product you use, and we\u2019ll check it against your goals.' : 'Pick your goals and a few details about your hair. Then we can judge your routine.'}</Text>
       <Btn label={goals ? 'Add my routine' : 'Start with my goals'} onPress={() => router.push(goals ? '/routine/build' : '/routine/goals')} style={{ alignSelf: 'flex-start' }} />
     </View>
@@ -573,15 +574,15 @@ export const st = StyleSheet.create({
   tipText: { fontFamily: F.semibold, fontSize: 13, color: '#fff' },
   menuScrim: { flex: 1, backgroundColor: 'rgba(20,20,24,0.28)' },
   menuPanel: { position: 'absolute', left: 0, top: 0, bottom: 0, backgroundColor: '#F8F9FA', paddingHorizontal: 16, paddingTop: 28, paddingBottom: 24, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 24, shadowOffset: { width: 6, height: 0 } },
-  wFooter: { paddingHorizontal: 72, paddingVertical: 16, borderTopWidth: 1, borderTopColor: '#EEF0F3', backgroundColor: C.bg },
-  mFooter: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 16, backgroundColor: C.bg, gap: 8 },
+  wFooter: { paddingHorizontal: 72, paddingVertical: 16, borderTopWidth: 1, borderTopColor: '#E9ECF1', backgroundColor: PALETTE.pearl },
+  mFooter: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 16, backgroundColor: PALETTE.pearl, gap: 8 },
   tabbar: { flexDirection: 'row', backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#F0F1F3', paddingTop: 8, paddingBottom: 6 },
   tab: { flex: 1, alignItems: 'center', gap: 3 },
   tabText: { fontFamily: F.medium, fontSize: 11, color: C.gray },
   h1: { fontFamily: F.display, color: C.ink, letterSpacing: -0.5 },
-  sub: { fontFamily: F.regular, fontSize: 15, lineHeight: 22, color: C.gray },
-  label: { fontFamily: F.semibold, fontSize: 12, letterSpacing: 0.4, color: C.gray },
-  meta: { fontFamily: F.medium, fontSize: 13, color: C.gray },
+  sub: { fontFamily: F.regular, fontSize: 15, lineHeight: 22, color: PALETTE.quiet },
+  label: { fontFamily: F.semibold, fontSize: 12, letterSpacing: 0.6, color: '#A3A7AD' },
+  meta: { fontFamily: F.medium, fontSize: 13, color: '#9A9EA4' },
   pill: { paddingHorizontal: 16, height: 40, borderRadius: 20, justifyContent: 'center', backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#D3D6DB' },
   pillOn: { backgroundColor: C.ink, borderColor: C.ink },
   pillText: { fontFamily: F.medium, fontSize: 14, color: C.ink },
@@ -606,12 +607,12 @@ export const st = StyleSheet.create({
   skipNode: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#E6E8EB', alignItems: 'center', justifyContent: 'center' },
   skipDash: { width: 8, height: 2, borderRadius: 1, backgroundColor: C.gray },
   stepQuiet: { backgroundColor: 'transparent', paddingVertical: 10 },
-  stepNext: { backgroundColor: '#fff', borderWidth: 1.5, borderColor: BLUE, borderStyle: 'dashed', shadowColor: BLUE, shadowOpacity: 0.16, shadowRadius: 16, shadowOffset: { width: 0, height: 6 } },
-  upNext: { backgroundColor: '#EAF1FF', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
+  stepNext: { backgroundColor: '#fff', borderWidth: 1.5, borderColor: PALETTE.icy, borderStyle: 'dashed', shadowColor: PALETTE.cobalt, shadowOpacity: 0.12, shadowRadius: 16, shadowOffset: { width: 0, height: 6 } },
+  upNext: { backgroundColor: PALETTE.ice, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
   upNextText: { fontFamily: F.semibold, fontSize: 11, color: BLUE },
   stepIcon: { width: 40, height: 40 },
   stepTitle: { flex: 1, fontFamily: F.semibold, fontSize: 16, color: C.ink },
-  stepSub: { fontFamily: F.regular, fontSize: 14, lineHeight: 19, color: C.gray },
+  stepSub: { fontFamily: F.regular, fontSize: 14, lineHeight: 19, color: PALETTE.quiet },
   scrim: { flex: 1, backgroundColor: 'rgba(20,20,24,0.35)', justifyContent: 'flex-end' },
   sheet: { backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: 36, gap: 14 },
   dialog: { width: 540, borderRadius: 28, paddingBottom: 24 },
@@ -630,7 +631,7 @@ export const st = StyleSheet.create({
   kind: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
   kindText: { fontFamily: F.semibold, fontSize: 11 },
   gapTitle: { fontFamily: F.semibold, fontSize: 17, color: C.ink },
-  why: { fontFamily: F.regular, fontSize: 14, lineHeight: 20, color: C.gray2 },
+  why: { fontFamily: F.regular, fontSize: 14, lineHeight: 20, color: PALETTE.quiet },
   tile: { aspectRatio: 1, borderRadius: 20, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   fit: { position: 'absolute', top: 10, left: 10, backgroundColor: '#E5F4EA', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999 },
   fitText: { fontFamily: F.semibold, fontSize: 11, color: '#1E7B45' },

@@ -6,6 +6,7 @@ import { icon3d } from '../../data/icons3d';
 import { haptic } from '../../lib/haptics';
 import { setRoutine, useRoutine } from '../../lib/routine/model';
 import { C, F } from '../../theme';
+import { shine } from '../../lib/routine/shine';
 
 export default function Start() {
   const s = useRoutine();
@@ -15,7 +16,7 @@ export default function Start() {
     return (
       <Pressable key={mode} onPress={() => { haptic('select'); setRoutine(r => ({ ...r, mode })); }} accessibilityRole="radio" accessibilityState={{ checked: on }}
         style={({ hovered }: { pressed: boolean; hovered?: boolean }) => ({ flex: wide ? 1 : undefined, flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: hovered ? '#ECEDEF' : '#fff', borderRadius: 24, padding: 16, borderWidth: 2, borderColor: on || hovered ? C.ink : 'transparent' })}>
-        <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: on ? '#FFF8E8' : '#EEF0F3', alignItems: 'center', justifyContent: 'center' }}><Image source={icon3d(icon)} style={{ width: 42, height: 42 }} /></View>
+        <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: on ? '#F8E3DF' : '#EEF0F3', alignItems: 'center', justifyContent: 'center' }}><Image source={icon3d(icon)} style={{ width: 42, height: 42 }} /></View>
         <View style={{ flex: 1, gap: 3 }}>
           <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink }}>{title}</Text>
           <Text style={[st.sub, { fontSize: 14, lineHeight: 19 }]}>{body}</Text>
@@ -28,7 +29,7 @@ export default function Start() {
     <Shell active="start" hideNav={!wide && !s.started} footer={wide ? undefined : <><Btn label="Continue" onPress={go} /><Text style={[st.meta, { textAlign: 'center', fontSize: 12 }]}>Free. No account needed.</Text></>}>
       <View style={{ gap: 24, maxWidth: 600 }}>
         <View style={{ gap: 12 }}>
-          <Text style={[st.h1, { fontSize: wide ? 60 : 40, lineHeight: wide ? 62 : 42 }]}>Find the gaps in your hair routine.</Text>
+          <Text {...shine('chrome')} style={[st.h1, { fontSize: wide ? 60 : 40, lineHeight: wide ? 62 : 42 }]}>Find the gaps in your hair routine.</Text>
           <Text style={[st.sub, { fontSize: wide ? 17 : 15, lineHeight: wide ? 25 : 22 }]}>Add what you use, step by step. We check it against your goals and show what is missing.</Text>
         </View>
         <LinearTeaser />
