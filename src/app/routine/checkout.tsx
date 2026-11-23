@@ -1,111 +1,171 @@
 import { router } from 'expo-router';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Image, Linking, Pressable, Text, View } from 'react-native';
-import { Btn, ChipBtn, Heading, iconFor, money, NeedInfo, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
+import Svg, { Path } from 'react-native-svg';
+import { Btn, ChipBtn, iconFor, money, NeedInfo, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
 import { analyze, retailerLinks } from '../../lib/routine/gaps';
-import { allSteps, AREAS, BEAUTY_ROUTINES, CATEGORY_LABEL, DAYS, findByKey, hasInfo, itemKey, placeItems, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
+import { allSteps, AREA_Q, AREAS, BEAUTY_ROUTINES, CATEGORY_LABEL, DAYS, findByKey, GOALS, hasInfo, HAIR_Q, itemKey, placeItems, pref, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 
-// Review before buying, the Airbnb way: each part of the order is a section with its own Edit link, and a
-// summary card (sticky on the side on laptop, at the end on phone) holds the total and the one button.
+// "Confirm and buy", in the layout of Airbnb's "Confirm and pay": a back arrow and title; on the left,
+// "Your routine" rows (label, value, underlined Edit) so goals and answers can be changed right here, then a
+// boxed radio choice and the stores; on the right a sticky card with the first pick and the price details.
 
-function Section({ title, value, edit, first, children }: { title: string; value?: string; edit?: () => void; first?: boolean; children?: React.ReactNode }) {
+const Underline = ({ label, onPress }: { label: string; onPress: () => void }) => (
+  <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} hitSlop={8}>
+    {({ hovered }: any) => <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink, textDecorationLine: 'underline', opacity: hovered ? 0.7 : 1 }}>Edit</Text>}
+  </Pressable>
+);
+
+function Row({ label, value, onEdit }: { label: string; value: string; onEdit?: () => void }) {
   return (
-    <View style={{ paddingVertical: 20, borderTopWidth: first ? 0 : 1, borderTopColor: '#E6E8EE', gap: 8 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
-        <View style={{ flex: 1, gap: 4 }}>
-          <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink }}>{title}</Text>
-          {value ? <Text style={{ fontFamily: F.regular, fontSize: 15, lineHeight: 21, color: C.gray2 }}>{value}</Text> : null}
-        </View>
-        {edit ? (
-          <Pressable onPress={edit} accessibilityRole="button" accessibilityLabel={`Edit ${title.toLowerCase()}`} hitSlop={8}>
-            <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink, textDecorationLine: 'underline' }}>Edit</Text>
-          </Pressable>
-        ) : null}
+    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 16, paddingVertical: 12 }}>
+      <View style={{ flex: 1, gap: 4 }}>
+        <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>{label}</Text>
+        <Text style={{ fontFamily: F.regular, fontSize: 15, lineHeight: 21, color: '#4A4F5C' }}>{value || 'Not set'}</Text>
       </View>
-      {children}
+      {onEdit ? <Underline label={`Edit ${label.toLowerCase()}`} onPress={onEdit} /> : null}
     </View>
   );
 }
+
+const Divider = () => <View style={{ height: 1, backgroundColor: '#E3E5EB', marginVertical: 20 }} />;
+const H2 = ({ children }: { children: string }) => <Text style={{ fontFamily: F.semibold, fontSize: 21, color: C.ink, marginBottom: 6 }}>{children}</Text>;
 
 export default function Checkout() {
   const s = useRoutine();
   const cat = useCatalog();
   const wide = useWide();
+  const [how, setHow] = useState<'buy' | 'save'>('buy');
   const bag = s.bag.map(k => findByKey(cat, k)).filter((i): i is Item => !!i);
   const { score } = useMemo(() => analyze(s, cat), [s, cat]);
   const after = useMemo(() => analyze(s, cat, bag).score, [s, cat, bag.length]);
-  const total = Math.round(bag.reduce((a, i) => a + (i.price ?? 0), 0) * 100) / 100;
-  const unpriced = bag.filter(i => i.price == null).length;
+  const priced = bag.filter(i => i.price != null);
+  const total = Math.round(priced.reduce((a, i) => a + (i.price ?? 0), 0) * 100) / 100;
 
   if (!hasInfo(s)) return <Shell active="shop"><NeedInfo goals={s.goals.length > 0} /></Shell>;
 
-  const areas = s.areas ?? ['hair'];
-  const goalsLine = [
-    areas.includes('hair') && s.goals.length ? `Hair: ${s.goals.join(', ')}` : '',
-    areas.includes('skin') && s.prefs?.skin_concerns?.length ? `Skin: ${s.prefs.skin_concerns.join(', ')}` : '',
-    areas.includes('makeup') && s.prefs?.mk_look?.length ? `Makeup: ${s.prefs.mk_look[0]}` : '',
-    areas.includes('body') && s.prefs?.body_concerns?.length ? `Body: ${s.prefs.body_concerns.join(', ')}` : '',
-  ].filter(Boolean).join(' · ') || 'Not set';
-  const steps = allSteps(s);
-  const routineLine = AREAS.filter(a => areas.includes(a.key)).map(a => {
-    const n = steps.filter(x => x.step.item?.addedAt && (a.key === 'hair' ? !BEAUTY_ROUTINES.some(b => b.key === x.where) : BEAUTY_ROUTINES.some(b => b.key === x.where && b.area === a.key))).length;
-    return `${a.label}: ${n} product${n === 1 ? '' : 's'}`;
-  }).join(' · ') + (areas.includes('hair') ? ` · wash ${s.washDays.map(d => DAYS[d]).join(', ')}` : '');
+  const area = (s.areas ?? ['hair'])[0] ?? 'hair';
+  const areaLabel = AREAS.find(a => a.key === area)?.label ?? 'Hair';
+  const about = () => router.push('/routine/about');
+  const steps = allSteps(s).filter(x => x.step.item?.addedAt);
+  const routineValue = area === 'hair'
+    ? `${steps.length} product${steps.length === 1 ? '' : 's'} · wash ${s.washDays.map(d => DAYS[d]).join(', ') || 'days not set'}`
+    : BEAUTY_ROUTINES.filter(b => b.area === area).map(b => `${b.label}: ${(s.beauty?.[b.key] ?? []).filter(x => x.item?.addedAt).length}`).join(' · ');
+  // Every answer for this routine type, as its own editable row.
+  const answerRows = area === 'hair'
+    ? [{ label: s.goals.length > 1 ? 'Goals' : 'Goal', value: s.goals.filter(g => GOALS.includes(g)).join(', ') }, { label: 'Hair', value: HAIR_Q.filter(q => q.key !== 'budget').map(q => s.hair[q.key]).filter(Boolean).join(' · ') }]
+    : AREA_Q.filter(q => q.area === area).map(q => ({ label: q.label.replace(/ · .*/, ''), value: pref(s, q.key).join(', ') })).filter(r => r.value);
 
-  const place = () => { setRoutine(r => ({ ...placeItems(r, bag), bag: [] })); router.replace('/routine/build'); };
+  const confirm = () => {
+    setRoutine(r => ({ ...placeItems(r, bag), bag: [] }));
+    if (how === 'buy') bag.forEach((i, n) => setTimeout(() => Linking.openURL(retailerLinks(i)[0].url), n * 400));
+    router.replace('/routine/build');
+  };
 
-  const summary = (
-    <View style={{ borderRadius: 24, borderWidth: 1, borderColor: '#E3E5EC', backgroundColor: '#fff', padding: 22, gap: 16, shadowColor: '#283050', shadowOpacity: 0.1, shadowRadius: 20, shadowOffset: { width: 0, height: 10 } }}>
-      <Text style={{ fontFamily: F.semibold, fontSize: 17, color: C.ink }}>Summary</Text>
-      {bag.map(i => (
-        <View key={itemKey(i)} style={{ flexDirection: 'row', gap: 10 }}>
-          <Text style={{ flex: 1, fontFamily: F.regular, fontSize: 14, color: C.gray2 }} numberOfLines={1}>{`${i.brand} ${i.name}`}</Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.ink }}>{i.price != null ? money(i.price) : 'See store'}</Text>
+  const option = (key: 'buy' | 'save', title: string, sub: string, first: boolean) => {
+    const on = how === key;
+    return (
+      <Pressable key={key} onPress={() => setHow(key)} accessibilityRole="radio" accessibilityState={{ checked: on }}
+        style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 16, borderWidth: on ? 2 : 1, borderColor: on ? C.ink : '#D9DCE3', marginTop: first ? 0 : -1, borderTopLeftRadius: first ? 14 : 0, borderTopRightRadius: first ? 14 : 0, borderBottomLeftRadius: first ? 0 : 14, borderBottomRightRadius: first ? 0 : 14, zIndex: on ? 1 : 0, backgroundColor: '#fff' }}>
+        <View style={{ flex: 1, gap: 4 }}>
+          <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>{title}</Text>
+          <Text style={{ fontFamily: F.regular, fontSize: 14, lineHeight: 20, color: '#4A4F5C' }}>{sub}</Text>
         </View>
-      ))}
-      <View style={{ height: 1, backgroundColor: '#E6E8EE' }} />
-      <View style={{ flexDirection: 'row' }}>
-        <Text style={{ flex: 1, fontFamily: F.semibold, fontSize: 16, color: C.ink }}>Estimated total</Text>
-        <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink }}>{`${money(total)}${unpriced ? ' +' : ''}`}</Text>
+        <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: on ? 7 : 1.5, borderColor: on ? C.ink : '#B9BDC7', marginTop: 2 }} />
+      </Pressable>
+    );
+  };
+
+  const first = bag[0];
+  const card = (
+    <View style={{ borderRadius: 16, borderWidth: 1, borderColor: '#E3E5EB', backgroundColor: '#fff', padding: 24, gap: 0, shadowColor: '#283050', shadowOpacity: 0.08, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } }}>
+      {first ? (
+        <View style={{ flexDirection: 'row', gap: 14, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: '#E3E5EB' }}>
+          <View style={{ width: 104, height: 84, borderRadius: 12, backgroundColor: '#F2F3F6', alignItems: 'center', justifyContent: 'center' }}><Image source={iconFor(first.category)} style={{ width: 64, height: 64 }} /></View>
+          <View style={{ flex: 1, gap: 4 }}>
+            <Text style={{ fontFamily: F.regular, fontSize: 12, color: C.gray }}>{`${areaLabel} · ${CATEGORY_LABEL[first.category] ?? ''}`}</Text>
+            <Text style={{ fontFamily: F.medium, fontSize: 15, color: C.ink }} numberOfLines={2}>{`${first.brand} ${first.name}`}</Text>
+            {bag.length > 1 ? <Text style={{ fontFamily: F.regular, fontSize: 12, color: C.gray }}>{`+${bag.length - 1} more pick${bag.length > 2 ? 's' : ''}`}</Text> : null}
+          </View>
+        </View>
+      ) : null}
+      <Text style={{ fontFamily: F.semibold, fontSize: 21, color: C.ink, marginTop: 20, marginBottom: 14 }}>Price details</Text>
+      <View style={{ gap: 12 }}>
+        {bag.map(i => (
+          <View key={itemKey(i)} style={{ flexDirection: 'row', gap: 12 }}>
+            <Text style={{ flex: 1, fontFamily: F.regular, fontSize: 15, color: C.ink, textDecorationLine: 'underline' }} numberOfLines={1}>{CATEGORY_LABEL[i.category] ?? i.name}</Text>
+            <Text style={{ fontFamily: F.regular, fontSize: 15, color: C.ink }}>{i.price != null ? money(i.price) : 'At store'}</Text>
+          </View>
+        ))}
+        {!bag.length ? <Text style={st.sub}>Your bag is empty.</Text> : null}
       </View>
-      <View style={{ gap: 6 }}>
+      <View style={{ height: 1, backgroundColor: '#E3E5EB', marginVertical: 18 }} />
+      <View style={{ flexDirection: 'row' }}>
+        <Text style={{ flex: 1, fontFamily: F.semibold, fontSize: 16, color: C.ink }}>Total <Text style={{ textDecorationLine: 'underline' }}>(USD)</Text></Text>
+        <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink }}>{`${money(total)}${priced.length < bag.length ? ' +' : ''}`}</Text>
+      </View>
+      <View style={{ gap: 6, marginTop: 18 }}>
         <View style={{ flexDirection: 'row' }}><Text style={[st.meta, { flex: 1 }]}>Routine fit</Text><Text style={{ fontFamily: F.semibold, fontSize: 13, color: '#5B67C9' }}>{`${score} → ${after}`}</Text></View>
         <ScoreBar score={score} after={after} />
       </View>
-      <Btn label="Add to my routines" onPress={place} disabled={!bag.length} />
-      <Text style={[st.meta, { fontSize: 12, textAlign: 'center' }]}>Prices are estimates. You buy from the store.</Text>
     </View>
   );
 
   return (
-    <Shell active="shop" side={wide ? summary : undefined}>
-      <Heading title="Review your picks" sub="Check everything before you buy." />
-      <View style={{ maxWidth: 640 }}>
-        <Section first title="Your goals" value={goalsLine} edit={() => router.push('/routine/about')} />
-        <Section title="Your routines" value={routineLine} edit={() => router.push('/routine/build')} />
-        <Section title={`Your picks · ${bag.length}`} value={bag.length ? undefined : 'Nothing in your bag yet.'} edit={() => router.push('/routine/shop')}>
-          {bag.map(i => (
-            <View key={itemKey(i)} style={{ gap: 8, paddingTop: 8 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <View style={{ width: 52, height: 52, borderRadius: 14, backgroundColor: '#F4F5F7', alignItems: 'center', justifyContent: 'center' }}><Image source={iconFor(i.category)} style={{ width: 42, height: 42 }} /></View>
-                <View style={{ flex: 1 }}>
-                  <Text style={st.meta}>{`${i.brand} · ${CATEGORY_LABEL[i.category] ?? ''}`}</Text>
-                  <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }} numberOfLines={2}>{i.name}</Text>
-                </View>
-                <ChipBtn label="Remove" tone="danger" icon="trash" iconOnly onPress={() => setRoutine(r => ({ ...r, bag: r.bag.filter(k => k !== itemKey(i)) }))} />
+    <Shell active="shop" side={wide ? <View style={{ paddingTop: 72 }}>{card}</View> : undefined}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginLeft: wide ? -46 : 0 }}>
+        <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/routine/shop'))} accessibilityRole="button" accessibilityLabel="Back" hitSlop={10}
+          style={({ hovered }: any) => ({ width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: hovered ? '#ECEEF2' : 'transparent' })}>
+          <Svg width={10} height={16} viewBox="0 0 10 16"><Path d="M8 2 2 8l6 6" stroke={C.ink} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" fill="none" /></Svg>
+        </Pressable>
+        <Text style={{ fontFamily: F.semibold, fontSize: wide ? 32 : 26, color: C.ink }}>Confirm and buy</Text>
+      </View>
+
+      <View style={{ maxWidth: 600 }}>
+        <H2>{`Your ${areaLabel.toLowerCase()} routine`}</H2>
+        {answerRows.map(r => <Row key={r.label} label={r.label} value={r.value} onEdit={about} />)}
+        <Row label="Routine" value={routineValue} onEdit={() => router.push({ pathname: '/routine/build', params: { area } })} />
+        <Row label="Budget" value={s.hair.budget ?? ''} onEdit={about} />
+        <Divider />
+
+        <H2>Choose how to buy</H2>
+        <View style={{ marginTop: 8 }}>
+          {option('buy', 'Buy now', `Add ${bag.length || 'your'} pick${bag.length === 1 ? '' : 's'} to your routine and open each store.`, true)}
+          {option('save', 'Save for later', 'Add them to your routine now and buy whenever you like.', false)}
+        </View>
+        <Divider />
+
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={{ flex: 1 }}><H2>{`Your picks · ${bag.length}`}</H2></View>
+          <Underline label="Edit picks" onPress={() => router.push('/routine/shop')} />
+        </View>
+        {bag.map(i => (
+          <View key={itemKey(i)} style={{ gap: 8, paddingVertical: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <View style={{ width: 48, height: 48, borderRadius: 12, backgroundColor: '#F2F3F6', alignItems: 'center', justifyContent: 'center' }}><Image source={iconFor(i.category)} style={{ width: 38, height: 38 }} /></View>
+              <View style={{ flex: 1 }}>
+                <Text style={st.meta}>{`${i.brand} · ${CATEGORY_LABEL[i.category] ?? ''}`}</Text>
+                <Text style={{ fontFamily: F.medium, fontSize: 15, color: C.ink }} numberOfLines={2}>{i.name}</Text>
               </View>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingLeft: 64 }}>
-                {retailerLinks(i).map(r => (
-                  <Pressable key={r.name} onPress={() => Linking.openURL(r.url)} accessibilityRole="link" style={({ hovered }: any) => ({ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: hovered ? '#E7E9F0' : '#F1F3F5' })}>
-                    <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.gray2 }}>{`${r.name} ↗`}</Text>
-                  </Pressable>
-                ))}
-              </View>
+              <ChipBtn label="Remove" tone="danger" icon="trash" iconOnly onPress={() => setRoutine(r => ({ ...r, bag: r.bag.filter(k => k !== itemKey(i)) }))} />
             </View>
-          ))}
-        </Section>
-        {!wide ? <View style={{ paddingTop: 8 }}>{summary}</View> : null}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingLeft: 60 }}>
+              {retailerLinks(i).map(r => (
+                <Pressable key={r.name} onPress={() => Linking.openURL(r.url)} accessibilityRole="link" style={({ hovered }: any) => ({ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: '#D9DCE3', backgroundColor: hovered ? '#F2F3F6' : '#fff' })}>
+                  <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.ink }}>{`${r.name} ↗`}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        ))}
+        {!bag.length ? <Text style={st.sub}>Nothing in your bag yet.</Text> : null}
+        {!wide ? <View style={{ marginTop: 20 }}>{card}</View> : null}
+        <Divider />
+        <Text style={[st.meta, { fontSize: 12, lineHeight: 18 }]}>Prices are estimates. You buy from the store at its price.</Text>
+        <View style={{ marginTop: 18, alignSelf: wide ? 'flex-start' : 'stretch' }}>
+          <Btn label={how === 'buy' ? 'Confirm and buy' : 'Confirm and save'} onPress={confirm} disabled={!bag.length} />
+        </View>
       </View>
     </Shell>
   );
