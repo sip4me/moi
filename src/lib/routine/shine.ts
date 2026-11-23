@@ -50,6 +50,11 @@ const CSS = `
 /* Secondary buttons and chips: raised pearl pills. */
 [data-fill="pearl"] { background-image: linear-gradient(180deg, #FFFFFF 0%, #F1F3F8 100%) !important; border-color: rgba(255,255,255,0.95) !important; box-shadow: 0 12px 24px -12px rgba(40,50,90,0.3), 0 2px 5px rgba(40,50,90,0.06), inset 0 1px 0 #FFFFFF; transition: box-shadow .2s ease; }
 [data-fill="pearl"]:hover { background-image: linear-gradient(180deg, #F2F4F9 0%, #E3E7F0 100%) !important; box-shadow: 0 8px 18px -10px rgba(40,50,90,0.35), 0 1px 3px rgba(40,50,90,0.08), inset 0 1px 0 #FFFFFF; }
+/* Selected choice card: blush pearl with a garnet rim and soft glow. */
+[data-fill="pearl-on"] { background-image: linear-gradient(180deg, #FFF8F7 0%, #F8E6E4 100%) !important; border-color: #A8576A !important; box-shadow: 0 0 0 4px rgba(168,87,106,0.14), 0 14px 26px -12px rgba(126,58,76,0.35), inset 0 1px 0 #FFFFFF; transform: translateY(-1px); transition: box-shadow .2s ease, transform .2s ease; }
+[data-fill="pearl-on"]:hover { border-color: #7E3A4C !important; }
+/* Choice cards when Continue was tapped with nothing picked. */
+[data-fill="pearl-ask"] { background-image: linear-gradient(180deg, #FFFFFF 0%, #F1F3F8 100%) !important; border-color: rgba(168,87,106,0.55) !important; border-style: dashed !important; box-shadow: 0 12px 24px -12px rgba(40,50,90,0.3); }
 @media (prefers-reduced-motion: reduce) { [data-shine], [data-fill="cateye"]::after { animation: none !important; } }
 `;
 
@@ -63,4 +68,4 @@ if (Platform.OS === 'web' && typeof document !== 'undefined' && !document.getEle
 /** Props that give a Text shiny letters (web) — spread onto <Text>. */
 export const shine = (kind: 'chrome' | 'rose' | 'titanium' | 'blush') => (Platform.OS === 'web' ? ({ dataSet: { shine: kind } } as any) : {});
 /** Props that give a View a jewellery fill (web). */
-export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'pearl') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});
+export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'pearl' | 'pearl-on' | 'pearl-ask') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});
