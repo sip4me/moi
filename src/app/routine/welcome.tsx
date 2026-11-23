@@ -16,6 +16,16 @@ export default function Welcome() {
   const line = useRef(new Animated.Value(0)).current;
   const arrow = useRef(new Animated.Value(0)).current;
   const nudge = useRef(new Animated.Value(0)).current;
+  const float = useRef(new Animated.Value(0)).current;
+  // "beauty is genius" drifts gently up and down.
+  useEffect(() => {
+    const loop = Animated.loop(Animated.sequence([
+      Animated.timing(float, { toValue: 1, duration: 2200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      Animated.timing(float, { toValue: 0, duration: 2200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+    ]));
+    loop.start();
+    return () => loop.stop();
+  }, []);
   useEffect(() => {
     Animated.sequence([
       Animated.timing(logo, { toValue: 1, duration: 700, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
@@ -45,9 +55,11 @@ export default function Welcome() {
       </Svg>
       <SafeAreaView style={{ flex: 1 }}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 20, paddingHorizontal: 24 }}>
-          <Animated.View style={rise(logo)}><Logo size={72} color={C.ink} /></Animated.View>
-          <Animated.Text style={[{ fontFamily: F.display, fontSize: 30, lineHeight: 34, letterSpacing: -0.3, color: C.ink, marginTop: -8 }, rise(line)]}>beauty is genius</Animated.Text>
-          <Animated.View style={[{ marginTop: 12 }, rise(arrow)]}>
+          <Animated.View style={rise(logo)}><Logo size={104} color={C.ink} /></Animated.View>
+          <Animated.View style={rise(line)}>
+            <Animated.Text style={{ fontFamily: F.display, fontSize: 42, lineHeight: 48, letterSpacing: -0.5, color: C.ink, marginTop: -6, transform: [{ translateY: float.interpolate({ inputRange: [0, 1], outputRange: [0, -7] }) }] }}>beauty is genius</Animated.Text>
+          </Animated.View>
+          <Animated.View style={[{ marginTop: 56 }, rise(arrow)]}>
             <Pressable onPress={go} accessibilityRole="button" accessibilityLabel="Continue to Find the gaps in your hair routine"
               style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => ({ width: 64, height: 64, borderRadius: 22, borderWidth: 1.5, borderColor: hovered ? '#000000' : '#2A2B2E', backgroundColor: hovered ? '#0E0E10' : '#2A2B2E', alignItems: 'center', justifyContent: 'center', shadowColor: '#14161C', shadowOpacity: 0.25, shadowRadius: 14, shadowOffset: { width: 0, height: 12 }, transform: [{ scale: pressed ? 0.94 : 1 }] })}>
               <Animated.View style={{ transform: [{ translateX: nudge.interpolate({ inputRange: [0, 1], outputRange: [-3, 4] }) }] }}>
