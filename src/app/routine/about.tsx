@@ -57,8 +57,9 @@ export default function About() {
 
   return (
     <Shell glass active="goals" step="1 of 3" hideNav={!wide && !s.started} footer={<Btn label={label} onPress={next} disabled={!ready} />}>
+      <GlassCard solid style={{ gap: 18, maxWidth: 800 }}>
       <Heading title="Routines for" sub="Pick any. A few quick questions each." />
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, maxWidth: 760 }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
         {AREAS.map(a => {
           const sel = on(a.key);
           return (
@@ -73,9 +74,10 @@ export default function About() {
           );
         })}
       </View>
+      {!areas.length ? <Text style={st.sub}>Tap one or more to start.</Text> : null}
+      </GlassCard>
       {AREAS.filter(a => on(a.key)).map(section)}
       {areas.length ? <GlassCard solid style={{ gap: 12 }}>{group('budget', 'Monthly budget', budget.options, o => s.hair.budget === o, o => setRoutine(r => ({ ...r, hair: { ...r.hair, budget: r.hair.budget === o ? undefined : o } })))}</GlassCard> : null}
-      {!areas.length ? <Text style={st.sub}>Tap one or more to start.</Text> : null}
     </Shell>
   );
 }

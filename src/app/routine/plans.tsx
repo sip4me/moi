@@ -7,6 +7,7 @@ import { checkoutRoutine, FOUNDING_CAP, refreshAccess, ROUTINE_PLANS, useAccess,
 import { analyze } from '../../lib/routine/gaps';
 import { hasInfo, useCatalog, useRoutine } from '../../lib/routine/model';
 import { fill } from '../../lib/routine/shine';
+import { GlassCard } from '../../components/routine/Glass';
 import { useStore } from '../../state/store';
 import { C, F } from '../../theme';
 
@@ -92,8 +93,10 @@ export default function Plans() {
         <Btn label={busy ? 'Opening checkout…' : `Continue with ${p.price} a ${p.per}`} onPress={busy ? undefined : buy} />
         <Text style={[st.meta, { textAlign: 'center', fontSize: 12 }]}>{pick === 'routine_founder' && founding ? 'Renews yearly. Database access stays if you cancel.' : 'Renews automatically. Cancel anytime.'}</Text>
       </View>}>
+      <GlassCard solid style={{ gap: 12, maxWidth: 600 }}>
       <Image source={crown} style={{ width: 64, height: 64, transform: [{ rotate: '-12deg' }] }} resizeMode="contain" />
       <Heading title="Save your routines" sub={gapCount ? `Make an account to keep your routines and see the fix for all ${gapCount} gap${gapCount === 1 ? '' : 's'}.` : 'Make an account to keep your routines, gaps and picks.'} />
+      </GlassCard>
       {f ? (
         <View {...fill('pearl')} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: 20, backgroundColor: '#fff', maxWidth: 600 }}>
           <View style={{ flex: 1, gap: 6 }}>
@@ -104,10 +107,10 @@ export default function Plans() {
         </View>
       ) : null}
       <View style={{ flexDirection: wide ? 'row' : 'column', gap: 12, maxWidth: 600 }}>{plan('routine_founder')}{plan('routine_monthly')}</View>
-      <View style={{ gap: 10, maxWidth: 600 }}>
+      <GlassCard solid style={{ gap: 10, maxWidth: 600 }}>
         <Label>With an account</Label>
         {PERKS.map(x => <Text key={x} style={[st.sub, { fontSize: 15 }]}>{`♛  ${x}`}</Text>)}
-      </View>
+      </GlassCard>
       {err ? <Text style={{ fontFamily: F.semibold, fontSize: 14, color: '#A8576A' }}>{err}</Text> : null}
       {status === 'cancel' ? <Text style={st.meta}>No charge made.</Text> : null}
     </Shell>

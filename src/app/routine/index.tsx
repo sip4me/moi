@@ -6,7 +6,8 @@ import { icon3d } from '../../data/icons3d';
 import { haptic } from '../../lib/haptics';
 import { session, setRoutine, useRoutine } from '../../lib/routine/model';
 import { C, F } from '../../theme';
-import { fill, shine } from '../../lib/routine/shine';
+import { fill } from '../../lib/routine/shine';
+import { GlassCard } from '../../components/routine/Glass';
 
 export default function Start() {
   const s = useRoutine();
@@ -34,10 +35,10 @@ export default function Start() {
     session.chose = true;
     setRoutine(r => ({ ...r, started: true })); router.push('/routine/build'); };
   return (
-    <Shell glass active="start" hideNav={!wide && !s.started} footer={wide ? undefined : <><Btn label="Continue" onPress={go} /><Text style={[st.meta, { textAlign: 'center', fontSize: 12 }]}>Free. No account needed.</Text></>}>
-      <View style={{ gap: 24, maxWidth: 600 }}>
+    <Shell glass active="start" hideNav={!wide && !s.started} footer={wide ? undefined : <><Btn label="Continue" onPress={go} /><Text style={[st.meta, { textAlign: 'center', fontSize: 12, color: 'rgba(255,255,255,0.88)' }]}>Free. No account needed.</Text></>}>
+      <GlassCard solid style={{ gap: 24, maxWidth: 640, padding: wide ? 32 : 20 }}>
         <View style={{ gap: 12 }}>
-          <Text {...shine('chrome')} style={[st.h1, { fontSize: wide ? 60 : 40, lineHeight: wide ? 62 : 42 }]}>Find the gaps in your routine.</Text>
+          <Text style={[st.h1, { fontSize: wide ? 60 : 40, lineHeight: wide ? 62 : 42 }]}>Find the gaps in your routine.</Text>
           <Text style={[st.sub, { fontSize: wide ? 17 : 15, lineHeight: wide ? 25 : 22 }]}>Add what you use. We show what’s missing.</Text>
         </View>
         <LinearTeaser />
@@ -50,7 +51,7 @@ export default function Start() {
           {ask ? <Text accessibilityRole="alert" style={{ fontFamily: F.semibold, fontSize: 14, color: '#A8576A' }}>Please select an option.</Text> : null}
         </View>
         {wide ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}><Btn label="Continue" onPress={go} /><Text style={st.meta}>Free. No account needed.</Text></View> : null}
-      </View>
+      </GlassCard>
     </Shell>
   );
 }
