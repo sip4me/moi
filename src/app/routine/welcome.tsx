@@ -2,16 +2,16 @@ import { router } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, Image, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Defs, LinearGradient, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import { Logo } from '../../components/ui';
 import { haptic } from '../../lib/haptics';
-import { fill, PALETTE, shine } from '../../lib/routine/shine';
+import { fill } from '../../lib/routine/shine';
 import { setRoutine } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 
 const crownArt = require('../../../assets/crown-pink.png');
 
-/** The front page: the crown in a glass bowl, the Moi wordmark, "beauty is genius", and an arrow into Routine. */
+/** The front page on warm paper: the crowned Moi wordmark, "beauty is genius" in vermilion, and a gold coin arrow into Routine. */
 export default function Welcome() {
   const logo = useRef(new Animated.Value(0)).current;
   const line = useRef(new Animated.Value(0)).current;
@@ -42,40 +42,23 @@ export default function Welcome() {
   const rise = (v: Animated.Value) => ({ opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] });
   const go = () => { haptic(); setRoutine(r => ({ ...r, welcomed: true })); router.replace('/routine'); };
   return (
-    <View style={{ flex: 1, backgroundColor: '#ECEDEF' }}>
-      {/* Silver ground: a soft radial light from the top */}
-      <Svg style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 100 100" aria-hidden>
-        <Defs>
-          {/* Icy cat-eye blue above, pearl through the middle, rose blush below: complements the garnet button. */}
-          <LinearGradient id="moiSky" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor="#D9E3F6" />
-            <Stop offset="0.45" stopColor="#F6F7FA" />
-            <Stop offset="1" stopColor="#F4DCDA" />
-          </LinearGradient>
-          <RadialGradient id="moiGlow" cx="50%" cy="42%" rx="55%" ry="40%">
-            <Stop offset="0" stopColor="#FFFFFF" stopOpacity="0.85" />
-            <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0" />
-          </RadialGradient>
-        </Defs>
-        <Rect x="0" y="0" width="100" height="100" fill="url(#moiSky)" />
-        <Rect x="0" y="0" width="100" height="100" fill="url(#moiGlow)" />
-      </Svg>
+    <View {...fill('paper')} style={{ flex: 1, backgroundColor: '#F3EFE7' }}>
       <SafeAreaView style={{ flex: 1 }}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 20, paddingHorizontal: 24 }}>
-          <Animated.View style={rise(logo)}><Logo size={104} color={C.ink} letterProps={shine('chrome')} /></Animated.View>
+          <Animated.View style={rise(logo)}><Logo size={104} color={C.ink} /></Animated.View>
           <Animated.View style={rise(line)}>
-            <Animated.Text {...shine('blush')} style={{ fontFamily: F.display, fontSize: 28, lineHeight: 34, letterSpacing: 0.2, color: '#C99A96', marginTop: 22, transform: [{ translateY: float.interpolate({ inputRange: [0, 1], outputRange: [0, -7] }) }] }}>beauty is genius</Animated.Text>
+            <Animated.Text style={{ fontFamily: F.display, fontSize: 28, lineHeight: 34, letterSpacing: 0.2, color: '#E8573A', marginTop: 22, transform: [{ translateY: float.interpolate({ inputRange: [0, 1], outputRange: [0, -7] }) }] }}>beauty is genius</Animated.Text>
           </Animated.View>
           <Animated.View style={[{ marginTop: 56 }, rise(arrow)]}>
-            <Pressable {...fill('lilac')} onPress={go} accessibilityRole="button" accessibilityLabel="Continue to Find the gaps in your hair routine"
-              style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => ({ width: 64, height: 64, borderRadius: 32, borderWidth: 1.5, borderColor: hovered ? PALETTE.garnetDeep : PALETTE.garnet, backgroundColor: hovered ? PALETTE.garnetDeep : PALETTE.garnet, alignItems: 'center', justifyContent: 'center', shadowColor: PALETTE.garnetDeep, shadowOpacity: 0.3, shadowRadius: 14, shadowOffset: { width: 0, height: 12 }, transform: [{ scale: pressed ? 0.94 : 1 }] })}>
+            <Pressable {...fill('gold-coin')} onPress={go} accessibilityRole="button" accessibilityLabel="Continue to Find the gaps in your hair routine"
+              style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => ({ width: 64, height: 64, borderRadius: 32, borderWidth: 1.5, borderColor: '#F3E2B3', backgroundColor: hovered ? '#B8892A' : '#C99A2E', alignItems: 'center', justifyContent: 'center', shadowColor: '#7A5A12', shadowOpacity: 0.3, shadowRadius: 14, shadowOffset: { width: 0, height: 12 }, transform: [{ scale: pressed ? 0.94 : 1 }] })}>
               <Animated.View style={{ transform: [{ translateX: nudge.interpolate({ inputRange: [0, 1], outputRange: [-3, 4] }) }] }}>
-                <Svg width={24} height={24} viewBox="0 0 24 24"><Path d="M5 12h13M13 6l6 6-6 6" stroke="#fff" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
+                <Svg width={24} height={24} viewBox="0 0 24 24"><Path d="M5 12h13M13 6l6 6-6 6" stroke="#1F2430" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
               </Animated.View>
             </Pressable>
           </Animated.View>
         </View>
-        <Text style={{ textAlign: 'center', paddingBottom: 18, fontFamily: F.medium, fontSize: 12, letterSpacing: 0.4, color: '#9A8F94' }}>© 2026 Moi</Text>
+        <Text style={{ textAlign: 'center', paddingBottom: 18, fontFamily: F.medium, fontSize: 12, letterSpacing: 0.4, color: '#9A9EA4' }}>© 2026 Moi</Text>
       </SafeAreaView>
     </View>
   );

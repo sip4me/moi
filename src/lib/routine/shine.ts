@@ -61,6 +61,16 @@ const CSS = `
 [data-fill="pearl-on"]:hover { border-color: #7E3A4C !important; }
 /* Choice cards when Continue was tapped with nothing picked. */
 [data-fill="pearl-ask"] { background-image: linear-gradient(180deg, #FFFFFF 0%, #F1F3F8 100%) !important; border-color: rgba(168,87,106,0.55) !important; border-style: dashed !important; box-shadow: 0 12px 24px -12px rgba(40,50,90,0.3); }
+/* Welcome screen: warm paper with a faint grain. */
+[data-fill="paper"] { background-color: #F3EFE7 !important; }
+[data-fill="paper"]::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .5 0 0 0 0 .42 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E"); }
+/* Gold coin button with a light sweep. */
+[data-fill="gold-coin"] { position: relative; overflow: hidden; background-image: radial-gradient(80% 80% at 35% 25%, #FFF3CF 0%, #E9C46A 38%, #C99A2E 75%, #9C7420 100%) !important; border-color: rgba(255,240,200,0.85) !important;
+  box-shadow: inset 0 -6px 10px rgba(120,80,10,0.35), 0 16px 24px -12px rgba(120,80,10,0.5); transition: filter .2s ease, box-shadow .2s ease; }
+[data-fill="gold-coin"]::after { content: ""; position: absolute; inset: -40%; pointer-events: none; background: linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.75) 50%, transparent 58%); animation: moi-coin 3.6s ease-in-out infinite; }
+[data-fill="gold-coin"]:hover { filter: brightness(0.93) saturate(1.1); box-shadow: inset 0 -6px 10px rgba(120,80,10,0.4), 0 12px 20px -10px rgba(120,80,10,0.55); }
+@keyframes moi-coin { 0%, 55% { transform: translateX(-60%); } 85%, 100% { transform: translateX(60%); } }
 @media (prefers-reduced-motion: reduce) { [data-shine], [data-fill="cateye"]::after { animation: none !important; } }
 `;
 
@@ -74,4 +84,4 @@ if (Platform.OS === 'web' && typeof document !== 'undefined' && !document.getEle
 /** Props that give a Text shiny letters (web) — spread onto <Text>. */
 export const shine = (kind: 'chrome' | 'rose' | 'titanium' | 'blush') => (Platform.OS === 'web' ? ({ dataSet: { shine: kind } } as any) : {});
 /** Props that give a View a jewellery fill (web). */
-export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'lilac' | 'pearl' | 'pearl-on' | 'pearl-ask') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});
+export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'lilac' | 'pearl' | 'pearl-on' | 'pearl-ask' | 'paper' | 'gold-coin') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});
