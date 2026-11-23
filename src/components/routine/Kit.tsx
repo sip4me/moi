@@ -169,9 +169,9 @@ export function Pill({ label, on, onPress }: { label: string; on?: boolean; onPr
 export function Btn({ label, onPress, kind = 'primary', style, disabled }: { label: string; onPress?: () => void; kind?: 'primary' | 'secondary' | 'small'; style?: ViewStyle; disabled?: boolean }) {
   return (
     <Pressable {...(disabled ? {} : fill(kind === 'secondary' ? 'pearl' : 'garnet'))} disabled={disabled} onPress={onPress ? () => { haptic(); onPress(); } : undefined} accessibilityRole="button"
-      style={({ pressed, hovered }: PS) => [kind === 'small' ? st.btnSm : st.btn, kind === 'secondary' && st.btnSec, style, hovered && !disabled && { ...HOVER_RIM, backgroundColor: kind === 'secondary' ? '#E6E8EB' : PALETTE.garnetDeep }, disabled && { opacity: 0.4 }, pressed && { transform: [{ scale: 0.98 }], opacity: 0.9 }]}>
+      style={({ pressed, hovered }: PS) => [kind === 'small' ? st.btnSm : st.btn, kind === 'secondary' && st.btnSec, kind === 'primary' && !disabled && { paddingHorizontal: 54 }, style, hovered && !disabled && { ...HOVER_RIM, backgroundColor: kind === 'secondary' ? '#E6E8EB' : PALETTE.garnetDeep }, disabled && { opacity: 0.4 }, pressed && { transform: [{ scale: 0.98 }], opacity: 0.9 }]}>
       <Text style={[kind === 'small' ? st.btnSmText : st.btnText, kind === 'secondary' && { color: C.ink }]}>{label}</Text>
-      {kind === 'primary' && !disabled ? <View pointerEvents="none" style={{ position: 'absolute', right: 20, top: 0, bottom: 0, justifyContent: 'center' }}><Svg width={18} height={18} viewBox="0 0 24 24"><Path {...({ dataSet: { chev: '' } } as object)} d="M9 5l7 7-7 7" stroke="#8E92A8" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg></View> : null}
+      {kind === 'primary' && !disabled ? <View pointerEvents="none" style={{ position: 'absolute', right: 22, top: 0, bottom: 0, justifyContent: 'center' }}><Svg width={18} height={18} viewBox="0 0 24 24"><Path {...({ dataSet: { chev: '' } } as object)} d="M9 5l7 7-7 7" stroke="#8E92A8" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg></View> : null}
     </Pressable>
   );
 }
