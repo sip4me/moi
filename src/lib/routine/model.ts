@@ -44,7 +44,7 @@ export const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 export const CATEGORY_LABEL: Record<string, string> = {
   shampoo: 'Shampoo', clarifying: 'Clarifying shampoo', conditioner: 'Conditioner', deep_conditioner: 'Deep conditioner',
   leave_in: 'Leave-in', heat_protectant: 'Heat protectant', styler: 'Styler', oil: 'Oil or serum', scalp_treatment: 'Scalp treatment',
-  bond_builder: 'Bond repair', dry_shampoo: 'Dry shampoo', swim: 'Swim care', anti_dandruff: 'Anti-dandruff shampoo', pre_wash: 'Pre-wash',
+  bond_builder: 'Bond repair', color: 'Hair color', relaxer: 'Relaxer or perm', dry_shampoo: 'Dry shampoo', swim: 'Swim care', anti_dandruff: 'Anti-dandruff shampoo', pre_wash: 'Pre-wash',
   flat_iron: 'Flat iron', blow_dryer: 'Blow dryer', diffuser: 'Diffuser', curling_iron: 'Curling iron', fine_comb: 'Fine-tooth comb',
   wide_tooth_comb: 'Wide-tooth comb', wet_brush: 'Wet brush', satin_pillowcase: 'Satin pillowcase', bonnet: 'Bonnet',
   microfiber_towel: 'Microfiber towel', swim_cap: 'Swim cap', scrunchie_soft: 'Soft scrunchies', scalp_massager: 'Scalp massager',
@@ -52,7 +52,7 @@ export const CATEGORY_LABEL: Record<string, string> = {
 export const CATEGORY_ICON: Record<string, string> = {
   shampoo: 'gentle_wash', clarifying: 'cover_clarify', conditioner: 'conditioner', deep_conditioner: 'deep_condition', leave_in: 'leave_in',
   heat_protectant: 'heat_protect', styler: 'flax_gel', oil: 'ends_oil', scalp_treatment: 'rosemary', bond_builder: 'bond_repair',
-  dry_shampoo: 'dry_shampoo', swim: 'swim_prep', anti_dandruff: 'anti_dandruff', pre_wash: 'pre_wash_oil',
+  color: 'cover_heatless', relaxer: 'style_glass', dry_shampoo: 'dry_shampoo', swim: 'swim_prep', anti_dandruff: 'anti_dandruff', pre_wash: 'pre_wash_oil',
   flat_iron: 'style_tools', blow_dryer: 'style_tools', diffuser: 'style_tools', curling_iron: 'style_tools', fine_comb: 'detangle',
   wide_tooth_comb: 'detangle', wet_brush: 'detangle', satin_pillowcase: 'pillowcase', bonnet: 'satin', microfiber_towel: 'rinse',
   swim_cap: 'swim_prep', scrunchie_soft: 'soft_ties', scalp_massager: 'scalp_massage',
