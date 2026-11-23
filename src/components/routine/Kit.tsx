@@ -148,7 +148,7 @@ function Rail({ filled, empty }: { filled: boolean; empty: boolean }) {
   );
 }
 
-function Node({ state }: { state: 'done' | 'next' | 'empty' }) {
+export function Node({ state }: { state: 'done' | 'next' | 'empty' }) {
   const pulse = useRef(new Animated.Value(0)).current;
   const pop = useRef(new Animated.Value(state === 'done' ? 1 : 0)).current;
   useEffect(() => {
@@ -346,6 +346,60 @@ export function ProductCard({ item, fit, best, inBag, onAdd, width }: { item: It
         <Text style={st.price}>{item.price ? `about ${money(item.price)}` : ''}</Text>
         <View style={{ flex: 1 }} />
         <Pressable onPress={() => { haptic(); onAdd(); }} style={[st.btnSm, inBag && { backgroundColor: '#E5F4EA' }]}><Text style={[st.btnSmText, inBag && { color: '#1E7B45' }]}>{inBag ? 'In bag ✓' : 'Add'}</Text></Pressable>
+      </View>
+    </View>
+  );
+}
+
+// ── Start-page teaser: a wash day filling in, left to right, on a loop ───────
+function HRail({ filled }: { filled: boolean }) {
+  const v = useRef(new Animated.Value(filled ? 1 : 0)).current;
+  useEffect(() => { Animated.timing(v, { toValue: filled ? 1 : 0, duration: filled ? 480 : 0, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start(); }, [filled]);
+  return (
+    <View style={{ flex: 1, height: 2, marginTop: 9, borderRadius: 1, backgroundColor: '#D6E2FB', overflow: 'hidden' }}>
+      <Animated.View style={{ height: 2, backgroundColor: BLUE, width: v.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }} />
+    </View>
+  );
+}
+
+function TeaserStep({ label, sub, state }: { label: string; sub: string; state: 'done' | 'next' | 'empty' }) {
+  const v = useRef(new Animated.Value(state === 'done' ? 1 : 0)).current;
+  useEffect(() => { Animated.timing(v, { toValue: state === 'done' ? 1 : 0, duration: state === 'done' ? 320 : 0, useNativeDriver: true }).start(); }, [state]);
+  return (
+    <View style={{ width: 68, alignItems: 'center', gap: 6 }}>
+      <Node state={state} />
+      <Text style={{ fontFamily: state === 'empty' ? F.medium : F.semibold, fontSize: 12, color: state === 'empty' ? C.gray : C.ink, textAlign: 'center' }} numberOfLines={1}>{label}</Text>
+      <Animated.Text style={{ fontFamily: F.regular, fontSize: 11, color: C.gray, opacity: v, marginTop: -3 }} numberOfLines={1}>{sub}</Animated.Text>
+    </View>
+  );
+}
+
+/** A short, looping simulation of adding a wash-day routine step by step. Generic names only. */
+export function LinearTeaser() {
+  const narrow = useWindowDimensions().width < 420;
+  const steps = (narrow
+    ? [['Pre-poo', 'Oil'], ['Cleanse', 'Shampoo'], ['Condition', 'Conditioner'], ['Style', 'Styler']]
+    : [['Pre-poo', 'Oil'], ['Cleanse', 'Shampoo'], ['Condition', 'Conditioner'], ['Hair oil', 'Oil'], ['Style', 'Styler']]);
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    const t = setTimeout(() => setN(x => (x >= steps.length + 2 ? 0 : x + 1)), n === 0 ? 700 : n >= steps.length ? 1500 : 1000);
+    return () => clearTimeout(t);
+  }, [n, steps.length]);
+  const done = Math.min(n, steps.length);
+  const complete = done === steps.length;
+  return (
+    <View style={{ borderRadius: 24, backgroundColor: '#EEF1FD', paddingHorizontal: 16, paddingTop: 14, paddingBottom: 12, gap: 12, maxWidth: 560 }} accessibilityLabel="Example: adding a wash day routine step by step">
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <Text style={{ fontFamily: F.semibold, fontSize: 13, color: C.ink, flex: 1 }}>Wash day</Text>
+        <Text style={{ fontFamily: F.semibold, fontSize: 12, color: complete ? '#1E7B45' : BLUE }}>{complete ? 'Routine checked ✓' : `${done}/${steps.length} added`}</Text>
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+        {steps.map(([label, sub], i) => (
+          <React.Fragment key={label + i}>
+            {i > 0 ? <HRail filled={i - 1 < done} /> : null}
+            <TeaserStep label={label} sub={sub} state={i < done ? 'done' : i === done ? 'next' : 'empty'} />
+          </React.Fragment>
+        ))}
       </View>
     </View>
   );
