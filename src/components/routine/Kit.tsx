@@ -54,7 +54,7 @@ function MenuButton({ onPress, hint }: { onPress: () => void; hint: boolean }) {
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
       <View style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
         {hint ? <Animated.View pointerEvents="none" style={{ position: 'absolute', width: 44, height: 44, borderRadius: 22, backgroundColor: BLUE, opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0] }), transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.9] }) }] }} /> : null}
-        <Pressable onPress={() => { haptic('select'); onPress(); }} accessibilityRole="button" accessibilityLabel="Open menu"
+        <Pressable {...fill('pearl')} onPress={() => { haptic('select'); onPress(); }} accessibilityRole="button" accessibilityLabel="Open menu"
           style={({ pressed, hovered }: PS) => [st.menuBtn, hovered && { ...HOVER_RIM, backgroundColor: '#E9EAEC' }, pressed && { transform: [{ scale: 0.94 }] }]}>
           <Image source={crownImg} style={{ width: 24, height: 24 }} />
         </Pressable>
@@ -147,7 +147,7 @@ export const Label = ({ children }: { children: string }) => <Text style={st.lab
 
 export function Pill({ label, on, onPress }: { label: string; on?: boolean; onPress?: () => void }) {
   return (
-    <Pressable {...(on ? fill('garnet') : {})} onPress={onPress ? () => { haptic('select'); onPress(); } : undefined} accessibilityRole="button" accessibilityState={{ selected: !!on }}
+    <Pressable {...fill(on ? 'garnet' : 'pearl')} onPress={onPress ? () => { haptic('select'); onPress(); } : undefined} accessibilityRole="button" accessibilityState={{ selected: !!on }}
       style={({ pressed, hovered }: PS) => [st.pill, on && st.pillOn, hovered && { ...HOVER_RIM, backgroundColor: on ? PALETTE.garnetDeep : '#ECEDEF' }, pressed && { opacity: 0.8 }]}>
       <Text style={[st.pillText, on && { color: '#fff' }]}>{label}</Text>
     </Pressable>
@@ -156,7 +156,7 @@ export function Pill({ label, on, onPress }: { label: string; on?: boolean; onPr
 
 export function Btn({ label, onPress, kind = 'primary', style, disabled }: { label: string; onPress?: () => void; kind?: 'primary' | 'secondary' | 'small'; style?: ViewStyle; disabled?: boolean }) {
   return (
-    <Pressable {...(kind !== 'secondary' && !disabled ? fill('garnet') : {})} disabled={disabled} onPress={onPress ? () => { haptic(); onPress(); } : undefined} accessibilityRole="button"
+    <Pressable {...(disabled ? {} : fill(kind === 'secondary' ? 'pearl' : 'garnet'))} disabled={disabled} onPress={onPress ? () => { haptic(); onPress(); } : undefined} accessibilityRole="button"
       style={({ pressed, hovered }: PS) => [kind === 'small' ? st.btnSm : st.btn, kind === 'secondary' && st.btnSec, style, hovered && !disabled && { ...HOVER_RIM, backgroundColor: kind === 'secondary' ? '#E6E8EB' : PALETTE.garnetDeep }, disabled && { opacity: 0.4 }, pressed && { transform: [{ scale: 0.98 }], opacity: 0.9 }]}>
       <Text style={[kind === 'small' ? st.btnSmText : st.btnText, kind === 'secondary' && { color: C.ink }]}>{label}</Text>
     </Pressable>
@@ -247,7 +247,7 @@ function StepRow({ s, state, last, nextFilled, onOpen }: { s: Step; state: 'done
 export function ChipBtn({ label, onPress, tone = 'default', icon }: { label: string; onPress: () => void; tone?: 'default' | 'danger' | 'dark'; icon?: React.ReactNode }) {
   const dark = tone === 'dark';
   return (
-    <Pressable {...(dark ? fill('garnet') : {})} onPress={() => { haptic('select'); onPress(); }} accessibilityRole="button"
+    <Pressable {...fill(dark ? 'garnet' : 'pearl')} onPress={() => { haptic('select'); onPress(); }} accessibilityRole="button"
       style={({ pressed, hovered }: PS) => [st.chipBtn, dark && { backgroundColor: PALETTE.garnet, borderColor: PALETTE.garnet }, hovered && { ...HOVER_RIM, backgroundColor: dark ? PALETTE.garnetDeep : '#ECEDEF' }, pressed && { transform: [{ scale: 0.97 }] }]}>
       {icon}
       <Text style={[st.chipBtnText, tone === 'danger' && { color: '#B42318' }, dark && { color: '#fff' }]}>{label}</Text>
@@ -258,7 +258,7 @@ export function ChipBtn({ label, onPress, tone = 'default', icon }: { label: str
 /** The round "+" that says: tap here to add a product. */
 export function PlusDot({ solid, size = 32 }: { solid?: boolean; size?: number }) {
   return (
-    <View style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: solid ? PALETTE.garnet : '#fff', borderWidth: 1.5, borderColor: solid ? PALETTE.garnet : '#C4C8CE' }} accessibilityElementsHidden importantForAccessibility="no">
+    <View {...fill(solid ? 'garnet' : 'pearl')} style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: solid ? PALETTE.garnet : '#fff', borderWidth: 1.5, borderColor: solid ? PALETTE.garnet : '#C4C8CE' }} accessibilityElementsHidden importantForAccessibility="no">
       <Svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24"><Path d="M12 5v14M5 12h14" stroke={solid ? '#fff' : PALETTE.garnet} strokeWidth={2.6} strokeLinecap="round" /></Svg>
     </View>
   );

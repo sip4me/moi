@@ -6,7 +6,7 @@ import { icon3d } from '../../data/icons3d';
 import { haptic } from '../../lib/haptics';
 import { setRoutine, useRoutine } from '../../lib/routine/model';
 import { C, F } from '../../theme';
-import { shine } from '../../lib/routine/shine';
+import { fill, shine } from '../../lib/routine/shine';
 
 export default function Start() {
   const s = useRoutine();
@@ -14,7 +14,7 @@ export default function Start() {
   const choice = (mode: 'check' | 'new', title: string, body: string, icon: string) => {
     const on = s.mode === mode;
     return (
-      <Pressable key={mode} onPress={() => { haptic('select'); setRoutine(r => ({ ...r, mode })); }} accessibilityRole="radio" accessibilityState={{ checked: on }}
+      <Pressable key={mode} {...fill('pearl')} onPress={() => { haptic('select'); setRoutine(r => ({ ...r, mode })); }} accessibilityRole="radio" accessibilityState={{ checked: on }}
         style={({ hovered }: { pressed: boolean; hovered?: boolean }) => ({ flex: wide ? 1 : undefined, flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: hovered ? '#ECEDEF' : '#fff', borderRadius: 24, padding: 16, borderWidth: 2, borderColor: hovered ? '#7E3A4C' : on ? '#A8576A' : 'transparent' })}>
         <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: on ? '#F8E3DF' : '#EEF0F3', alignItems: 'center', justifyContent: 'center' }}><Image source={icon3d(icon)} style={{ width: 42, height: 42 }} /></View>
         <View style={{ flex: 1, gap: 3 }}>
