@@ -47,8 +47,8 @@ export default function Start() {
         <View style={{ gap: 12 }}>
           <Label>Start with</Label>
           <View style={{ flexDirection: wide ? 'row' : 'column', gap: 12 }}>
-            {choice('check', 'My routine', 'Check what you use now', 'mirror')}
-            {choice('new', 'A new routine', 'Built from your goals', 'learn')}
+            {choice('new', 'Create new routine', 'Built from your answers', 'learn')}
+            {choice('check', 'Find gaps in current routine', 'Add what you use now', 'mirror')}
           </View>
           {ask ? <Text accessibilityRole="alert" style={{ fontFamily: F.semibold, fontSize: 14, color: '#A8576A' }}>Please select an option.</Text> : null}
         </View>
