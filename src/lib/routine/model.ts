@@ -32,6 +32,8 @@ export type RoutineState = {
   menuSeen?: boolean; // has opened the menu once (stops the tap hint)
   started?: boolean; // tapped Continue on the start page
   v?: number; // saved-state version
+  /** Routines the person has submitted: 'wash', 'every', 'occ:<name>'. Editing one reopens it. */
+  submitted?: Record<string, boolean>;
 };
 
 // ── Vocabulary ────────────────────────────────────────────────────────────────

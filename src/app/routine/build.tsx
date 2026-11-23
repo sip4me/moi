@@ -10,9 +10,13 @@ import { C, F } from '../../theme';
 type Where = { list: 'wash' | 'every' } | { list: 'occ'; occ: string };
 const ORDER = ['pre_wash', 'shampoo', 'clarifying', 'anti_dandruff', 'swim', 'bond_builder', 'conditioner', 'deep_conditioner', 'leave_in', 'heat_protectant', 'styler', 'oil', 'scalp_treatment'];
 
+const keyOf = (w: Where) => (w.list === 'occ' ? `occ:${w.occ}` : w.list);
+
+/** Changing a routine reopens it, so it has to be submitted again. */
 function update(s: RoutineState, w: Where, fn: (steps: Step[]) => Step[]): RoutineState {
-  if (w.list === 'occ') return { ...s, occ: { ...s.occ, [w.occ]: fn(s.occ[w.occ] ?? defaultOccasion(w.occ)) } };
-  return { ...s, [w.list]: fn(s[w.list]) };
+  const submitted = { ...(s.submitted ?? {}), [keyOf(w)]: false };
+  if (w.list === 'occ') return { ...s, submitted, occ: { ...s.occ, [w.occ]: fn(s.occ[w.occ] ?? defaultOccasion(w.occ)) } };
+  return { ...s, submitted, [w.list]: fn(s[w.list]) };
 }
 
 export default function Build() {
@@ -46,10 +50,9 @@ export default function Build() {
   const removeStep = () => { if (!open) return; const o = open; setOpen(null); setRoutine(r => update(r, o.w, steps => steps.filter(x => x.id !== o.id))); };
 
   const list = (w: Where, steps: Step[]) => (
-    <View style={{ gap: 4 }}>
-      <Timeline steps={steps} onOpen={x => setOpen({ w, id: x.id })} />
-      <Pressable onPress={() => addStep(w)} style={({ hovered }: { pressed: boolean; hovered?: boolean }) => ({ marginLeft: 26, paddingHorizontal: 6, paddingVertical: 6, alignSelf: 'flex-start', borderRadius: 10, borderWidth: 1.5, borderColor: hovered ? C.ink : 'transparent', backgroundColor: hovered ? '#ECEDEF' : 'transparent' })}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}><PlusDot size={28} /><Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>Add another step</Text></View></Pressable>
-    </View>
+    <Timeline steps={steps} onOpen={x => setOpen({ w, id: x.id })} submitted={!!s.submitted?.[keyOf(w)]}
+      onSubmit={() => setRoutine(r => ({ ...r, submitted: { ...(r.submitted ?? {}), [keyOf(w)]: true } }))}
+      extra={<View style={{ paddingBottom: 12 }}><Pressable onPress={() => addStep(w)} style={({ hovered }: { pressed: boolean; hovered?: boolean }) => ({ marginLeft: 26, paddingHorizontal: 6, paddingVertical: 6, alignSelf: 'flex-start', borderRadius: 10, borderWidth: 1.5, borderColor: hovered ? C.ink : 'transparent', backgroundColor: hovered ? '#ECEDEF' : 'transparent' })}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}><PlusDot size={28} /><Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>Add another step</Text></View></Pressable></View>} />
   );
 
   const dayNames = s.washDays.map(i => DAYS[i]).join(', ') || 'none yet';

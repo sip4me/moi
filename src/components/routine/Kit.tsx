@@ -12,6 +12,7 @@ import { C, F } from '../../theme';
 import { useStore } from '../../state/store';
 
 export const BLUE = '#5B8DEF';
+export const GOLD = '#C9A24A';
 /** Hover (web): every button gets a black rim and a slightly darker fill than it has at rest. */
 export const HOVER_RIM = { borderColor: C.ink, borderWidth: 1.5 } as const;
 type PS = { pressed: boolean; hovered?: boolean };
@@ -262,22 +263,72 @@ export function PlusDot({ solid, size = 32 }: { solid?: boolean; size?: number }
   );
 }
 
-export function Timeline({ steps, onOpen }: { steps: Step[]; onOpen: (s: Step) => void; active?: string }) {
+/** Progress fill that glides to its new width; full and gold-tinted once the routine is submitted. */
+function ProgressBar({ value, submitted }: { value: number; submitted: boolean }) {
+  const v = useRef(new Animated.Value(value)).current;
+  useEffect(() => { Animated.timing(v, { toValue: value, duration: 520, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start(); }, [value]);
+  return (
+    <View style={[st.bar, { flex: 1, height: 6 }]}>
+      <Animated.View style={[st.barFill, { height: 6, backgroundColor: submitted ? GOLD : BLUE, width: v.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }]} />
+    </View>
+  );
+}
+
+/** The end of the line: a Submit button, which becomes a gold check once the routine is submitted. */
+function RoutineEnd({ submitted, canSubmit, onSubmit }: { submitted: boolean; canSubmit: boolean; onSubmit: () => void }) {
+  const pop = useRef(new Animated.Value(submitted ? 1 : 0)).current;
+  useEffect(() => { Animated.spring(pop, { toValue: submitted ? 1 : 0, friction: 4, tension: 140, useNativeDriver: true }).start(); }, [submitted]);
+  return (
+    <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center', paddingTop: 4 }}>
+      <View style={{ width: 20, alignItems: 'center' }}>
+        {submitted ? (
+          <Animated.View style={{ transform: [{ scale: pop }] }}><GoldCheck size={30} /></Animated.View>
+        ) : <View style={[st.node, st.nodeEmpty]} />}
+      </View>
+      {submitted ? (
+        <Animated.View style={{ flex: 1, opacity: pop }}>
+          <Text style={[st.cardTitle, { color: '#8A6A1F' }]}>Routine saved</Text>
+          <Text style={st.meta}>Edit any step to update it.</Text>
+        </Animated.View>
+      ) : (
+        <View style={{ flex: 1, gap: 6 }}>
+          <ChipBtn label="Submit routine" tone="dark" onPress={canSubmit ? onSubmit : () => {}} />
+          {!canSubmit ? <Text style={st.meta}>Add or skip at least one step first.</Text> : null}
+        </View>
+      )}
+    </View>
+  );
+}
+
+/** Moi's gold check: a gold coin with a white tick. */
+export function GoldCheck({ size = 28 }: { size?: number }) {
+  return (
+    <View style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: GOLD, borderWidth: 2, borderColor: '#E9CF86', shadowColor: '#8A6A1F', shadowOpacity: 0.35, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } }}>
+      <Svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24"><Path d="m5 12.5 4.5 4.5L19 7.5" stroke="#fff" strokeWidth={3.4} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
+    </View>
+  );
+}
+
+export function Timeline({ steps, onOpen, submitted = false, onSubmit, extra }: { steps: Step[]; onOpen: (s: Step) => void; active?: string; submitted?: boolean; onSubmit?: () => void; extra?: React.ReactNode }) {
   const nextIdx = steps.findIndex(s => !s.item && !s.skipped);
   const done = steps.filter(s => s.item || s.skipped).length;
+  // Each filled or skipped box moves the bar one step; submitting completes it.
+  const value = submitted ? 1 : steps.length ? done / steps.length : 0;
   return (
     <View style={{ gap: 12 }}>
       {steps.length ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <View style={[st.bar, { flex: 1, height: 6 }]}><View style={[st.barFill, { height: 6, width: `${Math.round((done / steps.length) * 100)}%` }]} /></View>
-          <Text style={st.meta}>{done === steps.length ? 'All added' : `${done}/${steps.length}`}</Text>
+          <ProgressBar value={value} submitted={submitted} />
+          <Text style={[st.meta, submitted && { color: '#8A6A1F', fontFamily: F.semibold }]}>{submitted ? 'Complete' : `${done}/${steps.length}`}</Text>
         </View>
       ) : null}
       <View>
         {steps.map((s, i) => (
-          <StepRow key={s.id} s={s} last={i === steps.length - 1} nextFilled={!!steps[i + 1]?.item}
-            state={s.item?.addedAt ? 'done' : s.skipped ? 'skipped' : i === nextIdx ? 'next' : 'empty'} onOpen={() => onOpen(s)} />
+          <StepRow key={s.id} s={s} last={i === steps.length - 1 && !onSubmit} nextFilled={!!steps[i + 1]?.item}
+            state={s.item?.addedAt ? 'done' : s.skipped ? 'skipped' : !submitted && i === nextIdx ? 'next' : 'empty'} onOpen={() => onOpen(s)} />
         ))}
+        {extra}
+        {onSubmit && steps.length ? <RoutineEnd submitted={submitted} canSubmit={done > 0} onSubmit={onSubmit} /> : null}
       </View>
     </View>
   );
