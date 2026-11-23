@@ -12,6 +12,9 @@ import { C, F } from '../../theme';
 import { useStore } from '../../state/store';
 
 export const BLUE = '#5B8DEF';
+/** Hover (web): every button gets a black rim and a slightly darker fill than it has at rest. */
+export const HOVER_RIM = { borderColor: C.ink, borderWidth: 1.5 } as const;
+type PS = { pressed: boolean; hovered?: boolean };
 export const crownImg = require('../../../assets/crown-pink.png');
 export const useWide = () => useWindowDimensions().width >= 900;
 export const iconFor = (cat?: string) => icon3d(CATEGORY_ICON[cat ?? ''] ?? 'drop');
@@ -50,7 +53,7 @@ function MenuButton({ onPress, hint }: { onPress: () => void; hint: boolean }) {
       <View style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
         {hint ? <Animated.View pointerEvents="none" style={{ position: 'absolute', width: 44, height: 44, borderRadius: 22, backgroundColor: BLUE, opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0] }), transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.9] }) }] }} /> : null}
         <Pressable onPress={() => { haptic('select'); onPress(); }} accessibilityRole="button" accessibilityLabel="Open menu"
-          style={({ pressed }) => [st.menuBtn, pressed && { transform: [{ scale: 0.94 }] }]}>
+          style={({ pressed, hovered }: PS) => [st.menuBtn, hovered && { ...HOVER_RIM, backgroundColor: '#E9EAEC' }, pressed && { transform: [{ scale: 0.94 }] }]}>
           <Image source={crownImg} style={{ width: 24, height: 24 }} />
         </Pressable>
       </View>
@@ -79,7 +82,7 @@ function Menu({ open, onClose, active }: { open: boolean; onClose: () => void; a
             {NAV.map(n => {
               const on = n.key === active;
               return (
-                <Pressable key={n.key} onPress={() => { haptic('select'); onClose(); go(n.href); }} style={({ pressed }) => [st.nav, on && st.navOn, pressed && { opacity: 0.7 }, n.key === 'tracker' && st.navAddon]}>
+                <Pressable key={n.key} onPress={() => { haptic('select'); onClose(); go(n.href); }} style={({ pressed, hovered }: PS) => [st.nav, on && st.navOn, n.key === 'tracker' && st.navAddon, hovered && { ...HOVER_RIM, backgroundColor: on ? '#EDEEF0' : '#E6E8EB' }, pressed && { opacity: 0.7 }]}>
                   <Image source={icon3d(n.icon)} style={{ width: 26, height: 26, opacity: on ? 1 : 0.75 }} />
                   <Text style={[st.navText, on && { fontFamily: F.semibold, color: C.ink }]}>{n.label}</Text>
                 </Pressable>
@@ -143,7 +146,7 @@ export const Label = ({ children }: { children: string }) => <Text style={st.lab
 export function Pill({ label, on, onPress }: { label: string; on?: boolean; onPress?: () => void }) {
   return (
     <Pressable onPress={onPress ? () => { haptic('select'); onPress(); } : undefined} accessibilityRole="button" accessibilityState={{ selected: !!on }}
-      style={({ pressed }) => [st.pill, on && st.pillOn, pressed && { opacity: 0.8 }]}>
+      style={({ pressed, hovered }: PS) => [st.pill, on && st.pillOn, hovered && { ...HOVER_RIM, backgroundColor: on ? '#000000' : '#ECEDEF' }, pressed && { opacity: 0.8 }]}>
       <Text style={[st.pillText, on && { color: '#fff' }]}>{label}</Text>
     </Pressable>
   );
@@ -152,7 +155,7 @@ export function Pill({ label, on, onPress }: { label: string; on?: boolean; onPr
 export function Btn({ label, onPress, kind = 'primary', style, disabled }: { label: string; onPress?: () => void; kind?: 'primary' | 'secondary' | 'small'; style?: ViewStyle; disabled?: boolean }) {
   return (
     <Pressable disabled={disabled} onPress={onPress ? () => { haptic(); onPress(); } : undefined} accessibilityRole="button"
-      style={({ pressed }) => [kind === 'small' ? st.btnSm : st.btn, kind === 'secondary' && st.btnSec, disabled && { opacity: 0.4 }, pressed && { transform: [{ scale: 0.98 }], opacity: 0.9 }, style]}>
+      style={({ pressed, hovered }: PS) => [kind === 'small' ? st.btnSm : st.btn, kind === 'secondary' && st.btnSec, style, hovered && !disabled && { ...HOVER_RIM, backgroundColor: kind === 'secondary' ? '#E6E8EB' : '#000000' }, disabled && { opacity: 0.4 }, pressed && { transform: [{ scale: 0.98 }], opacity: 0.9 }]}>
       <Text style={[kind === 'small' ? st.btnSmText : st.btnText, kind === 'secondary' && { color: C.ink }]}>{label}</Text>
     </Pressable>
   );
@@ -162,7 +165,7 @@ export function Segmented({ options, value, onChange }: { options: string[]; val
   return (
     <View style={st.seg}>
       {options.map(o => (
-        <Pressable key={o} onPress={() => { haptic('select'); onChange(o); }} style={[st.segItem, o === value && st.segOn]}>
+        <Pressable key={o} onPress={() => { haptic('select'); onChange(o); }} style={({ hovered }: PS) => [st.segItem, o === value && st.segOn, hovered && { ...HOVER_RIM, backgroundColor: o === value ? '#F1F2F4' : '#E2E4E8' }]}>
           <Text style={[st.segText, o === value && { color: C.ink, fontFamily: F.semibold }]}>{o}</Text>
         </Pressable>
       ))}
@@ -220,7 +223,8 @@ function StepRow({ s, state, last, nextFilled, onOpen }: { s: Step; state: 'done
         {!last ? <Rail filled={!empty || state === 'skipped'} empty={empty && !next && state !== 'skipped'} /> : null}
       </View>
       <Pressable onPress={() => { haptic('select'); onOpen(); }} style={({ pressed }) => [{ flex: 1, paddingBottom: 12 }, pressed && { opacity: 0.85 }]}>
-        <Animated.View style={[st.stepCard, empty && !next && st.stepQuiet, next && st.stepNext, { opacity: appear, transform: [{ scale: appear.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) }] }]}>
+        {({ hovered }: PS) => (
+        <Animated.View style={[st.stepCard, empty && !next && st.stepQuiet, next && st.stepNext, hovered && { ...HOVER_RIM, borderStyle: 'solid', backgroundColor: '#EDEEF0' }, { opacity: appear, transform: [{ scale: appear.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) }] }]}>
           {!empty ? <Image source={iconFor(s.item!.category)} style={st.stepIcon} /> : null}
           <View style={{ flex: 1, gap: 3 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -231,6 +235,7 @@ function StepRow({ s, state, last, nextFilled, onOpen }: { s: Step; state: 'done
             {empty && !next ? null : <Text style={st.stepSub} numberOfLines={2}>{empty ? 'Search, scan a barcode, or skip' : `${s.item!.brand ? `${s.item!.brand} · ` : ''}${s.item!.name}`}</Text>}
           </View>
         </Animated.View>
+        )}
       </Pressable>
     </View>
   );
@@ -315,7 +320,7 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename, onSkip 
                 onPick(r.item);
                 setMsg(r.found >= 3 ? `Read ${r.found} ingredients. Your gap report now checks them.` : 'We couldn\u2019t read the list clearly. Try a flatter, brighter photo.');
               } catch { setMsg('That photo didn\u2019t work. Try again in good light.'); } finally { setBusy(false); }
-            }} style={st.ingCta}>
+            }} style={({ hovered }: PS) => [st.ingCta, hovered && { ...HOVER_RIM, borderStyle: 'solid', backgroundColor: '#E3EAFB' }]}>
               <Text style={{ fontSize: 18 }}>🧴</Text>
               <View style={{ flex: 1 }}><Text style={st.cardTitle}>Snap the ingredient list</Text><Text style={st.meta}>We don’t have this one yet. A photo lets us check it now.</Text></View>
             </Pressable>
@@ -335,13 +340,13 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename, onSkip 
           {busy || msg ? <View style={st.msg}>{busy ? <ActivityIndicator size="small" color={C.ink} /> : null}<Text style={[st.sub, { flex: 1, fontSize: 14 }]}>{msg}</Text></View> : null}
           <ScrollView style={{ maxHeight: wide ? 360 : 320 }} keyboardShouldPersistTaps="handled">
             {q.trim().length >= 2 ? (
-              <Pressable onPress={typed} style={st.result}>
+              <Pressable onPress={typed} style={({ hovered }: PS) => [st.result, hovered && { ...HOVER_RIM, backgroundColor: '#ECEDEF' }]}>
                 <View style={[st.resultIcon, { backgroundColor: '#EEF0F3', alignItems: 'center', justifyContent: 'center' }]}><Text style={{ fontSize: 20 }}>+</Text></View>
                 <View style={{ flex: 1 }}><Text style={st.cardTitle}>Add “{q.trim()}”</Text><Text style={st.meta}>Not listed? We’ll add it to the database</Text></View>
               </Pressable>
             ) : null}
             {results.map(i => (
-              <Pressable key={`${i.kind}${i.id}`} onPress={() => pick(i)} style={({ pressed }) => [st.result, pressed && { backgroundColor: C.pressed }]}>
+              <Pressable key={`${i.kind}${i.id}`} onPress={() => pick(i)} style={({ pressed, hovered }: PS) => [st.result, hovered && { ...HOVER_RIM, backgroundColor: '#ECEDEF' }, pressed && { backgroundColor: C.pressed }]}>
                 <Image source={iconFor(i.category)} style={st.resultIcon} />
                 <View style={{ flex: 1 }}><Text style={st.meta}>{i.brand || (i.kind === 'tool' ? 'Tool' : '')}</Text><Text style={st.cardTitle} numberOfLines={1}>{i.name}</Text></View>
                 <Text style={st.tag}>{CATEGORY_LABEL[i.category] ?? i.category}</Text>
@@ -358,7 +363,7 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename, onSkip 
 export function GapCard({ gap, onPress, selected, cta, price }: { gap: Gap; onPress?: () => void; selected?: boolean; cta?: string; price?: string }) {
   const c = KIND_COLOR[gap.kind];
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [st.gap, selected && { borderColor: C.ink }, pressed && { opacity: 0.9 }]}>
+    <Pressable onPress={onPress} style={({ pressed, hovered }: PS) => [st.gap, selected && { borderColor: C.ink }, hovered && { borderColor: C.ink, backgroundColor: '#F1F2F4' }, pressed && { opacity: 0.9 }]}>
       <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}>
         <View style={[st.gapIcon, { backgroundColor: c.bg }]}><Image source={iconFor(gap.fills[0])} style={{ width: 46, height: 46 }} /></View>
         <View style={{ flex: 1, gap: 4 }}>
@@ -386,7 +391,7 @@ export function ProductCard({ item, fit, best, inBag, onAdd, width }: { item: It
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 4 }}>
         <Text style={st.price}>{item.price ? `about ${money(item.price)}` : ''}</Text>
         <View style={{ flex: 1 }} />
-        <Pressable onPress={() => { haptic(); onAdd(); }} style={[st.btnSm, inBag && { backgroundColor: '#E5F4EA' }]}><Text style={[st.btnSmText, inBag && { color: '#1E7B45' }]}>{inBag ? 'In bag ✓' : 'Add'}</Text></Pressable>
+        <Pressable onPress={() => { haptic(); onAdd(); }} style={({ hovered }: PS) => [st.btnSm, inBag && { backgroundColor: '#E5F4EA' }, hovered && { ...HOVER_RIM, backgroundColor: inBag ? '#CFEBD8' : '#000000' }]}><Text style={[st.btnSmText, inBag && { color: '#1E7B45' }]}>{inBag ? 'In bag ✓' : 'Add'}</Text></Pressable>
       </View>
     </View>
   );
@@ -461,7 +466,7 @@ export function WhereToBuy({ item }: { item: Item }) {
   return (
     <View style={st.wtb}>
       {retailerLinks(item).map((r, i) => (
-        <Pressable key={r.name} onPress={() => Linking.openURL(r.url)} style={({ pressed }) => [st.wtbRow, i > 0 && st.wtbDiv, pressed && { backgroundColor: C.pressed }]}>
+        <Pressable key={r.name} onPress={() => Linking.openURL(r.url)} style={({ pressed, hovered }: PS) => [st.wtbRow, i > 0 && st.wtbDiv, hovered && { backgroundColor: '#ECEDEF' }, pressed && { backgroundColor: C.pressed }]}>
           <Text style={[st.cardTitle, { flex: 1, fontFamily: F.medium }]}>{r.name}</Text>
           <Text style={[st.meta, { color: BLUE, fontFamily: F.semibold }]}>Check price ↗</Text>
         </Pressable>
@@ -483,14 +488,14 @@ export const st = StyleSheet.create({
   sidebar: { width: 248, backgroundColor: '#F1F3F5', paddingHorizontal: 18, paddingVertical: 28, gap: 4 },
   brand: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 10, paddingBottom: 24 },
   brandText: { fontFamily: F.bold, fontSize: 17, color: C.ink },
-  nav: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 12, height: 44, borderRadius: 14 },
+  nav: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 12, height: 44, borderRadius: 14, borderWidth: 1.5, borderColor: 'transparent' },
   navOn: { backgroundColor: '#fff' },
   navAddon: { marginTop: 12, borderTopWidth: 1, borderTopColor: '#E3E5E8', borderTopLeftRadius: 0, borderTopRightRadius: 0, paddingTop: 12, height: 56 },
   navText: { fontFamily: F.medium, fontSize: 15, color: C.gray2 },
   side: { width: 360, flexGrow: 0, backgroundColor: '#fff', borderLeftWidth: 1, borderLeftColor: '#EEF0F3' },
   mHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, height: 52 },
   topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4, minHeight: 60 },
-  menuBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 3 } },
+  menuBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderColor: 'transparent', backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 3 } },
   tip: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.ink, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7 },
   tipArrow: { position: 'absolute', left: -4, top: '50%', marginTop: -4, width: 8, height: 8, backgroundColor: C.ink, transform: [{ rotate: '45deg' }] },
   tipText: { fontFamily: F.semibold, fontSize: 13, color: '#fff' },
@@ -505,23 +510,23 @@ export const st = StyleSheet.create({
   sub: { fontFamily: F.regular, fontSize: 15, lineHeight: 22, color: C.gray },
   label: { fontFamily: F.semibold, fontSize: 12, letterSpacing: 0.4, color: C.gray },
   meta: { fontFamily: F.medium, fontSize: 13, color: C.gray },
-  pill: { paddingHorizontal: 16, height: 40, borderRadius: 20, justifyContent: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: '#E3E5E8' },
+  pill: { paddingHorizontal: 16, height: 40, borderRadius: 20, justifyContent: 'center', backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#E3E5E8' },
   pillOn: { backgroundColor: C.ink, borderColor: C.ink },
   pillText: { fontFamily: F.medium, fontSize: 14, color: C.ink },
-  btn: { height: 54, borderRadius: 27, backgroundColor: C.ink, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
-  btnSec: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#E3E5E8' },
+  btn: { height: 54, borderRadius: 27, backgroundColor: C.ink, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28, borderWidth: 1.5, borderColor: C.ink },
+  btnSec: { backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#E3E5E8' },
   btnText: { fontFamily: F.semibold, fontSize: 16, color: '#fff' },
-  btnSm: { height: 36, borderRadius: 18, backgroundColor: C.ink, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, alignSelf: 'flex-start' },
+  btnSm: { height: 36, borderRadius: 18, backgroundColor: C.ink, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, alignSelf: 'flex-start', borderWidth: 1.5, borderColor: C.ink },
   btnSmText: { fontFamily: F.semibold, fontSize: 13, color: '#fff' },
   seg: { flexDirection: 'row', backgroundColor: '#EEF0F3', borderRadius: 999, padding: 4 },
-  segItem: { flex: 1, height: 40, borderRadius: 999, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
+  segItem: { flex: 1, height: 40, borderRadius: 999, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18, borderWidth: 1.5, borderColor: 'transparent' },
   segOn: { backgroundColor: '#fff', shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 } },
   segText: { fontFamily: F.medium, fontSize: 14, color: C.gray },
   node: { width: 14, height: 14, borderRadius: 7, borderWidth: 2, borderColor: BLUE, backgroundColor: '#fff' },
   nodeEmpty: { borderColor: '#B8BEC6', borderStyle: 'dashed', borderWidth: 1.5, backgroundColor: C.bg },
   nodeOn: { width: 18, height: 18, borderRadius: 9, borderWidth: 5 },
   rail: { flex: 1, width: 2, backgroundColor: '#D6E2FB', marginTop: 2, overflow: 'hidden', borderRadius: 1 },
-  stepCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 14 },
+  stepCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1.5, borderColor: 'transparent' },
   stepEmpty: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#C9CDD2', borderStyle: 'dashed' },
   stepOn: { backgroundColor: BLUE },
   skipNode: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#E6E8EB', alignItems: 'center', justifyContent: 'center' },
@@ -542,7 +547,7 @@ export const st = StyleSheet.create({
   searchInput: { fontFamily: F.regular, fontSize: 15, color: C.ink, outlineStyle: 'none' } as any,
   ingCta: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 16, borderWidth: 1.5, borderColor: BLUE, borderStyle: 'dashed', padding: 12, backgroundColor: '#F4F7FE' },
   msg: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#F4F5F7', borderRadius: 14, padding: 12 },
-  result: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, paddingHorizontal: 6, borderRadius: 14 },
+  result: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, paddingHorizontal: 6, borderRadius: 14, borderWidth: 1.5, borderColor: 'transparent' },
   resultIcon: { width: 44, height: 44, borderRadius: 12 },
   tag: { fontFamily: F.medium, fontSize: 12, color: C.gray2, backgroundColor: '#F1F3F5', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, overflow: 'hidden' },
   cardTitle: { fontFamily: F.semibold, fontSize: 15, lineHeight: 20, color: C.ink },

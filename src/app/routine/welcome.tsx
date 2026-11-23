@@ -77,7 +77,7 @@ export default function Welcome() {
           </View>
           <Animated.View style={[{ marginTop: 12 }, rise(arrow)]}>
             <Pressable onPress={go} accessibilityRole="button" accessibilityLabel="Continue to Find the gaps in your hair routine"
-              style={({ pressed }) => ({ width: 64, height: 64, borderRadius: 22, backgroundColor: '#2A2B2E', alignItems: 'center', justifyContent: 'center', shadowColor: '#14161C', shadowOpacity: 0.25, shadowRadius: 14, shadowOffset: { width: 0, height: 12 }, transform: [{ scale: pressed ? 0.94 : 1 }] })}>
+              style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => ({ width: 64, height: 64, borderRadius: 22, borderWidth: 1.5, borderColor: hovered ? '#000000' : '#2A2B2E', backgroundColor: hovered ? '#0E0E10' : '#2A2B2E', alignItems: 'center', justifyContent: 'center', shadowColor: '#14161C', shadowOpacity: 0.25, shadowRadius: 14, shadowOffset: { width: 0, height: 12 }, transform: [{ scale: pressed ? 0.94 : 1 }] })}>
               <Animated.View style={{ transform: [{ translateX: nudge.interpolate({ inputRange: [0, 1], outputRange: [-3, 4] }) }] }}>
                 <Svg width={24} height={24} viewBox="0 0 24 24"><Path d="M5 12h13M13 6l6 6-6 6" stroke="#fff" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
               </Animated.View>

@@ -48,7 +48,7 @@ export default function Build() {
   const list = (w: Where, steps: Step[]) => (
     <View style={{ gap: 4 }}>
       <Timeline steps={steps} onOpen={x => setOpen({ w, id: x.id })} />
-      <Pressable onPress={() => addStep(w)} style={{ paddingLeft: 32, paddingVertical: 6 }}><Text style={{ fontFamily: F.semibold, fontSize: 15, color: BLUE }}>+ Add another step</Text></Pressable>
+      <Pressable onPress={() => addStep(w)} style={({ hovered }: { pressed: boolean; hovered?: boolean }) => ({ marginLeft: 26, paddingHorizontal: 6, paddingVertical: 6, alignSelf: 'flex-start', borderRadius: 10, borderWidth: 1.5, borderColor: hovered ? C.ink : 'transparent', backgroundColor: hovered ? '#ECEDEF' : 'transparent' })}><Text style={{ fontFamily: F.semibold, fontSize: 15, color: BLUE }}>+ Add another step</Text></Pressable>
     </View>
   );
 
@@ -65,7 +65,7 @@ export default function Build() {
             const on = s.washDays.includes(i);
             return (
               <Pressable key={d} accessibilityRole="checkbox" accessibilityState={{ checked: on }} onPress={() => setRoutine(r => ({ ...r, washDays: on ? r.washDays.filter(x => x !== i) : [...r.washDays, i].sort() }))}
-                style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? BLUE : '#fff', borderWidth: 1, borderColor: on ? BLUE : '#E3E5E8' }}>
+                style={({ hovered }: { pressed: boolean; hovered?: boolean }) => ({ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: hovered ? (on ? '#3F72D9' : '#ECEDEF') : on ? BLUE : '#fff', borderWidth: 1.5, borderColor: hovered ? C.ink : on ? BLUE : '#E3E5E8' })}>
                 <Text style={{ fontFamily: F.semibold, fontSize: 12, color: on ? '#fff' : C.gray2 }}>{d.slice(0, 2)}</Text>
               </Pressable>
             );
