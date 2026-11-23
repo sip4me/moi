@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, ClipPath, Defs, Ellipse, G, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { Logo } from '../../components/ui';
 import { haptic } from '../../lib/haptics';
-import { shine } from '../../lib/routine/shine';
+import { fill, PALETTE, shine } from '../../lib/routine/shine';
 import { setRoutine } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 
@@ -61,8 +61,8 @@ export default function Welcome() {
             <Animated.Text {...shine('rose')} style={{ fontFamily: F.display, fontSize: 42, lineHeight: 48, letterSpacing: -0.5, color: C.ink, marginTop: -6, transform: [{ translateY: float.interpolate({ inputRange: [0, 1], outputRange: [0, -7] }) }] }}>beauty is genius</Animated.Text>
           </Animated.View>
           <Animated.View style={[{ marginTop: 56 }, rise(arrow)]}>
-            <Pressable onPress={go} accessibilityRole="button" accessibilityLabel="Continue to Find the gaps in your hair routine"
-              style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => ({ width: 64, height: 64, borderRadius: 22, borderWidth: 1.5, borderColor: hovered ? '#000000' : '#2A2B2E', backgroundColor: hovered ? '#0E0E10' : '#2A2B2E', alignItems: 'center', justifyContent: 'center', shadowColor: '#14161C', shadowOpacity: 0.25, shadowRadius: 14, shadowOffset: { width: 0, height: 12 }, transform: [{ scale: pressed ? 0.94 : 1 }] })}>
+            <Pressable {...fill('garnet')} onPress={go} accessibilityRole="button" accessibilityLabel="Continue to Find the gaps in your hair routine"
+              style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => ({ width: 64, height: 64, borderRadius: 22, borderWidth: 1.5, borderColor: hovered ? PALETTE.garnetDeep : PALETTE.garnet, backgroundColor: hovered ? PALETTE.garnetDeep : PALETTE.garnet, alignItems: 'center', justifyContent: 'center', shadowColor: PALETTE.garnetDeep, shadowOpacity: 0.3, shadowRadius: 14, shadowOffset: { width: 0, height: 12 }, transform: [{ scale: pressed ? 0.94 : 1 }] })}>
               <Animated.View style={{ transform: [{ translateX: nudge.interpolate({ inputRange: [0, 1], outputRange: [-3, 4] }) }] }}>
                 <Svg width={24} height={24} viewBox="0 0 24 24"><Path d="M5 12h13M13 6l6 6-6 6" stroke="#fff" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
               </Animated.View>

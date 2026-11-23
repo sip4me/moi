@@ -15,7 +15,7 @@ export default function Start() {
     const on = s.mode === mode;
     return (
       <Pressable key={mode} onPress={() => { haptic('select'); setRoutine(r => ({ ...r, mode })); }} accessibilityRole="radio" accessibilityState={{ checked: on }}
-        style={({ hovered }: { pressed: boolean; hovered?: boolean }) => ({ flex: wide ? 1 : undefined, flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: hovered ? '#ECEDEF' : '#fff', borderRadius: 24, padding: 16, borderWidth: 2, borderColor: on || hovered ? C.ink : 'transparent' })}>
+        style={({ hovered }: { pressed: boolean; hovered?: boolean }) => ({ flex: wide ? 1 : undefined, flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: hovered ? '#ECEDEF' : '#fff', borderRadius: 24, padding: 16, borderWidth: 2, borderColor: hovered ? '#7E3A4C' : on ? '#A8576A' : 'transparent' })}>
         <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: on ? '#F8E3DF' : '#EEF0F3', alignItems: 'center', justifyContent: 'center' }}><Image source={icon3d(icon)} style={{ width: 42, height: 42 }} /></View>
         <View style={{ flex: 1, gap: 3 }}>
           <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink }}>{title}</Text>

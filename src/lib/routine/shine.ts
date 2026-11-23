@@ -20,6 +20,9 @@ export const PALETTE = {
   champagne: '#C9A86A',
   ink: '#0E0E10',
   quiet: '#8E9298', // light grey for things you read, not tap
+  // Buttons: rose-garnet lacquer, the complement to cobalt progress and champagne finishes.
+  garnet: '#A8576A',
+  garnetDeep: '#7E3A4C',
 };
 
 const CSS = `
@@ -34,6 +37,8 @@ const CSS = `
 [data-fill="champagne"] { background-image: linear-gradient(90deg, #E9D6A8 0%, #C9A86A 50%, #9E7F45 100%) !important; }
 [data-fill="champagne-coin"] { background-image: radial-gradient(circle at 32% 28%, #FFF3D1 0%, #E4C98E 38%, #C9A86A 62%, #9E7F45 100%) !important; }
 [data-fill="cobalt-dot"] { background-image: radial-gradient(circle at 34% 30%, #8FA4F0 0%, #4058D8 55%, #2B3FC8 100%) !important; }
+[data-fill="garnet"] { background-image: linear-gradient(180deg, #C98494 0%, #A8576A 52%, #93485C 100%) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,0.38), 0 8px 18px rgba(168,87,106,0.26); }
+[data-fill="garnet"]:hover { background-image: linear-gradient(180deg, #9C5265 0%, #7E3A4C 60%, #6C3141 100%) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 6px 14px rgba(126,58,76,0.3); }
 @media (prefers-reduced-motion: reduce) { [data-shine], [data-fill="cateye"]::after { animation: none !important; } }
 `;
 
@@ -47,4 +52,4 @@ if (Platform.OS === 'web' && typeof document !== 'undefined' && !document.getEle
 /** Props that give a Text shiny letters (web) — spread onto <Text>. */
 export const shine = (kind: 'chrome' | 'rose' | 'titanium') => (Platform.OS === 'web' ? ({ dataSet: { shine: kind } } as any) : {});
 /** Props that give a View a jewellery fill (web). */
-export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});
+export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});

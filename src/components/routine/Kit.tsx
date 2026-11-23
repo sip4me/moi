@@ -15,7 +15,7 @@ import { useStore } from '../../state/store';
 export const BLUE = PALETTE.cobalt;
 export const GOLD = PALETTE.champagne;
 /** Hover (web): every button gets a black rim and a slightly darker fill than it has at rest. */
-export const HOVER_RIM = { borderColor: C.ink, borderWidth: 1.5 } as const;
+export const HOVER_RIM = { borderColor: PALETTE.garnetDeep, borderWidth: 1.5 } as const;
 type PS = { pressed: boolean; hovered?: boolean };
 export const crownImg = require('../../../assets/crown-pink.png');
 export const useWide = () => useWindowDimensions().width >= 900;
@@ -147,8 +147,8 @@ export const Label = ({ children }: { children: string }) => <Text style={st.lab
 
 export function Pill({ label, on, onPress }: { label: string; on?: boolean; onPress?: () => void }) {
   return (
-    <Pressable onPress={onPress ? () => { haptic('select'); onPress(); } : undefined} accessibilityRole="button" accessibilityState={{ selected: !!on }}
-      style={({ pressed, hovered }: PS) => [st.pill, on && st.pillOn, hovered && { ...HOVER_RIM, backgroundColor: on ? '#000000' : '#ECEDEF' }, pressed && { opacity: 0.8 }]}>
+    <Pressable {...(on ? fill('garnet') : {})} onPress={onPress ? () => { haptic('select'); onPress(); } : undefined} accessibilityRole="button" accessibilityState={{ selected: !!on }}
+      style={({ pressed, hovered }: PS) => [st.pill, on && st.pillOn, hovered && { ...HOVER_RIM, backgroundColor: on ? PALETTE.garnetDeep : '#ECEDEF' }, pressed && { opacity: 0.8 }]}>
       <Text style={[st.pillText, on && { color: '#fff' }]}>{label}</Text>
     </Pressable>
   );
@@ -156,8 +156,8 @@ export function Pill({ label, on, onPress }: { label: string; on?: boolean; onPr
 
 export function Btn({ label, onPress, kind = 'primary', style, disabled }: { label: string; onPress?: () => void; kind?: 'primary' | 'secondary' | 'small'; style?: ViewStyle; disabled?: boolean }) {
   return (
-    <Pressable disabled={disabled} onPress={onPress ? () => { haptic(); onPress(); } : undefined} accessibilityRole="button"
-      style={({ pressed, hovered }: PS) => [kind === 'small' ? st.btnSm : st.btn, kind === 'secondary' && st.btnSec, style, hovered && !disabled && { ...HOVER_RIM, backgroundColor: kind === 'secondary' ? '#E6E8EB' : '#000000' }, disabled && { opacity: 0.4 }, pressed && { transform: [{ scale: 0.98 }], opacity: 0.9 }]}>
+    <Pressable {...(kind !== 'secondary' && !disabled ? fill('garnet') : {})} disabled={disabled} onPress={onPress ? () => { haptic(); onPress(); } : undefined} accessibilityRole="button"
+      style={({ pressed, hovered }: PS) => [kind === 'small' ? st.btnSm : st.btn, kind === 'secondary' && st.btnSec, style, hovered && !disabled && { ...HOVER_RIM, backgroundColor: kind === 'secondary' ? '#E6E8EB' : PALETTE.garnetDeep }, disabled && { opacity: 0.4 }, pressed && { transform: [{ scale: 0.98 }], opacity: 0.9 }]}>
       <Text style={[kind === 'small' ? st.btnSmText : st.btnText, kind === 'secondary' && { color: C.ink }]}>{label}</Text>
     </Pressable>
   );
@@ -247,8 +247,8 @@ function StepRow({ s, state, last, nextFilled, onOpen }: { s: Step; state: 'done
 export function ChipBtn({ label, onPress, tone = 'default', icon }: { label: string; onPress: () => void; tone?: 'default' | 'danger' | 'dark'; icon?: React.ReactNode }) {
   const dark = tone === 'dark';
   return (
-    <Pressable onPress={() => { haptic('select'); onPress(); }} accessibilityRole="button"
-      style={({ pressed, hovered }: PS) => [st.chipBtn, dark && { backgroundColor: C.ink, borderColor: C.ink }, hovered && { ...HOVER_RIM, backgroundColor: dark ? '#000000' : '#ECEDEF' }, pressed && { transform: [{ scale: 0.97 }] }]}>
+    <Pressable {...(dark ? fill('garnet') : {})} onPress={() => { haptic('select'); onPress(); }} accessibilityRole="button"
+      style={({ pressed, hovered }: PS) => [st.chipBtn, dark && { backgroundColor: PALETTE.garnet, borderColor: PALETTE.garnet }, hovered && { ...HOVER_RIM, backgroundColor: dark ? PALETTE.garnetDeep : '#ECEDEF' }, pressed && { transform: [{ scale: 0.97 }] }]}>
       {icon}
       <Text style={[st.chipBtnText, tone === 'danger' && { color: '#B42318' }, dark && { color: '#fff' }]}>{label}</Text>
     </Pressable>
@@ -258,8 +258,8 @@ export function ChipBtn({ label, onPress, tone = 'default', icon }: { label: str
 /** The round "+" that says: tap here to add a product. */
 export function PlusDot({ solid, size = 32 }: { solid?: boolean; size?: number }) {
   return (
-    <View style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: solid ? C.ink : '#fff', borderWidth: 1.5, borderColor: solid ? C.ink : '#C4C8CE' }} accessibilityElementsHidden importantForAccessibility="no">
-      <Svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24"><Path d="M12 5v14M5 12h14" stroke={solid ? '#fff' : C.ink} strokeWidth={2.6} strokeLinecap="round" /></Svg>
+    <View style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: solid ? PALETTE.garnet : '#fff', borderWidth: 1.5, borderColor: solid ? PALETTE.garnet : '#C4C8CE' }} accessibilityElementsHidden importantForAccessibility="no">
+      <Svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24"><Path d="M12 5v14M5 12h14" stroke={solid ? '#fff' : PALETTE.garnet} strokeWidth={2.6} strokeLinecap="round" /></Svg>
     </View>
   );
 }
@@ -436,7 +436,7 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename, onSkip 
 export function GapCard({ gap, onPress, selected, cta, price }: { gap: Gap; onPress?: () => void; selected?: boolean; cta?: string; price?: string }) {
   const c = KIND_COLOR[gap.kind];
   return (
-    <Pressable onPress={onPress} style={({ pressed, hovered }: PS) => [st.gap, selected && { borderColor: C.ink }, hovered && { borderColor: C.ink, backgroundColor: '#F1F2F4' }, pressed && { opacity: 0.9 }]}>
+    <Pressable onPress={onPress} style={({ pressed, hovered }: PS) => [st.gap, selected && { borderColor: PALETTE.garnet }, hovered && { borderColor: PALETTE.garnetDeep, backgroundColor: '#F1F2F4' }, pressed && { opacity: 0.9 }]}>
       <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}>
         <View style={[st.gapIcon, { backgroundColor: c.bg }]}><Image source={iconFor(gap.fills[0])} style={{ width: 46, height: 46 }} /></View>
         <View style={{ flex: 1, gap: 4 }}>
@@ -455,7 +455,7 @@ export function ProductCard({ item, fit, best, inBag, onAdd, width }: { item: It
     <View style={[{ gap: 12 }, width ? { width } : { flex: 1, minWidth: 0 }]}>
       <View style={[st.tile, best && { backgroundColor: '#FFF8E8' }]}>
         <Image source={iconFor(item.category)} style={{ width: '68%', height: '68%' }} resizeMode="contain" />
-        <View style={[st.fit, best && { backgroundColor: C.ink }]}><Text style={[st.fitText, best && { color: '#fff' }]}>{best ? `Best for you · ${fit}%` : `${fit}% match`}</Text></View>
+        <View style={[st.fit, best && { backgroundColor: PALETTE.garnet }]}><Text style={[st.fitText, best && { color: '#fff' }]}>{best ? `Best for you · ${fit}%` : `${fit}% match`}</Text></View>
       </View>
       <View style={{ gap: 3, paddingHorizontal: 4 }}>
         <Text style={st.meta} numberOfLines={1}>{item.brand || CATEGORY_LABEL[item.category]}</Text>
@@ -464,7 +464,7 @@ export function ProductCard({ item, fit, best, inBag, onAdd, width }: { item: It
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 4 }}>
         <Text style={st.price}>{item.price ? `about ${money(item.price)}` : ''}</Text>
         <View style={{ flex: 1 }} />
-        <Pressable onPress={() => { haptic(); onAdd(); }} style={({ hovered }: PS) => [st.btnSm, inBag && { backgroundColor: '#E5F4EA' }, hovered && { ...HOVER_RIM, backgroundColor: inBag ? '#CFEBD8' : '#000000' }]}><Text style={[st.btnSmText, inBag && { color: '#1E7B45' }]}>{inBag ? 'In bag ✓' : 'Add'}</Text></Pressable>
+        <Pressable {...(inBag ? {} : fill('garnet'))} onPress={() => { haptic(); onAdd(); }} style={({ hovered }: PS) => [st.btnSm, inBag && { backgroundColor: '#E5F4EA' }, hovered && { ...HOVER_RIM, backgroundColor: inBag ? '#CFEBD8' : PALETTE.garnetDeep }]}><Text style={[st.btnSmText, inBag && { color: '#1E7B45' }]}>{inBag ? 'In bag ✓' : 'Add'}</Text></Pressable>
       </View>
     </View>
   );
@@ -569,8 +569,8 @@ export const st = StyleSheet.create({
   mHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, height: 52 },
   topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4, minHeight: 60 },
   menuBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderColor: 'transparent', backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 3 } },
-  tip: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.ink, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7 },
-  tipArrow: { position: 'absolute', left: -4, top: '50%', marginTop: -4, width: 8, height: 8, backgroundColor: C.ink, transform: [{ rotate: '45deg' }] },
+  tip: { flexDirection: 'row', alignItems: 'center', backgroundColor: PALETTE.garnet, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7 },
+  tipArrow: { position: 'absolute', left: -4, top: '50%', marginTop: -4, width: 8, height: 8, backgroundColor: PALETTE.garnet, transform: [{ rotate: '45deg' }] },
   tipText: { fontFamily: F.semibold, fontSize: 13, color: '#fff' },
   menuScrim: { flex: 1, backgroundColor: 'rgba(20,20,24,0.28)' },
   menuPanel: { position: 'absolute', left: 0, top: 0, bottom: 0, backgroundColor: '#F8F9FA', paddingHorizontal: 16, paddingTop: 28, paddingBottom: 24, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 24, shadowOffset: { width: 6, height: 0 } },
@@ -584,14 +584,14 @@ export const st = StyleSheet.create({
   label: { fontFamily: F.semibold, fontSize: 12, letterSpacing: 0.6, color: '#A3A7AD' },
   meta: { fontFamily: F.medium, fontSize: 13, color: '#9A9EA4' },
   pill: { paddingHorizontal: 16, height: 40, borderRadius: 20, justifyContent: 'center', backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#D3D6DB' },
-  pillOn: { backgroundColor: C.ink, borderColor: C.ink },
+  pillOn: { backgroundColor: PALETTE.garnet, borderColor: PALETTE.garnet },
   pillText: { fontFamily: F.medium, fontSize: 14, color: C.ink },
-  btn: { height: 54, borderRadius: 27, backgroundColor: C.ink, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28, borderWidth: 1.5, borderColor: C.ink },
+  btn: { height: 54, borderRadius: 27, backgroundColor: PALETTE.garnet, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28, borderWidth: 1.5, borderColor: PALETTE.garnet },
   btnSec: { backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#C9CDD3' },
   btnText: { fontFamily: F.semibold, fontSize: 16, color: '#fff' },
   chipBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 14, borderRadius: 18, borderWidth: 1.5, borderColor: '#C9CDD3', backgroundColor: '#fff', alignSelf: 'flex-start' },
   chipBtnText: { fontFamily: F.semibold, fontSize: 14, color: C.ink },
-  btnSm: { height: 36, borderRadius: 18, backgroundColor: C.ink, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, alignSelf: 'flex-start', borderWidth: 1.5, borderColor: C.ink },
+  btnSm: { height: 36, borderRadius: 18, backgroundColor: PALETTE.garnet, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, alignSelf: 'flex-start', borderWidth: 1.5, borderColor: PALETTE.garnet },
   btnSmText: { fontFamily: F.semibold, fontSize: 13, color: '#fff' },
   seg: { flexDirection: 'row', backgroundColor: '#EEF0F3', borderRadius: 999, padding: 4 },
   segItem: { flex: 1, height: 40, borderRadius: 999, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18, borderWidth: 1.5, borderColor: 'transparent' },

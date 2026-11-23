@@ -52,7 +52,7 @@ export default function Build() {
   const list = (w: Where, steps: Step[]) => (
     <Timeline steps={steps} onOpen={x => setOpen({ w, id: x.id })} submitted={!!s.submitted?.[keyOf(w)]}
       onSubmit={() => setRoutine(r => ({ ...r, submitted: { ...(r.submitted ?? {}), [keyOf(w)]: true } }))}
-      extra={<View style={{ paddingBottom: 12 }}><Pressable onPress={() => addStep(w)} style={({ hovered }: { pressed: boolean; hovered?: boolean }) => ({ marginLeft: 26, paddingHorizontal: 6, paddingVertical: 6, alignSelf: 'flex-start', borderRadius: 10, borderWidth: 1.5, borderColor: hovered ? C.ink : 'transparent', backgroundColor: hovered ? '#ECEDEF' : 'transparent' })}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}><PlusDot size={28} /><Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>Add another step</Text></View></Pressable></View>} />
+      extra={<View style={{ paddingBottom: 12 }}><Pressable onPress={() => addStep(w)} style={({ hovered }: { pressed: boolean; hovered?: boolean }) => ({ marginLeft: 26, paddingHorizontal: 6, paddingVertical: 6, alignSelf: 'flex-start', borderRadius: 10, borderWidth: 1.5, borderColor: hovered ? '#7E3A4C' : 'transparent', backgroundColor: hovered ? '#F6E7E6' : 'transparent' })}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}><PlusDot size={28} /><Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>Add another step</Text></View></Pressable></View>} />
   );
 
   const dayNames = s.washDays.map(i => DAYS[i]).join(', ') || 'none yet';
@@ -68,7 +68,7 @@ export default function Build() {
             const on = s.washDays.includes(i);
             return (
               <Pressable key={d} accessibilityRole="checkbox" accessibilityState={{ checked: on }} onPress={() => setRoutine(r => ({ ...r, washDays: on ? r.washDays.filter(x => x !== i) : [...r.washDays, i].sort() }))}
-                style={({ hovered }: { pressed: boolean; hovered?: boolean }) => ({ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: hovered ? (on ? '#3F72D9' : '#ECEDEF') : on ? BLUE : '#fff', borderWidth: 1.5, borderColor: hovered ? C.ink : on ? BLUE : '#E3E5E8' })}>
+                style={({ hovered }: { pressed: boolean; hovered?: boolean }) => ({ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: hovered ? (on ? '#3F72D9' : '#ECEDEF') : on ? BLUE : '#fff', borderWidth: 1.5, borderColor: hovered ? '#7E3A4C' : on ? BLUE : '#E3E5E8' })}>
                 <Text style={{ fontFamily: F.semibold, fontSize: 12, color: on ? '#fff' : C.gray2 }}>{d.slice(0, 2)}</Text>
               </Pressable>
             );
