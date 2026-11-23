@@ -12,6 +12,8 @@ export type Item = {
   tags: string[];
   price?: number | null;
   hairTypes?: string[];
+  /** Ingredient label, when we have one. Used to match the tracker plan's look-for and avoid groups. */
+  ingredients?: string;
   /** Set when the person logs it themselves. Only these get a checkmark. */
   addedAt?: number;
 };
@@ -144,11 +146,11 @@ export function loadCatalog(): Promise<Catalog> {
     const sb = supabase();
     if (!sb) return catalog;
     const [p, t] = await Promise.all([
-      sb.from('kb_products').select('id,brand,name,category,price_usd,tags,hair_types').eq('hair', true).order('popularity', { ascending: false }).limit(2000),
+      sb.from('kb_products').select('id,brand,name,category,price_usd,tags,hair_types,ingredients_raw').eq('hair', true).order('popularity', { ascending: false }).limit(2000),
       sb.from('kb_tools').select('id,brand,name,kind,price_usd,helps,hair_types').limit(1000),
     ]);
     catalog = {
-      products: (p.data ?? []).map((r: any) => ({ kind: 'product', id: r.id, brand: r.brand, name: r.name, category: r.category, tags: r.tags ?? [], price: r.price_usd, hairTypes: r.hair_types ?? [] })),
+      products: (p.data ?? []).map((r: any) => ({ kind: 'product', id: r.id, brand: r.brand, name: r.name, category: r.category, tags: r.tags ?? [], price: r.price_usd, hairTypes: r.hair_types ?? [], ingredients: r.ingredients_raw ?? undefined })),
       tools: (t.data ?? []).map((r: any) => ({ kind: 'tool', id: r.id, brand: r.brand ?? '', name: r.name, category: r.kind, tags: r.helps ?? [], price: r.price_usd, hairTypes: r.hair_types ?? [] })),
     };
     csubs.forEach(f => f());
@@ -207,11 +209,14 @@ export async function searchRemote(q: string): Promise<Item[]> {
   const term = q.trim().toLowerCase().replace(/[%_,()]/g, ' ');
   if (!sb || term.length < 2) return [];
   const words = term.split(/\s+/).filter(Boolean).slice(0, 4);
-  let query = sb.from('kb_products').select('id,brand,name,category,price_usd,tags,hair_types').eq('hair', true);
+  let query = sb.from('kb_products').select('id,brand,name,category,price_usd,tags,hair_types,ingredients_raw').eq('hair', true);
   for (const w of words) query = query.ilike('search', `%${w}%`);
   const { data } = await query.order('popularity', { ascending: false }).limit(25);
-  return (data ?? []).map((r: any) => ({ kind: 'product' as const, id: r.id, brand: r.brand, name: r.name, category: r.category, tags: r.tags ?? [], price: r.price_usd, hairTypes: r.hair_types ?? [] }));
+  return (data ?? []).map((r: any) => ({ kind: 'product' as const, id: r.id, brand: r.brand, name: r.name, category: r.category, tags: r.tags ?? [], price: r.price_usd, hairTypes: r.hair_types ?? [], ingredients: r.ingredients_raw ?? undefined }));
 }
+
+/** Per app-open flags (reset on every load): the start choice and the goals page open empty the first time through. */
+export const session = { started: false };
 
 /** True once the person has told us enough to judge: goals, plus a routine (entered or built). */
 export const hasInfo = (s: RoutineState) => s.goals.length > 0 && (s.mode === 'new' ? s.built : allSteps(s).some(x => !!x.step.item));

@@ -450,7 +450,7 @@ export function GapCard({ gap, onPress, selected, cta, price }: { gap: Gap; onPr
   );
 }
 
-export function ProductCard({ item, fit, best, inBag, onAdd, width }: { item: Item; fit: number; best?: boolean; inBag?: boolean; onAdd: () => void; width?: number }) {
+export function ProductCard({ item, fit, best, inBag, onAdd, width, why }: { item: Item; fit: number; best?: boolean; inBag?: boolean; onAdd: () => void; width?: number; why?: string }) {
   return (
     <View style={[{ gap: 12 }, width ? { width } : { flex: 1, minWidth: 0 }]}>
       <View style={[st.tile, best && { backgroundColor: '#FFF8E8' }]}>
@@ -460,6 +460,7 @@ export function ProductCard({ item, fit, best, inBag, onAdd, width }: { item: It
       <View style={{ gap: 3, paddingHorizontal: 4 }}>
         <Text style={st.meta} numberOfLines={1}>{item.brand || CATEGORY_LABEL[item.category]}</Text>
         <Text style={st.cardTitle} numberOfLines={2}>{item.name}</Text>
+        {why ? <Text style={[st.meta, { color: '#7E3A4C' }]} numberOfLines={2}>{why}</Text> : null}
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 4 }}>
         <Text style={st.price}>{item.price ? `about ${money(item.price)}` : ''}</Text>

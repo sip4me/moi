@@ -1,4 +1,5 @@
 import { allSteps, CATEGORY_LABEL, type Catalog, type Item, type RoutineState } from './model';
+import { planFor, planMatch, planSteps } from './plan';
 
 export type GapKind = 'step' | 'clash' | 'tool' | 'budget';
 export type Gap = {
@@ -51,6 +52,13 @@ export function analyze(s: RoutineState, cat: Catalog, extra: Item[] = []): { sc
   if ((p.g.has('Calm scalp') || p.g.has('Less shedding') || p.g.has('Thicker look')) && !has('scalp_treatment')) add({ id: 'scalp', kind: 'step', title: 'Scalp treatment', why: 'Your goals start at the scalp, and nothing in your routine treats it.', fills: ['scalp_treatment'] }, 8);
   if (s.occasions.includes('Swimming') && !has('swim', 'clarifying')) add({ id: 'swim', kind: 'step', title: 'After-swim wash', why: 'Chlorine and minerals build up and dry hair out. Rinse them off after swimming.', fills: ['swim'] }, 8);
 
+  // Steps the tracker's wash-routine rules call for (rules.json via the plan engine), if not already covered.
+  const plan = planFor(s);
+  for (const st of planSteps(plan)) {
+    if (gaps.some(g => g.id === st.id) || has(...st.fills) || (st.id === 'repair' && has('deep_conditioner'))) continue;
+    add({ id: st.id, kind: 'step', title: st.title, why: st.why, fills: st.fills, needTag: st.needTag }, st.weight);
+  }
+
   // Clashes
   const harsh = items.filter(i => i.tags.includes('sulfate_strong'));
   if (harsh.length >= 2 && (p.treated || p.g.has('Repair damage'))) add({ id: 'two_harsh', kind: 'clash', title: 'Two harsh shampoos', why: `${harsh.slice(0, 2).map(i => i.brand).join(' and ')} both use strong sulfates. Together they strip ${p.treated ? 'treated' : 'damaged'} hair. Swap one for a gentle shampoo.`, fills: ['shampoo'], replace: harsh[0], needTag: 'sulfate_free' }, 9);
@@ -87,6 +95,9 @@ export function fitOf(i: Item, s: RoutineState): number {
   if (p.treated) { if (i.hairTypes?.includes('color_treated')) f += 6; if (i.tags.includes('sulfate_strong')) f -= 18; if (i.tags.includes('bond_builder')) f += 5; }
   if (i.price != null) f += i.price <= p.budgetMax ? 6 : -10;
   if (p.g.has('Grow length') && i.tags.includes('grow_length')) f += 6;
+  // The tracker plan's ingredient rules: +4 per group it looks for (up to 3), -12 per group to avoid.
+  const m = planMatch(i, planFor(s));
+  f += 4 * Math.min(3, m.good.length) - 12 * m.watch.length;
   return Math.max(50, Math.min(98, Math.round(f)));
 }
 
@@ -94,11 +105,13 @@ export function fitOf(i: Item, s: RoutineState): number {
 /** Hides rows whose names are too thin to recommend (e.g. brand repeated as the name). */
 export const goodName = (i: Item) => !!i.name && !!i.brand && i.name.trim().length >= 6 && i.name.trim().toLowerCase() !== i.brand.trim().toLowerCase();
 
-export function picksFor(g: Gap, s: RoutineState, cat: Catalog, n = 3): { item: Item; fit: number }[] {
+export function picksFor(g: Gap, s: RoutineState, cat: Catalog, n = 3): { item: Item; fit: number; why?: string }[] {
   const pool = (g.kind === 'tool' ? cat.tools : cat.products).filter(i => g.fills.includes(i.category) && i.id !== g.replace?.id && (!g.needTag || i.tags.includes(g.needTag)) && (i.kind === 'tool' || goodName(i)));
   const cheaper = g.kind === 'budget' && g.replace?.price ? pool.filter(i => (i.price ?? 999) <= g.replace!.price! * 0.6) : pool;
   // Products we can price and link come first, then best fit.
-  return cheaper.map(item => ({ item, fit: fitOf(item, s) })).sort((a, b) => Number(b.item.price != null) - Number(a.item.price != null) || b.fit - a.fit || (a.item.price ?? 0) - (b.item.price ?? 0)).slice(0, n);
+  const plan = planFor(s);
+  const reason = (i: Item) => { const m = planMatch(i, plan); return m.watch.length ? `Has ${m.watch[0]}` : m.good.length ? `Has ${m.good.slice(0, 2).join(' and ')}` : undefined; };
+  return cheaper.filter(item => !planMatch(item, plan).watch.length || pool.length <= n).map(item => ({ item, fit: fitOf(item, s), why: reason(item) })).sort((a, b) => Number(b.item.price != null) - Number(a.item.price != null) || b.fit - a.fit || (a.item.price ?? 0) - (b.item.price ?? 0)).slice(0, n);
 }
 
 /** For "Build me a new one": the steps a routine for these goals should have, each filled with the best pick. */

@@ -4,14 +4,14 @@ import { Image, Pressable, Text, View } from 'react-native';
 import { Btn, Label, LinearTeaser, Shell, st, useWide } from '../../components/routine/Kit';
 import { icon3d } from '../../data/icons3d';
 import { haptic } from '../../lib/haptics';
-import { setRoutine, useRoutine } from '../../lib/routine/model';
+import { session, setRoutine, useRoutine } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 import { fill, shine } from '../../lib/routine/shine';
 
 export default function Start() {
   const s = useRoutine();
   const wide = useWide();
-  const [picked, setPicked] = useState<'check' | 'new' | null>(s.started ? s.mode : null);
+  const [picked, setPicked] = useState<'check' | 'new' | null>(session.started ? s.mode : null);
   const [ask, setAsk] = useState(false);
   const choice = (mode: 'check' | 'new', title: string, body: string, icon: string) => {
     const on = picked === mode;
@@ -29,7 +29,11 @@ export default function Start() {
       </Pressable>
     );
   };
-  const go = () => { if (!picked) { haptic('select'); setAsk(true); return; } setRoutine(r => ({ ...r, started: true })); router.push('/routine/goals'); };
+  const go = () => {
+    if (!picked) { haptic('select'); setAsk(true); return; }
+    // First time through on this visit: goals and hair open empty. Coming back later keeps them for editing.
+    const fresh = !session.started; session.started = true;
+    setRoutine(r => ({ ...r, started: true, ...(fresh ? { goals: [], hair: {} } : {}) })); router.push('/routine/goals'); };
   return (
     <Shell active="start" hideNav={!wide && !s.started} footer={wide ? undefined : <><Btn label="Continue" onPress={go} /><Text style={[st.meta, { textAlign: 'center', fontSize: 12 }]}>Free. No account needed.</Text></>}>
       <View style={{ gap: 24, maxWidth: 600 }}>

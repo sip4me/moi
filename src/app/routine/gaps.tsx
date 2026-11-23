@@ -43,7 +43,7 @@ export default function Gaps() {
               {isOpen ? (
                 <View style={{ gap: 12, paddingLeft: wide ? 16 : 0 }}>
                   <View style={{ flexDirection: 'row', gap: 12 }}>
-                    {p.map((x, i) => <ProductCard key={x.item.id} item={x.item} fit={x.fit} best={i === 0} inBag={s.bag.includes(itemKey(x.item))} onAdd={() => toggleBag(itemKey(x.item))} />)}
+                    {p.map((x, i) => <ProductCard key={x.item.id} item={x.item} fit={x.fit} why={x.why} best={i === 0} inBag={s.bag.includes(itemKey(x.item))} onAdd={() => toggleBag(itemKey(x.item))} />)}
                     {wide && p.length < 3 ? Array.from({ length: 3 - p.length }).map((_, i) => <View key={i} style={{ flex: 1 }} />) : null}
                   </View>
                   {p[0] ? (where === g.id ? <WhereToBuy item={p[0].item} /> : <ChipBtn label="Where to buy the top pick" onPress={() => setWhere(g.id)} />) : null}

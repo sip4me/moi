@@ -92,10 +92,10 @@ export default function Shop() {
         <View key={g.id} style={{ gap: 16 }}>
           <View style={{ gap: 4 }}><Text style={{ fontFamily: F.semibold, fontSize: 20, color: C.ink }}>{g.title}</Text><Text style={st.meta}>{g.why}</Text></View>
           {wide ? (
-            <View style={{ flexDirection: 'row', gap: 20 }}>{picks.map((p, i) => <ProductCard key={p.item.id} item={p.item} fit={p.fit} best={i === 0} inBag={s.bag.includes(itemKey(p.item))} onAdd={() => toggle(itemKey(p.item))} />)}{picks.length < 3 ? Array.from({ length: 3 - picks.length }).map((_, i) => <View key={i} style={{ flex: 1 }} />) : null}</View>
+            <View style={{ flexDirection: 'row', gap: 20 }}>{picks.map((p, i) => <ProductCard key={p.item.id} item={p.item} fit={p.fit} why={p.why} best={i === 0} inBag={s.bag.includes(itemKey(p.item))} onAdd={() => toggle(itemKey(p.item))} />)}{picks.length < 3 ? Array.from({ length: 3 - picks.length }).map((_, i) => <View key={i} style={{ flex: 1 }} />) : null}</View>
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}>
-              {picks.map((p, i) => <ProductCard key={p.item.id} width={168} item={p.item} fit={p.fit} best={i === 0} inBag={s.bag.includes(itemKey(p.item))} onAdd={() => toggle(itemKey(p.item))} />)}
+              {picks.map((p, i) => <ProductCard key={p.item.id} width={168} item={p.item} fit={p.fit} why={p.why} best={i === 0} inBag={s.bag.includes(itemKey(p.item))} onAdd={() => toggle(itemKey(p.item))} />)}
             </ScrollView>
           )}
         </View>

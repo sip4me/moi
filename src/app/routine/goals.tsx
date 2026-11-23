@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import React from 'react';
-import { View } from 'react-native';
-import { Btn, Heading, Label, Pill, Shell, useWide } from '../../components/routine/Kit';
+import { Text, View } from 'react-native';
+import { Btn, Heading, Label, Pill, Shell, st, useWide } from '../../components/routine/Kit';
+import { planFor, planSteps } from '../../lib/routine/plan';
 import { GOALS, HAIR_Q, setRoutine, useRoutine } from '../../lib/routine/model';
 
 export default function Goals() {
@@ -18,6 +19,17 @@ export default function Goals() {
   const qs = HAIR_Q.map(q => group(q.label, q.options, o => s.hair[q.key] === o, o => setRoutine(r => ({ ...r, hair: { ...r.hair, [q.key]: r.hair[q.key] === o ? undefined : o } }))));
   const next = () => router.push('/routine/build');
   const ready = s.goals.length > 0;
+  // Live preview of what the tracker's plan rules make of these picks.
+  const plan = ready ? planFor(s) : null;
+  const steps = plan ? [...new Set(planSteps(plan).map(x => x.title))] : [];
+  const preview = plan ? (
+    <View style={{ gap: 10, padding: 18, borderRadius: 20, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ECEEF2' }}>
+      <Label>Your picks mean we look for</Label>
+      {steps.length ? <Text style={[st.sub, { fontSize: 14, lineHeight: 20 }]}>Steps: {steps.join(', ')}</Text> : null}
+      {plan.ingredients.lookFor.length ? <Text style={[st.sub, { fontSize: 14, lineHeight: 20 }]}>Ingredients: {plan.ingredients.lookFor.join(', ')}</Text> : null}
+      {plan.ingredients.avoid.length ? <Text style={[st.sub, { fontSize: 14, lineHeight: 20, color: '#7E3A4C' }]}>Avoid: {plan.ingredients.avoid.join(', ')}</Text> : null}
+    </View>
+  ) : null;
   return (
     <Shell active="goals" step="1 of 3"
       footer={wide ? <><Btn kind="secondary" label="Back" onPress={() => router.back()} /><Btn label="Next: your routine" onPress={next} disabled={!ready} /></> : <Btn label={ready ? 'Next: your routine' : 'Pick at least one goal'} onPress={next} disabled={!ready} />}>
@@ -25,9 +37,9 @@ export default function Goals() {
       {wide ? (
         <View style={{ flexDirection: 'row', gap: 48 }}>
           <View style={{ flex: 1, gap: 28 }}>{goals}{qs.slice(0, 3)}</View>
-          <View style={{ flex: 1, gap: 28 }}>{qs.slice(3)}</View>
+          <View style={{ flex: 1, gap: 28 }}>{qs.slice(3)}{preview}</View>
         </View>
-      ) : <View style={{ gap: 28 }}>{goals}{qs}</View>}
+      ) : <View style={{ gap: 28 }}>{goals}{qs}{preview}</View>}
     </Shell>
   );
 }
