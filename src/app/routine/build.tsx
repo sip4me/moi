@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import { BLUE, Btn, ChipBtn, Heading, InputsPanel, LivePanel, PlusDot, iconFor, Label, PickerSheet, Pill, ScoreBar, Segmented, Shell, st, Timeline, useWide } from '../../components/routine/Kit';
@@ -26,7 +26,9 @@ export default function Build() {
   const wide = useWide();
   const [tab, setTab] = useState('Wash day');
   const areas = s.areas ?? ['hair'];
-  const [areaTab, setAreaTab] = useState<string>(areas[0] ?? 'hair');
+  const param = useLocalSearchParams<{ area?: string }>().area;
+  const [areaTab, setAreaTab] = useState<string>(param ?? areas[0] ?? 'hair');
+  useEffect(() => { if (param) setAreaTab(param); }, [param]);
   const area = areas.includes(areaTab as any) ? areaTab : areas[0] ?? 'hair';
   const routinesOf = (a: string) => BEAUTY_ROUTINES.filter(r => r.area === a);
   const [btab, setBtab] = useState<Record<string, string>>({});
@@ -116,16 +118,17 @@ export default function Build() {
     </View>
   );
   const body = area === 'hair' ? hairBody : beautyBody;
+  const idx = Math.max(0, areas.indexOf(area as any));
+  const nextArea = areas[idx + 1];
+  const areaLabel = (a: string) => AREAS.find(x => x.key === a)?.label ?? a;
 
   return (
-    <Shell active="build" step="2 of 3" side={wide ? <View style={{ gap: 28 }}><LivePanel score={score} gaps={gaps} onOpen={() => router.push('/routine/gaps')} /><View style={{ height: 1, backgroundColor: '#EEF0F3' }} /><InputsPanel s={s} /></View> : undefined}
-      footer={wide
-        ? <Btn label="See my gaps" onPress={() => router.push('/routine/gaps')} />
-        : <Btn label={`See my gaps · fit ${score}`} onPress={() => router.push('/routine/gaps')} />}>
-      <Heading title={s.mode === 'new' ? 'Your new routine' : 'Your routine'} sub={s.mode === 'new' ? 'Steps your goals need. Add or skip each.' : 'Add what you use, in order. Skip any step.'} />
+    <Shell active="build" step={areas.length > 1 ? `Routine ${idx + 1} of ${areas.length}` : '2 of 3'} side={wide ? <View style={{ gap: 28 }}><LivePanel score={score} gaps={gaps} onOpen={() => router.push('/routine/gaps')} /><View style={{ height: 1, backgroundColor: '#EEF0F3' }} /><InputsPanel s={s} /></View> : undefined}
+      footer={<Btn label={nextArea ? `Next: ${areaLabel(nextArea).toLowerCase()} routine` : wide ? 'See my gaps' : `See my gaps · fit ${score}`} onPress={() => (nextArea ? router.push({ pathname: '/routine/build', params: { area: nextArea } }) : router.push('/routine/gaps'))} />}>
+      <Heading title={`${s.mode === 'new' ? 'Your new' : 'Your'} ${area === 'hair' ? 'hair' : areaLabel(area).toLowerCase()} routine`} sub={s.mode === 'new' ? 'Steps your answers need. Add or skip each.' : 'Add what you use, in order. Skip any step.'} />
       {areas.length > 1 ? (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {AREAS.filter(x => areas.includes(x.key)).map(x => <Pill key={x.key} label={x.label} on={area === x.key} onPress={() => setAreaTab(x.key)} />)}
+          {AREAS.filter(x => areas.includes(x.key)).map(x => <Pill key={x.key} label={x.label} on={area === x.key} onPress={() => router.setParams({ area: x.key })} />)}
         </View>
       ) : null}
       {area === 'hair' ? <View style={{ maxWidth: 420 }}><Segmented options={['Wash day', 'Everyday', 'Occasions']} value={tab} onChange={setTab} /></View> : null}

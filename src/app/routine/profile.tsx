@@ -4,7 +4,7 @@ import { Image, Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { Btn, Shell, useWide } from '../../components/routine/Kit';
 import { SectionCard } from '../../components/ui';
-import { DAYS, allSteps, hasInfo, useCatalog, useRoutine } from '../../lib/routine/model';
+import { AREA_Q, AREAS, DAYS, allSteps, hasInfo, pref, useCatalog, useRoutine } from '../../lib/routine/model';
 import { useAccess } from '../../lib/routine/access';
 import { analyze } from '../../lib/routine/gaps';
 import { useStore } from '../../state/store';
@@ -41,6 +41,7 @@ export default function RoutineProfile() {
   const logged = allSteps(s).filter(x => x.step.item?.addedAt).length;
   const plan = a.founder ? `Founding Royal #${a.spot}` : a.paid ? 'Royal plan' : a.test ? 'Test unlock' : 'No plan yet';
   const hair = [s.hair.texture, s.hair.strands, s.hair.scalp && `${s.hair.scalp} scalp`].filter(Boolean).join(' · ');
+  const area = (s.areas ?? ['hair'])[0] ?? 'hair';
   const card = { marginTop: 32, paddingVertical: 2, paddingHorizontal: 18, maxWidth: 640 };
 
   return (
@@ -75,18 +76,27 @@ export default function RoutineProfile() {
         </View>
       </SectionCard>
 
-      <SectionCard label="MY HAIR" style={card}>
-        <View>
-          <Row first k={s.goals.length > 1 ? 'Goals' : 'Goal'} v={s.goals.join(', ') || undefined} onPress={() => router.push('/routine/about')} />
-          <Row k="Hair" v={hair || undefined} onPress={() => router.push('/routine/about')} />
-          <Row k="Color or chemical" v={s.hair.treated || undefined} />
-          <Row k="Budget" v={s.hair.budget || undefined} />
-        </View>
-      </SectionCard>
+      {area === 'hair' ? (
+        <SectionCard label="MY HAIR" style={card}>
+          <View>
+            <Row first k={s.goals.length > 1 ? 'Goals' : 'Goal'} v={s.goals.join(', ') || undefined} onPress={() => router.push('/routine/about')} />
+            <Row k="Hair" v={hair || undefined} onPress={() => router.push('/routine/about')} />
+            <Row k="Color or chemical" v={s.hair.treated || undefined} />
+            <Row k="Budget" v={s.hair.budget || undefined} />
+          </View>
+        </SectionCard>
+      ) : (
+        <SectionCard label={`MY ${(AREAS.find(x => x.key === area)?.label ?? '').toUpperCase()}`} style={card}>
+          <View>
+            {AREA_Q.filter(q => q.area === area).map((q, i) => <Row key={q.key} first={i === 0} k={q.label.replace(/ · .*/, '')} v={pref(s, q.key).join(', ') || undefined} onPress={() => router.push('/routine/about')} />)}
+            <Row k="Budget" v={s.hair.budget || undefined} />
+          </View>
+        </SectionCard>
+      )}
 
       <SectionCard label="MY ROUTINE" style={card}>
         <View>
-          <Row first k="Wash days" v={s.washDays.map(d => DAYS[d]).join(', ') || undefined} onPress={() => router.push('/routine/build')} />
+          {area === 'hair' ? <Row first k="Wash days" v={s.washDays.map(d => DAYS[d]).join(', ') || undefined} onPress={() => router.push('/routine/build')} /> : <Row first k="Routine" v={AREAS.find(x => x.key === area)?.label} onPress={() => router.push('/routine/build')} />}
           <Row k="Products logged" v={String(logged)} onPress={() => router.push('/routine/build')} />
           <Row k="Routine fit" v={fit ? String(fit.score) : undefined} onPress={() => router.push('/routine/gaps')} />
           <Row k="Gaps to fill" v={fit ? String(fit.gaps.length) : undefined} onPress={() => router.push('/routine/gaps')} />

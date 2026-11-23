@@ -2,10 +2,11 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import { BLUE, Btn, ChipBtn, GapCard, Heading, iconFor, InputsPanel, money, st, NeedInfo, Pill, ProductCard, Shell, useWide, WhereToBuy } from '../../components/routine/Kit';
+import { icon3d } from '../../data/icons3d';
 import { GlassCard } from '../../components/routine/Glass';
 import { useAccess } from '../../lib/routine/access';
-import { analyze, KIND_COLOR, picksFor, type GapKind } from '../../lib/routine/gaps';
-import { hasInfo, itemKey, setRoutine, useCatalog, useRoutine } from '../../lib/routine/model';
+import { analyze, gapArea, KIND_COLOR, picksFor, type Gap, type GapKind } from '../../lib/routine/gaps';
+import { AREAS, hasInfo, itemKey, setRoutine, useCatalog, useRoutine } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 
 const FILTERS: { key: 'all' | GapKind; label: string }[] = [{ key: 'all', label: 'All' }, { key: 'step', label: 'Steps' }, { key: 'clash', label: 'Ingredients' }, { key: 'tool', label: 'Tools' }, { key: 'budget', label: 'Budget' }];
@@ -61,16 +62,21 @@ export default function Gaps() {
   }
 
   const shown = gaps.filter(g => filter === 'all' || g.kind === filter);
-  const goals = s.goals.join(' and ');
+  const groups = AREAS.filter(a => (s.areas ?? ['hair']).includes(a.key)).map(a => ({ ...a, gaps: shown.filter(g => gapArea(g) === a.key) })).filter(x => x.gaps.length);
+  const area = (s.areas ?? ['hair'])[0] ?? 'hair';
+  const goals = area === 'hair' && s.goals.length ? `for ${s.goals.join(' and ')}` : `in your ${area} routine`;
   const kinds = FILTERS.filter(f => f.key === 'all' || gaps.some(g => g.kind === f.key));
   return (
     <Shell active="gaps" step="3 of 3" side={wide ? <InputsPanel s={s} /> : undefined}
       footer={gaps.length ? <Btn label="Shop the fixes" onPress={() => router.push('/routine/shop')} /> : <Btn kind="secondary" label="Edit routine" onPress={() => router.push('/routine/build')} />}>
-      <Heading title={gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'} for ${goals}` : 'No gaps. Nice routine.'}
+      <Heading title={gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'} ${goals}` : 'No gaps. Nice routine.'}
         sub={`Routine fit ${score} of 100.`} />
       {kinds.length > 2 ? <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{kinds.map(f => <Pill key={f.key} label={f.label} on={filter === f.key} onPress={() => setFilter(f.key)} />)}</View> : null}
       <View style={{ gap: 12, maxWidth: 720 }}>
-        {shown.map(g => {
+        {groups.map(grp => (
+          <View key={grp.key} style={{ gap: 12 }}>
+            {groups.length > 1 ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 8 }}><Image source={icon3d(grp.icon)} style={{ width: 28, height: 28 }} /><Text style={{ fontFamily: F.semibold, fontSize: 17, color: C.ink, flex: 1 }}>{grp.label}</Text><Text style={{ fontFamily: F.medium, fontSize: 13, color: C.gray }}>{`${grp.gaps.length} gap${grp.gaps.length === 1 ? '' : 's'}`}</Text></View> : null}
+            {grp.gaps.map(g => {
           const p = picksFor(g, s, cat, 3);
           const priced = p.filter(x => x.item.price != null);
           const from = priced.length ? Math.min(...priced.map(x => x.item.price!)) : null;
@@ -89,7 +95,9 @@ export default function Gaps() {
               ) : null}
             </View>
           );
-        })}
+            })}
+          </View>
+        ))}
       </View>
     </Shell>
   );

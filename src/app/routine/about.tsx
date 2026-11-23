@@ -18,7 +18,8 @@ export default function About() {
   const wide = useWide();
   const areas = s.areas ?? [];
   const on = (a: Area) => areas.includes(a);
-  const toggleArea = (a: Area) => { haptic('select'); setRoutine(r => ({ ...r, areas: on(a) ? (r.areas ?? []).filter(x => x !== a) : [...(r.areas ?? []), a] })); };
+  // One routine type at a time: picking one replaces the other.
+  const toggleArea = (a: Area) => { haptic('select'); setRoutine(r => ({ ...r, areas: on(a) ? [] : [a] })); };
 
   const group = (key: string, label: string, opts: string[], has: (o: string) => boolean, press: (o: string) => void) => (
     <View key={key} style={{ gap: 10 }}>
@@ -58,12 +59,12 @@ export default function About() {
   return (
     <Shell glass active="goals" step="1 of 3" hideNav={!wide && !s.started} footer={<Btn label={label} onPress={next} disabled={!ready} />}>
       <GlassCard solid style={{ gap: 18, maxWidth: 800 }}>
-      <Heading title="Routines for" sub="Pick any. A few quick questions each." />
+      <Heading title="Make a routine for" sub="Pick one. Then a few quick questions." />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
         {AREAS.map(a => {
           const sel = on(a.key);
           return (
-            <Pressable key={a.key} {...fill(sel ? 'pearl-on' : 'pearl')} onPress={() => toggleArea(a.key)} accessibilityRole="checkbox" accessibilityState={{ checked: sel }} accessibilityLabel={`${a.label} routine`}
+            <Pressable key={a.key} {...fill(sel ? 'pearl-on' : 'pearl')} onPress={() => toggleArea(a.key)} accessibilityRole="radio" accessibilityState={{ checked: sel }} accessibilityLabel={`${a.label} routine`}
               style={({ hovered }: { hovered?: boolean }) => ({ width: wide ? 172 : '47%', flexGrow: wide ? 0 : 1, borderRadius: 22, paddingVertical: 18, paddingHorizontal: 16, gap: 10, alignItems: 'center', backgroundColor: '#fff', borderWidth: 2, borderColor: sel ? '#6E7BD9' : hovered ? '#C9CEF0' : 'transparent' })}>
               <View style={{ position: 'absolute', top: 10, right: 10, width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: sel ? '#6E7BD9' : '#D5D8DE', backgroundColor: sel ? '#6E7BD9' : '#fff', alignItems: 'center', justifyContent: 'center' }}>
                 {sel ? <Text style={{ color: '#fff', fontSize: 12, fontFamily: F.semibold, lineHeight: 14 }}>{'✓'}</Text> : null}
@@ -74,7 +75,7 @@ export default function About() {
           );
         })}
       </View>
-      {!areas.length ? <Text style={st.sub}>Tap one or more to start.</Text> : null}
+      {!areas.length ? <Text style={st.sub}>Tap one to start.</Text> : null}
       </GlassCard>
       {AREAS.filter(a => on(a.key)).map(section)}
       {areas.length ? <GlassCard solid style={{ gap: 12 }}>{group('budget', 'Monthly budget', budget.options, o => s.hair.budget === o, o => setRoutine(r => ({ ...r, hair: { ...r.hair, budget: r.hair.budget === o ? undefined : o } })))}</GlassCard> : null}

@@ -520,11 +520,14 @@ export function InputsPanel({ s }: { s: RoutineState }) {
   return (
     <View style={{ gap: 4 }}>
       <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink, marginBottom: 6 }}>Judged on</Text>
-      {row('Goals', s.goals.join(', '), '/routine/about')}
-      {row('Hair', hair, '/routine/about')}
+      {(s.areas ?? ['hair']).includes('hair') ? row('Hair goals', s.goals.join(', '), '/routine/about') : null}
+      {(s.areas ?? ['hair']).includes('hair') ? row('Hair', hair, '/routine/about') : null}
       {row('Budget', s.hair.budget ?? '', '/routine/about')}
       {row('Routine', `${logged} product${logged === 1 ? '' : 's'}${skipped ? ` · ${skipped} skipped` : ''} · wash ${s.washDays.map(d => DAYS[d]).join(', ') || 'days not set'}`, '/routine/build')}
       {s.occasions.length ? row('Occasions', s.occasions.join(', '), '/routine/build') : null}
+      {(s.areas ?? []).includes('skin') ? row('Skin', [...(s.prefs?.skin_type ?? []), ...(s.prefs?.skin_concerns ?? [])].join(' · '), '/routine/about') : null}
+      {(s.areas ?? []).includes('makeup') ? row('Makeup', [s.prefs?.mk_look?.[0], s.prefs?.mk_tone?.[0], s.prefs?.mk_undertone?.[0], s.prefs?.mk_finish?.[0], s.prefs?.mk_coverage?.[0] && `${s.prefs.mk_coverage[0]} coverage`].filter(Boolean).join(' · '), '/routine/about') : null}
+      {(s.areas ?? []).includes('body') ? row('Body', [...(s.prefs?.body_feel ?? []), ...(s.prefs?.body_concerns ?? [])].join(' · '), '/routine/about') : null}
     </View>
   );
 }
@@ -614,11 +617,16 @@ function TeaserStep({ label, sub, state }: { label: string; sub: string; state: 
 }
 
 /** A short, looping simulation of adding a wash-day routine step by step. Generic names only. */
-export function LinearTeaser() {
+const TEASER: Record<string, { title: string; steps: string[][] }> = {
+  hair: { title: 'Wash day', steps: [['Pre-poo', 'Oil'], ['Shampoo', 'Added'], ['Condition', 'Conditioner'], ['Hair oil', 'Oil'], ['Style', 'Styler']] },
+  skin: { title: 'Morning skin', steps: [['Cleanse', 'Cleanser'], ['Tone', 'Toner'], ['Serum', 'Added'], ['Moisturize', 'Cream'], ['SPF', 'Sunscreen']] },
+  makeup: { title: 'Everyday makeup', steps: [['Primer', 'Prep'], ['Base', 'Added'], ['Conceal', 'Concealer'], ['Mascara', 'Lashes'], ['Lips', 'Color']] },
+  body: { title: 'Body', steps: [['Wash', 'Body wash'], ['Scrub', 'Added'], ['Lotion', 'Moisture'], ['Oil', 'Seal'], ['Deodorant', 'Daily']] },
+};
+export function LinearTeaser({ area = 'hair' }: { area?: string }) {
   const narrow = useWindowDimensions().width < 420;
-  const steps = (narrow
-    ? [['Pre-poo', 'Oil'], ['Shampoo', 'Added'], ['Condition', 'Conditioner'], ['Style', 'Styler']]
-    : [['Pre-poo', 'Oil'], ['Shampoo', 'Added'], ['Condition', 'Conditioner'], ['Hair oil', 'Oil'], ['Style', 'Styler']]);
+  const t = TEASER[area] ?? TEASER.hair;
+  const steps = narrow ? t.steps.filter((_, i) => i !== 3) : t.steps;
   const [n, setN] = useState(0);
   useEffect(() => {
     const t = setTimeout(() => setN(x => (x >= steps.length + 2 ? 0 : x + 1)), n === 0 ? 700 : n >= steps.length ? 1500 : 1000);
@@ -629,7 +637,7 @@ export function LinearTeaser() {
   return (
     <View style={{ borderRadius: 24, backgroundColor: PALETTE.frost, borderWidth: 1, borderColor: '#FFFFFF', paddingHorizontal: 16, paddingTop: 14, paddingBottom: 12, gap: 12, maxWidth: 560 }} accessibilityLabel="Example: adding a wash day routine step by step">
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <Text style={{ fontFamily: F.semibold, fontSize: 13, color: C.ink, flex: 1 }}>Wash day</Text>
+        <Text style={{ fontFamily: F.semibold, fontSize: 13, color: C.ink, flex: 1 }}>{t.title}</Text>
         <Text style={{ fontFamily: F.semibold, fontSize: 12, color: complete ? '#8C6D35' : BLUE }}>{complete ? 'Routine complete' : `${done}/${steps.length} added`}</Text>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
@@ -648,9 +656,9 @@ export function NeedInfo({ goals }: { goals: boolean }) {
   return (
     <View style={{ gap: 16, maxWidth: 520, paddingTop: 8 }}>
       <Image source={icon3d(goals ? 'conditioner' : 'learn')} style={{ width: 72, height: 72 }} />
-      <Text {...shine('chrome')} style={[st.h1, { fontSize: 30, lineHeight: 34 }]}>{goals ? 'Add your routine first' : 'Your goals come first'}</Text>
-      <Text style={st.sub}>{goals ? 'Add one product you use to see your gaps.' : 'Pick your goals and hair type to see your gaps.'}</Text>
-      <Btn label={goals ? 'Add my routine' : 'Start with my goals'} onPress={() => router.push(goals ? '/routine/build' : '/routine/about')} style={{ alignSelf: 'flex-start' }} />
+      <Text {...shine('chrome')} style={[st.h1, { fontSize: 30, lineHeight: 34 }]}>{goals ? 'Add your routine first' : 'A few questions first'}</Text>
+      <Text style={st.sub}>{goals ? 'Add one product you use to see your gaps.' : 'Answer a few quick questions to see your gaps.'}</Text>
+      <Btn label={goals ? 'Add my routine' : 'Start'} onPress={() => router.push(goals ? '/routine/build' : '/routine/about')} style={{ alignSelf: 'flex-start' }} />
     </View>
   );
 }

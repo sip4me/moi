@@ -1,4 +1,4 @@
-import { allSteps, AREA_OF, CATEGORY_LABEL, pref, type Catalog, type Item, type RoutineState } from './model';
+import { allSteps, AREA_OF, areaOf, CATEGORY_LABEL, defaultBeauty, pref, type Area, type Catalog, type Item, type RoutineState, type Step } from './model';
 import { planFor, planMatch, planSteps } from './plan';
 
 export type GapKind = 'step' | 'clash' | 'tool' | 'budget';
@@ -202,3 +202,38 @@ export const retailerLinks = (i: Item) => {
     { name: 'Sephora', url: `https://www.sephora.com/search?keyword=${q}` },
   ];
 };
+
+/** Which routine a gap belongs to: by what fills it, or by its id prefix for clashes. */
+export const gapArea = (g: { id: string; fills: string[] }): Area =>
+  g.id.startsWith('sk_') ? 'skin' : g.id.startsWith('mk_') ? 'makeup' : g.id.startsWith('bd_') ? 'body' : areaOf(g.fills[0]);
+
+/** "A new routine" for skin, makeup and body: empty boxes shaped by the person's answers. */
+export function tailoredBeauty(s: RoutineState, key: string): Step[] {
+  const base = defaultBeauty(key);
+  const has = (k: string, v: string) => pref(s, k).includes(v);
+  const box = (label: string, hint: string): Step => ({ ...base[0], id: `${key}${hint}${Math.random().toString(36).slice(2, 7)}`, label, hint, item: undefined });
+  if (key === 'skinAM') {
+    const out = base.filter(x => !(x.hint === 'toner' && !has('skin_concerns', 'Dehydration') && !has('skin_type', 'Oily')));
+    if (has('skin_concerns', 'Dark spots')) out.splice(Math.max(0, out.findIndex(x => x.hint === 'serum')), 1, box('Vitamin C serum', 'serum'));
+    return out;
+  }
+  if (key === 'skinPM') {
+    const treat = has('skin_concerns', 'Breakouts') ? box('Breakout treatment', 'acne')
+      : has('skin_concerns', 'Fine lines') && !pref(s, 'skin_flags').some(f => f.startsWith('Retinoids')) ? box('Retinoid', 'retinoid')
+      : box('Serum', 'serum');
+    const out = base.filter(x => x.hint !== 'retinoid' && (x.hint !== 'makeup_remover' || (s.areas ?? []).includes('makeup')));
+    out.splice(Math.max(1, out.findIndex(x => x.hint === 'moisturizer')), 0, treat);
+    return out;
+  }
+  if (key === 'makeupDay') {
+    if (has('mk_look', 'Minimal')) return [box('Skin tint', 'foundation'), box('Mascara', 'mascara'), box('Lips', 'lips')];
+    if (has('mk_look', 'Full glam')) return [...base, box('Bronzer', 'bronzer'), box('Setting spray', 'setting_spray')];
+    return base;
+  }
+  if (key === 'makeupEvent') return has('mk_look', 'Minimal') ? [box('Blush', 'blush'), box('Highlighter', 'highlighter')] : base;
+  if (key === 'body') {
+    const c = (v: string) => has('body_concerns', v);
+    return base.filter(x => (x.hint !== 'body_scrub' || c('Bumps') || c('Body breakouts') || c('Uneven tone')) && (x.hint !== 'body_oil' || c('Dryness') || has('body_feel', 'Dry')) && (x.hint !== 'body_spf' || c('Uneven tone')));
+  }
+  return base;
+}

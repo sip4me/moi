@@ -62,7 +62,7 @@ export default function Shop() {
   return (
     <Shell active="shop" side={wide && bag.length ? bagPanel : undefined}
       footer={!wide && bag.length ? <Pressable onPress={() => {}} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><View style={{ flex: 1 }}><Text style={st.cardTitle}>{`${bag.length} in bag · about ${money(Math.round(total(bag)))}`}</Text><Text style={st.meta}>{`Routine fit ${score} → ${after}`}</Text></View></Pressable> : undefined}>
-      <Heading title="Shop your gaps" sub="Only products that fill a gap, ranked for your hair and budget." />
+      <Heading title="Shop your gaps" sub="Only products that fill a gap, ranked for you and your budget." />
       {bundle.length > 1 ? (
         <View style={{ flexDirection: wide ? 'row' : 'column', alignItems: wide ? 'center' : 'stretch', gap: 16, padding: 20, borderRadius: 24, backgroundColor: '#EEF1FD' }}>
           <View style={{ flexDirection: 'row' }}>{bundle.slice(0, 4).map((i, n) => <View key={n} style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: '#fff', borderWidth: 3, borderColor: '#fff', marginLeft: n ? -14 : 0, alignItems: 'center', justifyContent: 'center' }}><Image source={iconFor(i.category)} style={{ width: 40, height: 40 }} /></View>)}</View>

@@ -4,7 +4,8 @@ import { Image, Pressable, Text, View } from 'react-native';
 import { Btn, Label, LinearTeaser, Shell, st, useWide } from '../../components/routine/Kit';
 import { icon3d } from '../../data/icons3d';
 import { haptic } from '../../lib/haptics';
-import { session, setRoutine, useRoutine } from '../../lib/routine/model';
+import { BEAUTY_ROUTINES, session, setRoutine, useRoutine } from '../../lib/routine/model';
+import { tailoredBeauty } from '../../lib/routine/gaps';
 import { C, F } from '../../theme';
 import { fill } from '../../lib/routine/shine';
 import { GlassCard } from '../../components/routine/Glass';
@@ -33,7 +34,8 @@ export default function Start() {
   const go = () => {
     if (!picked) { haptic('select'); setAsk(true); return; }
     session.chose = true;
-    setRoutine(r => ({ ...r, started: true })); router.push('/routine/build'); };
+    setRoutine(r => ({ ...r, started: true, ...(picked === 'new' ? { beauty: { ...(r.beauty ?? {}), ...Object.fromEntries(BEAUTY_ROUTINES.filter(b => (r.areas ?? []).includes(b.area)).map(b => [b.key, tailoredBeauty(r, b.key)])) } } : {}) }));
+    router.push({ pathname: '/routine/build', params: { area: (s.areas ?? ['hair'])[0] ?? 'hair' } }); };
   return (
     <Shell glass active="start" hideNav={!wide && !s.started} footer={wide ? undefined : <><Btn label="Continue" onPress={go} /><Text style={[st.meta, { textAlign: 'center', fontSize: 12, color: 'rgba(255,255,255,0.88)' }]}>Free. No account needed.</Text></>}>
       <GlassCard solid style={{ gap: 24, maxWidth: 640, padding: wide ? 32 : 20 }}>
@@ -41,7 +43,7 @@ export default function Start() {
           <Text style={[st.h1, { fontSize: wide ? 60 : 40, lineHeight: wide ? 62 : 42 }]}>Find the gaps in your routine.</Text>
           <Text style={[st.sub, { fontSize: wide ? 17 : 15, lineHeight: wide ? 25 : 22 }]}>Add what you use. We show what’s missing.</Text>
         </View>
-        <LinearTeaser />
+        <LinearTeaser area={(s.areas ?? ['hair'])[0]} />
         <View style={{ gap: 12 }}>
           <Label>Start with</Label>
           <View style={{ flexDirection: wide ? 'row' : 'column', gap: 12 }}>

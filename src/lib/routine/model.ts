@@ -188,7 +188,7 @@ AsyncStorage.getItem(KEY).then(v => { if (v) { try { const raw = JSON.parse(v); 
       // checkmarks only ever mean "I added this".
       const autoFilled = !raw.v && !!raw.built;
       const strip = (st: Step[]) => (autoFilled ? st.map(x => ({ ...x, item: undefined })) : st.map(x => (x.item && !x.item.addedAt ? { ...x, item: { ...x.item, addedAt: 1 } } : x)));
-      state = { ...saved, v: 2, areas: raw.areas ?? ['hair'], prefs: raw.prefs ?? {}, beauty: { ...initialBeauty(), ...(raw.beauty ?? {}) }, wash: withOilSteps(strip(clean(saved.wash))), every: strip(clean(saved.every)), occ: Object.fromEntries(Object.entries(saved.occ ?? {}).map(([k, v]) => [k, strip(clean(v as Step[]))])) }; } catch {} } else state = { ...state }; hydrated = true; emit(); }).catch(() => { state = { ...state }; hydrated = true; emit(); });
+      state = { ...saved, v: 2, areas: (raw.areas ?? ['hair']).slice(0, 1), prefs: raw.prefs ?? {}, beauty: { ...initialBeauty(), ...(raw.beauty ?? {}) }, wash: withOilSteps(strip(clean(saved.wash))), every: strip(clean(saved.every)), occ: Object.fromEntries(Object.entries(saved.occ ?? {}).map(([k, v]) => [k, strip(clean(v as Step[]))])) }; } catch {} } else state = { ...state }; hydrated = true; emit(); }).catch(() => { state = { ...state }; hydrated = true; emit(); });
 
 export function setRoutine(fn: (s: RoutineState) => RoutineState) {
   state = fn(state);
