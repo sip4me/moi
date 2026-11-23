@@ -98,8 +98,13 @@ export function fitOf(i: Item, s: RoutineState): number {
   // The tracker plan's ingredient rules: +4 per group it looks for (up to 3), -12 per group to avoid.
   const m = planMatch(i, planFor(s));
   f += 4 * Math.min(3, m.good.length) - 12 * m.watch.length;
+  // Products the database tags for the person's own goals.
+  f += 7 * Math.min(2, goalHits(i, s).length);
   return Math.max(50, Math.min(98, Math.round(f)));
 }
+
+/** Which of the person's goals this product is tagged for in the database. */
+export const goalHits = (i: Item, s: RoutineState) => s.goals.filter(g => i.goals?.includes(g));
 
 /** Ranked picks that fill a gap. */
 /** Hides rows whose names are too thin to recommend (e.g. brand repeated as the name). */
@@ -110,8 +115,13 @@ export function picksFor(g: Gap, s: RoutineState, cat: Catalog, n = 3): { item: 
   const cheaper = g.kind === 'budget' && g.replace?.price ? pool.filter(i => (i.price ?? 999) <= g.replace!.price! * 0.6) : pool;
   // Products we can price and link come first, then best fit.
   const plan = planFor(s);
-  const reason = (i: Item) => { const m = planMatch(i, plan); return m.watch.length ? `Has ${m.watch[0]}` : m.good.length ? `Has ${m.good.slice(0, 2).join(' and ')}` : undefined; };
-  return cheaper.filter(item => !planMatch(item, plan).watch.length || pool.length <= n).map(item => ({ item, fit: fitOf(item, s), why: reason(item) })).sort((a, b) => Number(b.item.price != null) - Number(a.item.price != null) || b.fit - a.fit || (a.item.price ?? 0) - (b.item.price ?? 0)).slice(0, n);
+  const reason = (i: Item) => {
+    const m = planMatch(i, plan); const hit = goalHits(i, s);
+    if (m.watch.length) return `Has ${m.watch[0]}`;
+    const parts = [hit.length ? `Made for ${hit.slice(0, 2).join(' and ').toLowerCase()}` : '', m.good.length ? `has ${m.good[0]}` : ''].filter(Boolean);
+    return parts.length ? parts.join(', ').replace(/^h/, 'H') : undefined;
+  };
+  return cheaper.filter(item => !planMatch(item, plan).watch.length || pool.length <= n).map(item => ({ item, fit: fitOf(item, s), why: reason(item), hits: goalHits(item, s).length })).sort((a, b) => b.hits - a.hits || Number(b.item.price != null) - Number(a.item.price != null) || b.fit - a.fit || (a.item.price ?? 0) - (b.item.price ?? 0)).slice(0, n);
 }
 
 /** For "Build me a new one": the steps a routine for these goals should have, each filled with the best pick. */

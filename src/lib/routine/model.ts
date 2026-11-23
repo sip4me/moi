@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { supabase } from '../supabase';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -14,6 +14,8 @@ export type Item = {
   hairTypes?: string[];
   /** Ingredient label, when we have one. Used to match the tracker plan's look-for and avoid groups. */
   ingredients?: string;
+  /** Moi Routine goals this product serves, tagged in the database (kb_goal_tags). */
+  goals?: string[];
   /** Set when the person logs it themselves. Only these get a checkmark. */
   addedAt?: number;
 };
@@ -138,6 +140,34 @@ export function allSteps(s: RoutineState): { where: string; step: Step }[] {
 
 // ── Catalog ───────────────────────────────────────────────────────────────────
 export type Catalog = { products: Item[]; tools: Item[] };
+const PRODUCT_COLS = 'id,brand,name,category,price_usd,tags,hair_types,ingredients_raw,goals';
+const toProduct = (r: any): Item => ({ kind: 'product' as const, id: r.id, brand: r.brand, name: r.name, category: r.category, tags: r.tags ?? [], price: r.price_usd, hairTypes: r.hair_types ?? [], ingredients: r.ingredients_raw ?? undefined, goals: r.goals ?? [] });
+const mergeProducts = (a: Item[], b: Item[]) => { const m = new Map(a.map(i => [i.id, i])); b.forEach(i => m.set(i.id, i)); return [...m.values()]; };
+const goalLoads = new Map<string, Promise<void>>();
+/** Pulls in the database's products for these goals (beyond the 2,000 most popular), once per goal. */
+export function ensureGoalProducts(goals: string[]) {
+  const sb = supabase();
+  if (!sb) return;
+  for (const g of goals) {
+    if (goalLoads.has(g)) continue;
+    goalLoads.set(g, (async () => {
+      const { data } = await sb.from('kb_products').select(PRODUCT_COLS).eq('hair', true).contains('goals', [g]).order('popularity', { ascending: false }).limit(600);
+      catalog = { ...catalog, products: mergeProducts(catalog.products, (data ?? []).map(toProduct)) };
+      csubs.forEach(f => f());
+    })().catch(() => { goalLoads.delete(g); }));
+  }
+}
+let countsP: Promise<Record<string, number>> | null = null;
+/** How many products in the database serve each goal. */
+export function goalCounts(): Promise<Record<string, number>> {
+  countsP ??= (async () => {
+    const sb = supabase();
+    if (!sb) return {};
+    const { data } = await sb.rpc('kb_goal_counts');
+    return Object.fromEntries((data ?? []).map((r: any) => [r.goal, Number(r.n)]));
+  })().catch(() => { countsP = null; return {}; });
+  return countsP;
+}
 let catalog: Catalog = { products: [], tools: [] };
 let catalogP: Promise<Catalog> | null = null;
 const csubs = new Set<() => void>();
@@ -146,11 +176,11 @@ export function loadCatalog(): Promise<Catalog> {
     const sb = supabase();
     if (!sb) return catalog;
     const [p, t] = await Promise.all([
-      sb.from('kb_products').select('id,brand,name,category,price_usd,tags,hair_types,ingredients_raw').eq('hair', true).order('popularity', { ascending: false }).limit(2000),
+      sb.from('kb_products').select(PRODUCT_COLS).eq('hair', true).order('popularity', { ascending: false }).limit(2000),
       sb.from('kb_tools').select('id,brand,name,kind,price_usd,helps,hair_types').limit(1000),
     ]);
     catalog = {
-      products: (p.data ?? []).map((r: any) => ({ kind: 'product', id: r.id, brand: r.brand, name: r.name, category: r.category, tags: r.tags ?? [], price: r.price_usd, hairTypes: r.hair_types ?? [], ingredients: r.ingredients_raw ?? undefined })),
+      products: mergeProducts(catalog.products, (p.data ?? []).map(toProduct)),
       tools: (t.data ?? []).map((r: any) => ({ kind: 'tool', id: r.id, brand: r.brand ?? '', name: r.name, category: r.kind, tags: r.helps ?? [], price: r.price_usd, hairTypes: r.hair_types ?? [] })),
     };
     csubs.forEach(f => f());
@@ -161,6 +191,8 @@ export function loadCatalog(): Promise<Catalog> {
 export function useCatalog(): Catalog {
   const c = useSyncExternalStore(f => { csubs.add(f); return () => { csubs.delete(f); }; }, () => catalog, () => catalog);
   if (!catalogP) loadCatalog();
+  const goals = useRoutine().goals;
+  useEffect(() => { ensureGoalProducts(goals); }, [goals]);
   return c;
 }
 export const itemKey = (i: Item) => `${i.kind === 'tool' ? 't' : 'p'}:${i.id ?? i.name}`;
@@ -209,10 +241,10 @@ export async function searchRemote(q: string): Promise<Item[]> {
   const term = q.trim().toLowerCase().replace(/[%_,()]/g, ' ');
   if (!sb || term.length < 2) return [];
   const words = term.split(/\s+/).filter(Boolean).slice(0, 4);
-  let query = sb.from('kb_products').select('id,brand,name,category,price_usd,tags,hair_types,ingredients_raw').eq('hair', true);
+  let query = sb.from('kb_products').select(PRODUCT_COLS).eq('hair', true);
   for (const w of words) query = query.ilike('search', `%${w}%`);
   const { data } = await query.order('popularity', { ascending: false }).limit(25);
-  return (data ?? []).map((r: any) => ({ kind: 'product' as const, id: r.id, brand: r.brand, name: r.name, category: r.category, tags: r.tags ?? [], price: r.price_usd, hairTypes: r.hair_types ?? [], ingredients: r.ingredients_raw ?? undefined }));
+  return (data ?? []).map(toProduct);
 }
 
 /** Per app-open flags (reset on every load): the start choice and the goals page open empty the first time through. */
