@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Svg, { Path } from 'react-native-svg';
-import { ActivityIndicator, Animated, Easing, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Animated, Platform, Easing, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View, type ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { icon3d } from '../../data/icons3d';
 import { haptic } from '../../lib/haptics';
@@ -23,6 +23,7 @@ export const iconFor = (cat?: string) => icon3d(CATEGORY_ICON[cat ?? ''] ?? 'dro
 export const money = (n?: number | null) => (n == null ? '' : `$${n % 1 ? n.toFixed(2) : n}`);
 
 const CROWN_ART = require('../../../assets/crown-pink.png');
+const COIN_PLUS = require('../../../assets/coin-plus.png');
 
 // ── Layout ───────────────────────────────────────────────────────────────────
 const NAV = [
@@ -247,19 +248,42 @@ function StepRow({ s, state, last, nextFilled, onOpen }: { s: Step; state: 'done
 }
 
 /** A small outlined action button: used wherever an action used to be plain text. */
-export function ChipBtn({ label, onPress, tone = 'default', icon }: { label: string; onPress: () => void; tone?: 'default' | 'danger' | 'dark'; icon?: React.ReactNode }) {
+/** Line icons for actions people know by symbol (done, delete, back, search, retry...). Stroke follows the text colour. */
+const ICON_PATHS: Record<string, string> = {
+  check: 'M5 12.5l4.5 4.5L19 7.5',
+  trash: 'M4 7h16M9 7V4.8h6V7M6.5 7l1 12.2h9l1-12.2M10 11v5.5M14 11v5.5',
+  back: 'M19 12H5M11 6l-6 6 6 6',
+  search: 'M10.5 17a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM20 20l-4.8-4.8',
+  retry: 'M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6',
+  calendar: 'M5 6.5h14v13H5zM5 10.5h14M9 4v4M15 4v4',
+  skip: 'M6 6l7 6-7 6zM17 6v12',
+  undo: 'M9 7L4 12l5 5M4 12h9a6 6 0 0 1 6 6',
+  bag: 'M6 8h12l-1 12H7zM9 8V6.5a3 3 0 0 1 6 0V8',
+  store: 'M4 9l1.5-4.5h13L20 9M4 9h16v1.5a2.7 2.7 0 0 1-5.3 0 2.7 2.7 0 0 1-5.4 0A2.7 2.7 0 0 1 4 10.5zM5.5 13v7h13v-7',
+  plus: 'M12 5v14M5 12h14',
+};
+export function Ico({ name, size = 18, color = C.ink }: { name: keyof typeof ICON_PATHS | string; size?: number; color?: string }) {
+  return <Svg width={size} height={size} viewBox="0 0 24 24"><Path d={ICON_PATHS[name] ?? ''} stroke={color} strokeWidth={1.9} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>;
+}
+
+/** A small action button. `iconOnly` shows just the icon (the label stays as the accessible name and hover tooltip). */
+export function ChipBtn({ label, onPress, tone = 'default', icon, iconOnly }: { label: string; onPress: () => void; tone?: 'default' | 'danger' | 'dark'; icon?: React.ReactNode | string; iconOnly?: boolean }) {
   const dark = tone === 'dark';
+  const ink = tone === 'danger' ? '#B42318' : dark ? '#3B2A0B' : C.ink;
+  const glyph = typeof icon === 'string' ? <Ico name={icon} size={iconOnly ? 19 : 16} color={ink} /> : icon;
   return (
-    <Pressable {...fill(dark ? 'garnet' : 'pearl')} onPress={() => { haptic('select'); onPress(); }} accessibilityRole="button"
-      style={({ pressed, hovered }: PS) => [st.chipBtn, dark && { backgroundColor: PALETTE.garnet, borderColor: PALETTE.garnet }, hovered && { ...HOVER_RIM, backgroundColor: dark ? PALETTE.garnetDeep : '#ECEDEF' }, pressed && { transform: [{ scale: 0.97 }] }]}>
-      {icon}
-      <Text style={[st.chipBtnText, tone === 'danger' && { color: '#B42318' }, dark && { color: '#fff' }]}>{label}</Text>
+    <Pressable {...fill(dark ? 'garnet' : 'pearl')} onPress={() => { haptic('select'); onPress(); }} accessibilityRole="button" accessibilityLabel={label} {...(iconOnly && Platform.OS === 'web' ? ({ title: label } as any) : {})}
+      style={({ pressed, hovered }: PS) => [st.chipBtn, iconOnly && { width: 40, height: 40, paddingHorizontal: 0, justifyContent: 'center' }, dark && { backgroundColor: PALETTE.garnet, borderColor: PALETTE.garnet }, hovered && { ...HOVER_RIM, backgroundColor: dark ? PALETTE.garnetDeep : '#ECEDEF' }, pressed && { transform: [{ scale: 0.97 }] }]}>
+      {glyph}
+      {iconOnly ? null : <Text style={[st.chipBtnText, tone === 'danger' && { color: '#B42318' }, dark && { color: '#fff' }]}>{label}</Text>}
     </Pressable>
   );
 }
 
 /** The round "+" that says: tap here to add a product. */
 export function PlusDot({ solid, size = 32 }: { solid?: boolean; size?: number }) {
+  // Filled: the gold "+" coin from the Figma seal. Empty: a pearl circle with a garnet plus.
+  if (solid) return <Image source={COIN_PLUS} style={{ width: size * 1.15, height: size * 1.15, margin: -size * 0.075 }} resizeMode="contain" />;
   return (
     <View {...fill(solid ? 'lilac' : 'pearl')} style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: solid ? PALETTE.garnet : '#fff', borderWidth: 1.5, borderColor: solid ? PALETTE.garnet : '#C4C8CE' }} accessibilityElementsHidden importantForAccessibility="no">
       <Svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24"><Path d="M12 5v14M5 12h14" stroke={solid ? '#fff' : PALETTE.garnet} strokeWidth={2.6} strokeLinecap="round" /></Svg>
@@ -345,15 +369,29 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename, onSkip 
   const [q, setQ] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
-  const local = useMemo(() => (step ? searchCatalogLocal(cat, q, step.hint).slice(0, 12) : []), [cat, q, step]);
-  const [remote, setRemote] = useState<Item[]>([]);
+  // Search: nothing is listed until the whole search has finished, so results never jump around while typing.
+  const [search, setSearch] = useState<{ phase: 'idle' | 'searching' | 'done' | 'error'; q: string; items: Item[] }>({ phase: 'idle', q: '', items: [] });
+  const [retry, setRetry] = useState(0);
   useEffect(() => {
-    if (q.trim().length < 2) { setRemote([]); return; }
+    const term = q.trim();
+    if (term.length < 2) { setSearch({ phase: 'idle', q: '', items: [] }); return; }
     let live = true;
-    const t = setTimeout(() => { searchRemote(q).then(r => { if (live) setRemote(r); }).catch(() => {}); }, 250);
+    setSearch(s => ({ phase: 'searching', q: term, items: s.items }));
+    const t = setTimeout(async () => {
+      try {
+        const remote = await searchRemote(term, step?.hint);
+        // Anything the person already has in their routine catalog (e.g. typed earlier) is merged in, database results first.
+        const local = searchCatalogLocal(cat, term, step?.hint).slice(0, 10);
+        const seen = new Set(remote.map(i => `${i.kind}${i.id}`));
+        const items = [...remote, ...local.filter(i => !seen.has(`${i.kind}${i.id}`))].slice(0, 30);
+        if (live) setSearch({ phase: 'done', q: term, items });
+      } catch {
+        if (live) setSearch({ phase: 'error', q: term, items: [] });
+      }
+    }, 300);
     return () => { live = false; clearTimeout(t); };
-  }, [q]);
-  const results = useMemo(() => { const seen = new Set(local.map(i => `${i.kind}${i.id}`)); return [...local, ...remote.filter(i => !seen.has(`${i.kind}${i.id}`))].slice(0, 30); }, [local, remote]);
+  }, [q, retry, step?.hint]);
+  const results = search.phase === 'done' ? search.items : [];
   if (!step) return null;
   const close = () => { setQ(''); setMsg(''); onClose(); };
   const pick = (i: Item) => { onPick(i); setQ(''); setMsg(''); };
@@ -378,13 +416,13 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename, onSkip 
         <Pressable onPress={() => {}} style={[st.sheet, wide && st.dialog]}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TextInput value={step.label} onChangeText={onRename} style={st.sheetTitle} accessibilityLabel="Step name" />
-            <ChipBtn label="Done" tone="dark" onPress={close} />
+            <ChipBtn label="Done" tone="dark" icon="check" iconOnly onPress={close} />
           </View>
           {step.item ? (
             <View style={st.current}>
               <Image source={iconFor(step.item.category)} style={{ width: 44, height: 44 }} />
               <View style={{ flex: 1 }}><Text style={st.meta}>{step.item.brand || CATEGORY_LABEL[step.item.category]}</Text><Text style={st.cardTitle}>{step.item.name}</Text></View>
-              <ChipBtn label="Remove" tone="danger" onPress={onRemove} />
+              <ChipBtn label="Remove product" tone="danger" icon="trash" iconOnly onPress={onRemove} />
             </View>
           ) : null}
           {step.item && step.item.kind === 'custom' ? (
@@ -402,11 +440,12 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename, onSkip 
             </Pressable>
           ) : (
             <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-              {onSkip ? <ChipBtn label={step.skipped ? 'Undo skip' : 'Skip this step'} onPress={onSkip} /> : null}
-              <ChipBtn label="Delete step" tone="danger" onPress={onRemove} />
+              {onSkip ? <ChipBtn label={step.skipped ? 'Undo skip' : 'Skip this step'} icon={step.skipped ? 'undo' : 'skip'} onPress={onSkip} /> : null}
+              <ChipBtn label="Delete step" tone="danger" icon="trash" onPress={onRemove} />
             </View>
           )}
-          <View style={st.search}>
+          <View style={[st.search, { flexDirection: 'row', alignItems: 'center', gap: 10 }]}>
+            <Ico name="search" size={18} color={C.gray} />
             <TextInput value={q} onChangeText={setQ} placeholder={`Search ${(CATEGORY_LABEL[step.hint] ?? 'products').toLowerCase()}s, brands or tools`} placeholderTextColor={C.gray} style={st.searchInput} autoFocus={wide} returnKeyType="search" />
           </View>
           <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -415,7 +454,17 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename, onSkip 
           </View>
           {busy || msg ? <View style={st.msg}>{busy ? <ActivityIndicator size="small" color={C.ink} /> : null}<Text style={[st.sub, { flex: 1, fontSize: 14 }]}>{msg}</Text></View> : null}
           <ScrollView style={{ maxHeight: wide ? 360 : 320 }} keyboardShouldPersistTaps="handled">
-            {q.trim().length >= 2 ? (
+            {search.phase === 'searching' ? (
+              <View style={[st.msg, { marginBottom: 6 }]}><ActivityIndicator size="small" color={C.ink} /><Text style={[st.sub, { flex: 1, fontSize: 14 }]}>{`Searching every product for \u201c${search.q}\u201d`}</Text></View>
+            ) : null}
+            {search.phase === 'error' ? (
+              <View style={[st.msg, { marginBottom: 6 }]}><Text style={[st.sub, { flex: 1, fontSize: 14 }]}>Search didn’t go through. Check your connection.</Text><ChipBtn label="Try again" icon="retry" iconOnly onPress={() => setRetry(n => n + 1)} /></View>
+            ) : null}
+            {search.phase === 'done' && !results.length ? (
+              <Text style={[st.sub, { fontSize: 14, paddingVertical: 6 }]}>{`No matches for \u201c${search.q}\u201d. Check the spelling, try the brand alone, or add it below.`}</Text>
+            ) : null}
+            {search.phase === 'done' && results.length ? <Text style={[st.meta, { paddingVertical: 4 }]}>{`${results.length} result${results.length === 1 ? '' : 's'}`}</Text> : null}
+            {search.phase === 'done' || search.phase === 'error' ? (
               <Pressable onPress={typed} style={({ hovered }: PS) => [st.result, hovered && { ...HOVER_RIM, backgroundColor: '#ECEDEF' }]}>
                 <View style={[st.resultIcon, { backgroundColor: '#EEF0F3', alignItems: 'center', justifyContent: 'center' }]}><Text style={{ fontSize: 20 }}>+</Text></View>
                 <View style={{ flex: 1 }}><Text style={st.cardTitle}>Add “{q.trim()}”</Text><Text style={st.meta}>Not listed? We’ll add it to the database</Text></View>

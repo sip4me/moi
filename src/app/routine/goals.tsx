@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
-import { Btn, Heading, Label, Pill, Shell, st, useWide } from '../../components/routine/Kit';
+import { Btn, ChipBtn, Heading, Label, Pill, Shell, st, useWide } from '../../components/routine/Kit';
 import { C } from '../../theme';
 import { planFor, planSteps } from '../../lib/routine/plan';
 import { GOALS, goalCounts, HAIR_Q, setRoutine, useRoutine } from '../../lib/routine/model';
@@ -36,7 +36,7 @@ export default function Goals() {
   ) : null;
   return (
     <Shell active="goals" step="1 of 3"
-      footer={wide ? <><Btn kind="secondary" label="Back" onPress={() => router.back()} /><Btn label="Next: your routine" onPress={next} disabled={!ready} /></> : <Btn label={ready ? 'Next: your routine' : 'Pick at least one goal'} onPress={next} disabled={!ready} />}>
+      footer={wide ? <><ChipBtn label="Back" icon="back" iconOnly onPress={() => router.back()} /><Btn label="Next: your routine" onPress={next} disabled={!ready} /></> : <Btn label={ready ? 'Next: your routine' : 'Pick at least one goal'} onPress={next} disabled={!ready} />}>
       <Heading title="What are you working toward?" sub="We judge your routine against these. Change them any time." />
       {wide ? (
         <View style={{ flexDirection: 'row', gap: 48 }}>

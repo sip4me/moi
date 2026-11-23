@@ -51,13 +51,16 @@ const TAG_GROUP: Record<string, string> = { silicone: 'smoothing silicones', pro
 /** Products that sit on the scalp; "heavy oils on the scalp" only counts against these. */
 const SCALP_CATS = new Set(['shampoo', 'clarifying', 'anti_dandruff', 'scalp_treatment', 'dry_shampoo']);
 
+/** True when `t` appears in `x` at the start of a word (so "ethanol" doesn't match "phenoxyethanol"). */
+const startsWord = (x: string, t: string) => { const i = x.indexOf(t); return i === 0 || (i > 0 && !/[a-z]/.test(x[i - 1])); };
+
 /** Which of the plan's look-for and avoid groups this product has, from its label or its tags. */
 export function planMatch(i: Item, plan: Plan): { good: string[]; watch: string[] } {
   const items = (i.ingredients ?? '').toLowerCase().split(/[,\n]/).map(x => x.trim()).filter(Boolean);
   const has = (group: string) => {
     const terms = (R.ingredientGroups?.[group] ?? [group]).map(t => t.toLowerCase());
     const pool = group.includes('near the top') ? items.slice(0, 5) : items;
-    return pool.some(x => terms.some(t => x.includes(t))) || i.tags.some(t => TAG_GROUP[t] === group);
+    return !!i.ingGroups?.includes(group) || pool.some(x => terms.some(t => startsWord(x, t))) || i.tags.some(t => TAG_GROUP[t] === group);
   };
   const good = plan.ingredients.lookFor.filter(has);
   const watch = plan.ingredients.avoid.filter(g => (g !== 'heavy oils on the scalp' || SCALP_CATS.has(i.category)) && has(g));

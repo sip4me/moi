@@ -40,7 +40,7 @@ export default function Shop() {
           </View>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingLeft: 64 }}>
             {retailerLinks(i).slice(0, 3).map(r => <Pressable key={r.name} onPress={() => Linking.openURL(r.url)} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: '#F1F3F5' }}><Text style={{ fontFamily: F.medium, fontSize: 12, color: C.gray2 }}>{`${r.name} ↗`}</Text></Pressable>)}
-            <ChipBtn label="Remove" tone="danger" onPress={() => toggle(itemKey(i))} />
+            <ChipBtn label="Remove from bag" tone="danger" icon="trash" iconOnly onPress={() => toggle(itemKey(i))} />
           </View>
         </View>
       ))}

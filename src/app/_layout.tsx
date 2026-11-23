@@ -15,6 +15,23 @@ import React, { useEffect } from 'react';
 import { markOpened } from '../lib/push';
 import { useContentProtection } from '../lib/protect';
 
+/**
+ * Web loads Latin-subset WOFF2 copies (about 265 KB in all, instead of 1.6 MB of TTF), so the first screen
+ * appears much sooner. Native apps keep the full TTF files.
+ */
+const FONTS = Platform.OS === 'web'
+  ? {
+      Inter_400Regular: require('../../assets/fonts/Inter_400Regular.woff2'),
+      Inter_500Medium: require('../../assets/fonts/Inter_500Medium.woff2'),
+      Inter_600SemiBold: require('../../assets/fonts/Inter_600SemiBold.woff2'),
+      Inter_700Bold: require('../../assets/fonts/Inter_700Bold.woff2'),
+      YoungSerif_400Regular: require('../../assets/fonts/YoungSerif_400Regular.woff2'),
+      InstrumentSerif_400Regular: require('../../assets/fonts/InstrumentSerif_400Regular.woff2'),
+      InstrumentSerif_400Regular_Italic: require('../../assets/fonts/InstrumentSerif_400Regular_Italic.woff2'),
+      AbrilFatface_400Regular: require('../../assets/fonts/AbrilFatface_400Regular.woff2'),
+    }
+  : { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, YoungSerif_400Regular, InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic, AbrilFatface_400Regular };
+
 /** A tapped reminder opens /?n=<id>; record it so the sender knows reminders are being read. */
 function useOpenedReminder() {
   useEffect(() => {
@@ -46,7 +63,7 @@ function SubscriptionSync() {
 export default function RootLayout() {
   useOpenedReminder();
   useContentProtection();
-  const [loaded] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, YoungSerif_400Regular, InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic, AbrilFatface_400Regular });
+  const [loaded] = useFonts(FONTS);
   if (!loaded) return null;
   return (
     <SafeAreaProvider>

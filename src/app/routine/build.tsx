@@ -60,7 +60,7 @@ export default function Build() {
     <View style={{ gap: 20 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <Text style={[st.meta, { flex: 1, fontSize: 14, color: C.gray2 }]}>{`Wash days: ${dayNames}`}</Text>
-        <ChipBtn label={editDays ? 'Done' : 'Change days'} tone={editDays ? 'dark' : 'default'} onPress={() => setEditDays(v => !v)} />
+        <ChipBtn label={editDays ? 'Done' : 'Change days'} tone={editDays ? 'dark' : 'default'} icon={editDays ? 'check' : 'calendar'} iconOnly={editDays} onPress={() => setEditDays(v => !v)} />
       </View>
       {editDays ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>

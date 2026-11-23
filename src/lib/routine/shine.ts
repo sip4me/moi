@@ -38,21 +38,17 @@ const CSS = `
 [data-fill="champagne"] { background-image: linear-gradient(90deg, #E9D6A8 0%, #C9A86A 50%, #9E7F45 100%) !important; }
 [data-fill="champagne-coin"] { background-image: radial-gradient(circle at 32% 28%, #FFF3D1 0%, #E4C98E 38%, #C9A86A 62%, #9E7F45 100%) !important; }
 [data-fill="cobalt-dot"] { background-image: radial-gradient(circle at 34% 30%, #8FA4F0 0%, #4058D8 55%, #2B3FC8 100%) !important; }
-/* Main buttons: frosted soft glass. Milky white, blush and peach glow along the top, lilac on round buttons, soft shadow. */
-[data-fill="garnet"], [data-fill="lilac"] { position: relative; isolation: isolate; overflow: hidden; background-color: #F7F2F5 !important; background-image: linear-gradient(180deg, rgba(255,255,255,0.78) 0%, rgba(246,240,246,0.62) 100%) !important; border-color: rgba(255,255,255,0.95) !important;
-  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.9), inset 0 1px 0 #FFFFFF, 0 18px 26px -14px rgba(40,45,60,0.28), 0 4px 8px -4px rgba(40,45,60,0.12); transition: box-shadow .25s ease, transform .2s ease; }
-[data-fill="garnet"]::before, [data-fill="lilac"]::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
-  background: radial-gradient(60% 70% at 18% 0%, rgba(255,170,190,0.55), rgba(255,170,190,0) 70%), radial-gradient(55% 70% at 85% 0%, rgba(255,215,170,0.5), rgba(255,215,170,0) 70%), radial-gradient(70% 60% at 50% 100%, rgba(250,222,232,0.6), rgba(250,222,232,0) 75%);
-  transition: filter .25s ease, opacity .25s ease; }
-/* Round buttons (the + and the welcome arrow) lean lilac, like the circle in the reference. */
-[data-fill="garnet"]:hover, [data-fill="lilac"]:hover { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.95), inset 0 1px 0 #FFFFFF, 0 14px 22px -12px rgba(40,45,60,0.34), 0 3px 6px -3px rgba(40,45,60,0.16); }
-[data-fill="garnet"]:hover::before, [data-fill="lilac"]:hover::before { filter: saturate(1.6) brightness(0.96); }
+/* Main buttons: the Figma gold seal as a pill. Brushed gold face, raised rim, a row of pearls along the top and bottom, dark ink text. */
+[data-fill="garnet"], [data-fill="lilac"] { position: relative; isolation: isolate; overflow: hidden; background-color: #D9B867 !important;
+  background-image: linear-gradient(180deg, rgba(255,247,220,0.55) 0%, rgba(255,247,220,0) 48%, rgba(110,72,18,0.16) 100%), repeating-linear-gradient(0deg, rgba(255,255,255,0.07) 0 1px, rgba(90,60,10,0.05) 1px 3px), radial-gradient(130% 160% at 28% 18%, #F7E5AC 0%, #DDB966 46%, #B4893A 100%) !important;
+  border-color: #8E6A22 !important; border-width: 1.5px !important;
+  box-shadow: inset 0 0 0 2.5px #EED48C, inset 0 0 0 3.5px #9C7A2E, 0 10px 18px -8px rgba(120,80,10,0.5), 0 2px 0 #7A5A12; transition: filter .2s ease, transform .15s ease, box-shadow .2s ease; }
+[data-fill="garnet"]::before, [data-fill="lilac"]::before { content: ""; position: absolute; left: 20px; right: 20px; top: 4.5px; bottom: 4.5px; z-index: -1; pointer-events: none;
+  background: radial-gradient(circle, #FFFFFF 0 1.1px, #F1E9D6 1.7px, #B79E73 2.3px, transparent 2.7px) 0 0 / 8px 6px repeat-x, radial-gradient(circle, #FFFFFF 0 1.1px, #F1E9D6 1.7px, #B79E73 2.3px, transparent 2.7px) 0 100% / 8px 6px repeat-x; }
+[data-fill="garnet"]:hover, [data-fill="lilac"]:hover { filter: brightness(0.94) saturate(1.12); box-shadow: inset 0 0 0 2.5px #EED48C, inset 0 0 0 3.5px #9C7A2E, 0 8px 14px -8px rgba(120,80,10,0.6), 0 2px 0 #6A4C0E; }
 [data-fill="garnet"]:active, [data-fill="lilac"]:active { transform: translateY(1px); }
-[data-fill="garnet"] div, [data-fill="lilac"] div { color: #1F2430 !important; text-shadow: none !important; }
-[data-fill="garnet"] svg [stroke]:not([stroke="none"]), [data-fill="lilac"] svg [stroke]:not([stroke="none"]) { stroke: #1F2430 !important; }
-[data-fill="garnet"] svg [fill="#fff"], [data-fill="garnet"] svg [fill="#FFFFFF"], [data-fill="garnet"] svg [fill="white"], [data-fill="lilac"] svg [fill="#fff"], [data-fill="lilac"] svg [fill="#FFFFFF"], [data-fill="lilac"] svg [fill="white"] { fill: #1F2430 !important; }
-[data-fill="lilac"]::before { background: radial-gradient(70% 70% at 30% 10%, rgba(175,190,255,0.6), rgba(175,190,255,0) 70%), radial-gradient(70% 70% at 80% 90%, rgba(235,215,250,0.55), rgba(235,215,250,0) 75%); }
+[data-fill="garnet"] div, [data-fill="lilac"] div { color: #3B2A0B !important; text-shadow: 0 1px 0 rgba(255,240,200,0.6) !important; }
+[data-fill="garnet"] svg [stroke]:not([stroke="none"]), [data-fill="lilac"] svg [stroke]:not([stroke="none"]) { stroke: #3B2A0B !important; }
 /* Secondary buttons and chips: raised pearl pills. */
 [data-fill="pearl"] { background-image: linear-gradient(180deg, #FFFFFF 0%, #F1F3F8 100%) !important; border-color: rgba(255,255,255,0.95) !important; box-shadow: 0 12px 24px -12px rgba(40,50,90,0.3), 0 2px 5px rgba(40,50,90,0.06), inset 0 1px 0 #FFFFFF; transition: box-shadow .2s ease; }
 [data-fill="pearl"]:hover { background-image: linear-gradient(180deg, #F2F4F9 0%, #E3E7F0 100%) !important; box-shadow: 0 8px 18px -10px rgba(40,50,90,0.35), 0 1px 3px rgba(40,50,90,0.08), inset 0 1px 0 #FFFFFF; }

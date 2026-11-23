@@ -14,6 +14,8 @@ export type Item = {
   hairTypes?: string[];
   /** Ingredient label, when we have one. Used to match the tracker plan's look-for and avoid groups. */
   ingredients?: string;
+  /** rules.json ingredient groups found in the label, computed in the database (kb_ing_groups). */
+  ingGroups?: string[];
   /** Moi Routine goals this product serves, tagged in the database (kb_goal_tags). */
   goals?: string[];
   /** Set when the person logs it themselves. Only these get a checkmark. */
@@ -142,8 +144,9 @@ export function allSteps(s: RoutineState): { where: string; step: Step }[] {
 
 // ── Catalog ───────────────────────────────────────────────────────────────────
 export type Catalog = { products: Item[]; tools: Item[] };
-const PRODUCT_COLS = 'id,brand,name,category,price_usd,tags,hair_types,ingredients_raw,goals';
-const toProduct = (r: any): Item => ({ kind: 'product' as const, id: r.id, brand: r.brand, name: r.name, category: r.category, tags: r.tags ?? [], price: r.price_usd, hairTypes: r.hair_types ?? [], ingredients: r.ingredients_raw ?? undefined, goals: r.goals ?? [] });
+// Labels stay on the server: ing_groups carries just which rules.json ingredient groups each label contains.
+const PRODUCT_COLS = 'id,brand,name,category,price_usd,tags,hair_types,ing_groups,goals';
+const toProduct = (r: any): Item => ({ kind: 'product' as const, id: r.id, brand: r.brand, name: r.name, category: r.category, tags: r.tags ?? [], price: r.price_usd, hairTypes: r.hair_types ?? [], ingGroups: r.ing_groups ?? [], goals: r.goals ?? [] });
 const mergeProducts = (a: Item[], b: Item[]) => { const m = new Map(a.map(i => [i.id, i])); b.forEach(i => m.set(i.id, i)); return [...m.values()]; };
 const goalLoads = new Map<string, Promise<void>>();
 /** Pulls in the database's products for these goals (beyond the 2,000 most popular), once per goal. */
@@ -238,15 +241,17 @@ export function classify(name: string, ingredients = ''): { category: string; ta
 }
 
 /** Searches the whole database (local results only cover the most popular products). */
-export async function searchRemote(q: string): Promise<Item[]> {
+/** Full database search (kb_search): every word matched, typos tolerated, the step's category ranked first. Throws on network errors. */
+/** Full database search (kb_search): every word matched, typos tolerated, the step's category ranked first. Throws on network errors. */
+export async function searchRemote(q: string, hint?: string): Promise<Item[]> {
   const sb = supabase();
-  const term = q.trim().toLowerCase().replace(/[%_,()]/g, ' ');
+  const term = q.trim();
   if (!sb || term.length < 2) return [];
-  const words = term.split(/\s+/).filter(Boolean).slice(0, 4);
-  let query = sb.from('kb_products').select(PRODUCT_COLS).eq('hair', true);
-  for (const w of words) query = query.ilike('search', `%${w}%`);
-  const { data } = await query.order('popularity', { ascending: false }).limit(25);
-  return (data ?? []).map(toProduct);
+  const { data, error } = await sb.rpc('kb_search', { q: term, hint: hint ?? null, lim: 30 });
+  if (error) throw error;
+  return (data ?? []).map((r: any) => (r.kind === 'tool'
+    ? { kind: 'tool' as const, id: r.id, brand: r.brand ?? '', name: r.name, category: r.category, tags: r.tags ?? [], price: r.price_usd, hairTypes: r.hair_types ?? [] }
+    : { kind: 'product' as const, id: r.id, brand: r.brand, name: r.name, category: r.category, tags: r.tags ?? [], price: r.price_usd, hairTypes: r.hair_types ?? [], ingGroups: r.ing_groups ?? [], goals: r.goals ?? [] }));
 }
 
 /** Per app-open flags (reset on every load): the start choice and the goals page open empty the first time through. */
