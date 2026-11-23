@@ -30,14 +30,14 @@ export default function Welcome() {
   const go = () => { haptic(); setRoutine(r => ({ ...r, welcomed: true })); router.replace('/routine'); };
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 20, paddingHorizontal: 24 }}>
-        <Animated.View style={rise(logo)}><Logo size={112} color={C.ink} /></Animated.View>
-        <Animated.Text style={[{ fontFamily: F.displayItalic, fontSize: 34, lineHeight: 38, color: C.ink, letterSpacing: -0.3 }, rise(line)]}>beauty is genius</Animated.Text>
-        <Animated.View style={[{ marginTop: 28 }, rise(arrow)]}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingHorizontal: 24 }}>
+        <Animated.View style={rise(logo)}><Logo size={72} color={C.ink} /></Animated.View>
+        <Animated.Text style={[{ fontFamily: F.displayItalic, fontSize: 22, lineHeight: 26, color: C.ink, letterSpacing: -0.3 }, rise(line)]}>beauty is genius</Animated.Text>
+        <Animated.View style={[{ marginTop: 24 }, rise(arrow)]}>
           <Pressable onPress={go} accessibilityRole="button" accessibilityLabel="Continue to Find the gaps in your hair routine"
-            style={({ pressed }) => ({ width: 64, height: 64, borderRadius: 32, backgroundColor: C.ink, alignItems: 'center', justifyContent: 'center', transform: [{ scale: pressed ? 0.94 : 1 }] })}>
+            style={({ pressed }) => ({ width: 52, height: 52, borderRadius: 26, backgroundColor: C.ink, alignItems: 'center', justifyContent: 'center', transform: [{ scale: pressed ? 0.94 : 1 }] })}>
             <Animated.View style={{ transform: [{ translateX: nudge.interpolate({ inputRange: [0, 1], outputRange: [-3, 4] }) }] }}>
-              <Svg width={26} height={26} viewBox="0 0 24 24"><Path d="M5 12h13M13 6l6 6-6 6" stroke="#fff" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
+              <Svg width={22} height={22} viewBox="0 0 24 24"><Path d="M5 12h13M13 6l6 6-6 6" stroke="#fff" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
             </Animated.View>
           </Pressable>
         </Animated.View>
