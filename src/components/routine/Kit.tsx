@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Svg, { Path } from 'react-native-svg';
-import { ActivityIndicator, Animated, Platform, Easing, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Animated, Platform, Easing, Image, Linking, Modal, Pressable, ScrollView, type ScrollViewInstance, StyleSheet, Text, TextInput, useWindowDimensions, View, type ViewStyle } from 'react-native';
+import { useScrollCue } from '../ScrollCue';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { icon3d } from '../../data/icons3d';
 import { haptic } from '../../lib/haptics';
@@ -115,16 +116,21 @@ export function Shell({ active, children, side, footer, step, hideNav }: { activ
       {step ? <Text style={st.meta}>{step}</Text> : null}
     </View>
   );
+  const scrollRef = useRef<ScrollViewInstance>(null);
+  const cue = useScrollCue(scrollRef);
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: PALETTE.pearl }} edges={['top', 'bottom']}>
       {top}
       <View style={{ flex: 1, flexDirection: 'row' }}>
         <View style={{ flex: 1 }}>
-          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}
+          <View style={{ flex: 1 }}>
+          <ScrollView ref={scrollRef} style={{ flex: 1 }} {...cue.props}
             contentContainerStyle={wide ? { paddingHorizontal: 72, paddingTop: 32, paddingBottom: 64, gap: 32, width: '100%', maxWidth: 920, alignSelf: 'center' } : { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 40, gap: 24 }}>
             {children}
             {!wide && side ? <View style={{ gap: 16 }}>{side}</View> : null}
           </ScrollView>
+          {cue.cue}
+          </View>
           {footer ? (wide
             ? <View style={st.wFooter}><View style={{ maxWidth: 808, width: '100%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 12 }}>{footer}</View></View>
             : <View style={st.mFooter}>{footer}</View>) : null}
@@ -371,6 +377,8 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename, onSkip 
   const [q, setQ] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
+  const listRef = useRef<ScrollViewInstance>(null);
+  const listCue = useScrollCue(listRef, { bottom: 8 });
   // Search: nothing is listed until the whole search has finished, so results never jump around while typing.
   const [search, setSearch] = useState<{ phase: 'idle' | 'searching' | 'done' | 'error'; q: string; items: Item[] }>({ phase: 'idle', q: '', items: [] });
   const [retry, setRetry] = useState(0);
@@ -455,7 +463,8 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename, onSkip 
             <ChipBtn label="Upload photo" onPress={() => scan(true)} icon={<Svg width={16} height={16} viewBox="0 0 24 24"><Path d="M12 16V5M7 10l5-5 5 5M5 19h14" stroke={C.ink} strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>} />
           </View>
           {busy || msg ? <View style={st.msg}>{busy ? <ActivityIndicator size="small" color={C.ink} /> : null}<Text style={[st.sub, { flex: 1, fontSize: 14 }]}>{msg}</Text></View> : null}
-          <ScrollView style={{ maxHeight: wide ? 360 : 320 }} keyboardShouldPersistTaps="handled">
+          <View>
+          <ScrollView ref={listRef} style={{ maxHeight: wide ? 360 : 320 }} keyboardShouldPersistTaps="handled" {...listCue.props}>
             {search.phase === 'searching' ? (
               <View style={[st.msg, { marginBottom: 6 }]}><ActivityIndicator size="small" color={C.ink} /><Text style={[st.sub, { flex: 1, fontSize: 14 }]}>{`Searching every product for \u201c${search.q}\u201d`}</Text></View>
             ) : null}
@@ -480,6 +489,8 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename, onSkip 
               </Pressable>
             ))}
           </ScrollView>
+          {listCue.cue}
+          </View>
         </Pressable>
       </Pressable>
     </Modal>

@@ -8,6 +8,7 @@ import { icon3d } from '../data/icons3d';
 import { haptic } from '../lib/haptics';
 import { tapped } from '../lib/notify';
 import { onScrollTop } from '../lib/scrollTop';
+import { useScrollCue } from './ScrollCue';
 import { C, evidenceStyle, F, surface, TILE } from '../theme';
 
 export const crown = require('../../assets/crown-pink.png');
@@ -45,12 +46,16 @@ export function Screen({ children, scroll, style, footer, tab, overlay, stops }:
       setTimeout(() => { settling.current = false; }, 500);
     }, 140);
   };
+  // Long pages get a visible scrollbar and a "more below" arrow (above the tab bar on tab pages).
+  const cue = useScrollCue(ref, { bottom: tab ? 104 : 16, onScroll: stops ? e => settle(e.nativeEvent.contentOffset.y) : undefined });
   useEffect(() => (tab ? onScrollTop(tab, () => ref.current?.scrollTo({ y: 0, animated: true })) : undefined), [tab]);
   // Tab pages (Home, Progress, Products, Profile) get more air above their first row.
   const top = tab ? { paddingTop: 28 } : null;
   const body = scroll
-    ? <ScrollView ref={ref} contentContainerStyle={[s.pad, { paddingHorizontal: px }, top, { paddingBottom: footer ? 24 : 120 }, style]} showsVerticalScrollIndicator={false}
-        scrollEventThrottle={32} onScroll={stops ? e => settle(e.nativeEvent.contentOffset.y) : undefined}>{children}</ScrollView>
+    ? <View style={{ flex: 1 }}>
+        <ScrollView ref={ref} contentContainerStyle={[s.pad, { paddingHorizontal: px }, top, { paddingBottom: footer ? 24 : 120 }, style]} {...cue.props}>{children}</ScrollView>
+        {cue.cue}
+      </View>
     : <View style={[s.pad, { paddingHorizontal: px, flex: 1 }, top, style]}>{children}</View>;
   return (
     <SafeAreaView style={[s.outer, tab ? s.canvas : null]} edges={['top', 'bottom']}>
