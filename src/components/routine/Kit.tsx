@@ -5,7 +5,7 @@ import { ActivityIndicator, Animated, Easing, Image, Linking, Modal, Pressable, 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { icon3d } from '../../data/icons3d';
 import { haptic } from '../../lib/haptics';
-import { itemFromPhoto, submitTyped, takeProductPhoto } from '../../lib/routine/capture';
+import { ingredientsFromPhoto, itemFromPhoto, submitTyped, takeProductPhoto } from '../../lib/routine/capture';
 import { KIND_COLOR, KIND_LABEL, retailerLinks, type Gap } from '../../lib/routine/gaps';
 import { CATEGORY_ICON, CATEGORY_LABEL, classify, searchCatalogLocal, searchRemote, TOOL_KINDS, useCatalog, type Item, type Step } from '../../lib/routine/model';
 import { C, F } from '../../theme';
@@ -259,6 +259,20 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename }: { ste
               <View style={{ flex: 1 }}><Text style={st.meta}>{step.item.brand || CATEGORY_LABEL[step.item.category]}</Text><Text style={st.cardTitle}>{step.item.name}</Text></View>
               <Pressable onPress={onRemove} hitSlop={8}><Text style={{ fontFamily: F.semibold, color: '#C2383D', fontSize: 14 }}>Remove</Text></Pressable>
             </View>
+          ) : null}
+          {step.item && step.item.kind === 'custom' ? (
+            <Pressable onPress={async () => {
+              const uri = await takeProductPhoto(false); if (!uri) return;
+              setBusy(true); setMsg('Reading the ingredient list…');
+              try {
+                const r = await ingredientsFromPhoto(uri, step.item!, p => setMsg(`Reading the ingredient list… ${Math.round(p * 100)}%`));
+                onPick(r.item);
+                setMsg(r.found >= 3 ? `Read ${r.found} ingredients. Your gap report now checks them.` : 'We couldn\u2019t read the list clearly. Try a flatter, brighter photo.');
+              } catch { setMsg('That photo didn\u2019t work. Try again in good light.'); } finally { setBusy(false); }
+            }} style={st.ingCta}>
+              <Text style={{ fontSize: 18 }}>🧴</Text>
+              <View style={{ flex: 1 }}><Text style={st.cardTitle}>Snap the ingredient list</Text><Text style={st.meta}>We don’t have this one yet. A photo lets us check it now.</Text></View>
+            </Pressable>
           ) : <Pressable onPress={onRemove} hitSlop={8} style={{ alignSelf: 'flex-start' }}><Text style={{ fontFamily: F.medium, color: C.gray, fontSize: 13 }}>Delete this step</Text></Pressable>}
           <View style={st.search}>
             <TextInput value={q} onChangeText={setQ} placeholder={`Search ${(CATEGORY_LABEL[step.hint] ?? 'products').toLowerCase()}s, brands or tools`} placeholderTextColor={C.gray} style={st.searchInput} autoFocus={wide} returnKeyType="search" />
@@ -398,6 +412,7 @@ export const st = StyleSheet.create({
   current: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#F4F7FE', borderRadius: 16, padding: 12 },
   search: { height: 48, borderRadius: 24, borderWidth: 1, borderColor: '#E3E5E8', paddingHorizontal: 18, justifyContent: 'center' },
   searchInput: { fontFamily: F.regular, fontSize: 15, color: C.ink, outlineStyle: 'none' } as any,
+  ingCta: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 16, borderWidth: 1.5, borderColor: BLUE, borderStyle: 'dashed', padding: 12, backgroundColor: '#F4F7FE' },
   msg: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#F4F5F7', borderRadius: 14, padding: 12 },
   result: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, paddingHorizontal: 6, borderRadius: 14 },
   resultIcon: { width: 44, height: 44, borderRadius: 12 },

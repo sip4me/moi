@@ -62,3 +62,17 @@ async function queue(r: { name: string; brand?: string | null; code: string | nu
 
 /** Typed products we don't know go to the review queue too. */
 export const submitTyped = (name: string, category: string) => queue({ name, code: null, category, photo: null, found: false }).catch(() => {});
+
+/**
+ * For products we don't have: read the ingredient list from a photo of the label, on the device,
+ * so the gap report can check sulfates, silicones, proteins and oils right away.
+ * The ingredients also go to the review queue, so the product joins the database for everyone.
+ */
+export async function ingredientsFromPhoto(uri: string, item: Item, onProgress?: (p: number) => void): Promise<{ item: Item; found: number; confident: boolean }> {
+  const { readText, extractIngredients } = await import('../labelScan');
+  const { text, confident } = extractIngredients(await readText(uri, onProgress));
+  const { category, tags } = classify(`${item.name} ${item.category}`, text);
+  const merged: Item = { ...item, category: item.category || category, tags: Array.from(new Set([...item.tags, ...tags])) };
+  queue({ name: item.name, brand: item.brand || null, code: null, ingredients: text, category: merged.category, photo: await uploadPhoto(uri).catch(() => null), found: false }).catch(() => {});
+  return { item: merged, found: text.split(',').filter(s => s.trim()).length, confident };
+}
