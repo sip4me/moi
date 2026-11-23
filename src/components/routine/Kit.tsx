@@ -423,7 +423,7 @@ function HRail({ filled }: { filled: boolean }) {
   const v = useRef(new Animated.Value(filled ? 1 : 0)).current;
   useEffect(() => { Animated.timing(v, { toValue: filled ? 1 : 0, duration: filled ? 480 : 0, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start(); }, [filled]);
   return (
-    <View style={{ flex: 1, height: 2, marginTop: 9, borderRadius: 1, backgroundColor: '#D6E2FB', overflow: 'hidden' }}>
+    <View style={{ flex: 1, height: 2, marginTop: 9, borderRadius: 1, backgroundColor: '#E1E4E8', overflow: 'hidden' }}>
       <Animated.View style={{ height: 2, backgroundColor: BLUE, width: v.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }} />
     </View>
   );
@@ -587,6 +587,6 @@ export const st = StyleSheet.create({
   wtb: { borderRadius: 16, borderWidth: 1, borderColor: '#EEF0F3', overflow: 'hidden' },
   wtbRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12 },
   wtbDiv: { borderTopWidth: 1, borderTopColor: '#EEF0F3' },
-  bar: { height: 8, borderRadius: 4, backgroundColor: '#E6ECF8', overflow: 'hidden' },
+  bar: { height: 8, borderRadius: 4, backgroundColor: '#E6E8EB', overflow: 'hidden' },
   barFill: { height: 8, borderRadius: 4, backgroundColor: BLUE },
 });
