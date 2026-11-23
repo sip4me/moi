@@ -55,7 +55,7 @@ export default function Shop() {
               const wash = add.filter(i => !night.includes(i));
               const fillOrAdd = (steps: typeof r.wash, items: Item[]) => {
                 let out = [...steps];
-                for (const it of items) { const empty = out.find(x => !x.item && x.hint === it.category); out = empty ? out.map(x => (x === empty ? { ...x, item: it } : x)) : [...out, { id: `s${Date.now()}${it.id}`, label: it.category.replace('_', ' ').replace(/^./, c => c.toUpperCase()), hint: it.category, item: it }]; }
+                for (const it of items) { const empty = out.find(x => !x.item && x.hint === it.category); const mine = { ...it, addedAt: Date.now() }; out = empty ? out.map(x => (x === empty ? { ...x, item: mine } : x)) : [...out, { id: `s${Date.now()}${it.id}`, label: it.category.replace('_', ' ').replace(/^./, c => c.toUpperCase()), hint: it.category, item: mine }]; }
                 return out;
               };
               return { ...r, wash: fillOrAdd(r.wash, wash), every: fillOrAdd(r.every, night), bag: [] };

@@ -12,6 +12,8 @@ export type Item = {
   tags: string[];
   price?: number | null;
   hairTypes?: string[];
+  /** Set when the person logs it themselves. Only these get a checkmark. */
+  addedAt?: number;
 };
 export type Step = { id: string; label: string; hint: string; item?: Item; when?: string; skipped?: boolean };
 export type Hair = { texture?: string; strands?: string; heat?: string; treated?: string; budget?: string; scalp?: string };
@@ -29,6 +31,7 @@ export type RoutineState = {
   welcomed?: boolean; // has seen the Moi welcome screen
   menuSeen?: boolean; // has opened the menu once (stops the tap hint)
   started?: boolean; // tapped Continue on the start page
+  v?: number; // saved-state version
 };
 
 // ── Vocabulary ────────────────────────────────────────────────────────────────
@@ -91,7 +94,7 @@ export const defaultOccasion = (o: string): Step[] => ({
   'Protective style': [step('Scalp', 'scalp_treatment'), step('Edges', 'oil')],
 } as Record<string, Step[]>)[o] ?? [step('Step', 'leave_in')];
 
-const initial = (): RoutineState => ({ mode: 'check', goals: [], hair: {}, washDays: [0, 3], wash: defaultWash(), every: defaultEvery(), occasions: [], occ: {}, bag: [], built: false });
+const initial = (): RoutineState => ({ v: 2, mode: 'check', goals: [], hair: {}, washDays: [0, 3], wash: defaultWash(), every: defaultEvery(), occasions: [], occ: {}, bag: [], built: false });
 
 // ── Store (persisted) ─────────────────────────────────────────────────────────
 const KEY = 'moi-routine-v1';
@@ -100,8 +103,12 @@ let hydrated = false;
 const subs = new Set<() => void>();
 const emit = () => subs.forEach(f => f());
 let saveT: ReturnType<typeof setTimeout> | null = null;
-AsyncStorage.getItem(KEY).then(v => { if (v) { try { const saved = { ...initial(), ...JSON.parse(v) }; const clean = (st: Step[] = []) => st.map(x => ({ ...x, when: undefined, label: x.label === 'Cleanse' ? 'Shampoo' : x.label }));
-      state = { ...saved, wash: withOilSteps(clean(saved.wash)), every: clean(saved.every), occ: Object.fromEntries(Object.entries(saved.occ ?? {}).map(([k, v]) => [k, clean(v as Step[])])) }; } catch {} } else state = { ...state }; hydrated = true; emit(); }).catch(() => { state = { ...state }; hydrated = true; emit(); });
+AsyncStorage.getItem(KEY).then(v => { if (v) { try { const raw = JSON.parse(v); const saved = { ...initial(), ...raw }; const clean = (st: Step[] = []) => st.map(x => ({ ...x, when: undefined, label: x.label === 'Cleanse' ? 'Shampoo' : x.label }));
+      // Before v2, "Build me a new one" pre-filled steps with products nobody logged: clear those so
+      // checkmarks only ever mean "I added this".
+      const autoFilled = !raw.v && !!raw.built;
+      const strip = (st: Step[]) => (autoFilled ? st.map(x => ({ ...x, item: undefined })) : st.map(x => (x.item && !x.item.addedAt ? { ...x, item: { ...x.item, addedAt: 1 } } : x)));
+      state = { ...saved, v: 2, wash: withOilSteps(strip(clean(saved.wash))), every: strip(clean(saved.every)), occ: Object.fromEntries(Object.entries(saved.occ ?? {}).map(([k, v]) => [k, strip(clean(v as Step[]))])) }; } catch {} } else state = { ...state }; hydrated = true; emit(); }).catch(() => { state = { ...state }; hydrated = true; emit(); });
 
 export function setRoutine(fn: (s: RoutineState) => RoutineState) {
   state = fn(state);

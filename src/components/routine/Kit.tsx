@@ -276,7 +276,7 @@ export function Timeline({ steps, onOpen }: { steps: Step[]; onOpen: (s: Step) =
       <View>
         {steps.map((s, i) => (
           <StepRow key={s.id} s={s} last={i === steps.length - 1} nextFilled={!!steps[i + 1]?.item}
-            state={s.item ? 'done' : s.skipped ? 'skipped' : i === nextIdx ? 'next' : 'empty'} onOpen={() => onOpen(s)} />
+            state={s.item?.addedAt ? 'done' : s.skipped ? 'skipped' : i === nextIdx ? 'next' : 'empty'} onOpen={() => onOpen(s)} />
         ))}
       </View>
     </View>

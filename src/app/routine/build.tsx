@@ -108,7 +108,7 @@ export default function Build() {
       {s.mode === 'new' && !s.goals.length ? <Text style={st.sub}>Pick your goals first so we know what to build.</Text> : null}
       {body}
       <PickerSheet step={openStep} onClose={() => setOpen(null)}
-        onPick={item => { edit(x => ({ ...x, item, skipped: false, label: x.label === 'New step' ? CATEGORY_LABEL[item.category] ?? x.label : x.label })); if (item.kind !== 'custom' || item.tags.length) setOpen(null); }}
+        onPick={item => { edit(x => ({ ...x, item: { ...item, addedAt: Date.now() }, skipped: false, label: x.label === 'New step' ? CATEGORY_LABEL[item.category] ?? x.label : x.label })); if (item.kind !== 'custom' || item.tags.length) setOpen(null); }}
         onRemove={() => (openStep?.item ? edit(x => ({ ...x, item: undefined })) : removeStep())}
         onRename={label => edit(x => ({ ...x, label }))}
         onSkip={() => { edit(x => ({ ...x, skipped: !x.skipped, item: x.skipped ? x.item : undefined })); setOpen(null); }} />
