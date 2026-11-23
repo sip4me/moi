@@ -51,21 +51,7 @@ export default function Shop() {
             <ScoreBar score={score} after={after} />
           </View>
           <View style={{ flexDirection: 'row' }}><Text style={[st.cardTitle, { flex: 1 }]}>Estimated total</Text><Text style={st.price}>{`about ${money(Math.round(total(bag) * 100) / 100)}`}</Text></View>
-          <Btn label="Add bag to my routine" onPress={() => {
-            setRoutine(r => {
-              const has = new Set([...r.wash, ...r.every].map(x => x.item && itemKey(x.item)));
-              const add = bag.filter(i => !has.has(itemKey(i)));
-              const night = add.filter(i => ['satin_pillowcase', 'bonnet'].includes(i.category));
-              const wash = add.filter(i => !night.includes(i));
-              const fillOrAdd = (steps: typeof r.wash, items: Item[]) => {
-                let out = [...steps];
-                for (const it of items) { const empty = out.find(x => !x.item && x.hint === it.category); const mine = { ...it, addedAt: Date.now() }; out = empty ? out.map(x => (x === empty ? { ...x, item: mine } : x)) : [...out, { id: `s${Date.now()}${it.id}`, label: it.category.replace('_', ' ').replace(/^./, c => c.toUpperCase()), hint: it.category, item: mine }]; }
-                return out;
-              };
-              return { ...r, wash: fillOrAdd(r.wash, wash), every: fillOrAdd(r.every, night), bag: [] };
-            });
-            router.push('/routine/build');
-          }} />
+          <Btn label="Review and check out" onPress={() => router.push('/routine/checkout')} />
           <Text style={[st.meta, { fontSize: 12, textAlign: 'center' }]}>Prices are estimates. You buy from the store.</Text>
         </>
       ) : null}

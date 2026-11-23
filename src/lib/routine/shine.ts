@@ -73,6 +73,9 @@ const CSS = `
 [data-fill="glass-card"] { background-color: rgba(255,255,255,0.14) !important; background-image: linear-gradient(160deg, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0.16) 100%) !important;
   -webkit-backdrop-filter: blur(30px) saturate(135%); backdrop-filter: blur(30px) saturate(135%); border-color: rgba(255,255,255,0.6) !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 0 0 1px rgba(255,255,255,0.12), 0 40px 70px -30px rgba(25,40,70,0.45); }
+[data-fill="glass-panel"] { background-color: rgba(255,255,255,0.66) !important; background-image: linear-gradient(160deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.2) 100%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(135%); backdrop-filter: blur(30px) saturate(135%); border-color: rgba(255,255,255,0.75) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 30px 60px -30px rgba(25,40,70,0.35); }
 [data-fill="glass-bar"] { background-color: rgba(255,255,255,0.32) !important; -webkit-backdrop-filter: blur(16px) saturate(140%); backdrop-filter: blur(16px) saturate(140%);
   border-color: rgba(255,255,255,0.65) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,0.75), 0 10px 24px -14px rgba(25,40,70,0.35); }
 @media (prefers-reduced-motion: reduce) { [data-shine], [data-fill="cateye"]::after { animation: none !important; } }
@@ -88,4 +91,4 @@ if (Platform.OS === 'web' && typeof document !== 'undefined' && !document.getEle
 /** Props that give a Text shiny letters (web) — spread onto <Text>. */
 export const shine = (kind: 'chrome' | 'rose' | 'titanium' | 'blush') => (Platform.OS === 'web' ? ({ dataSet: { shine: kind } } as any) : {});
 /** Props that give a View a jewellery fill (web). */
-export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'lilac' | 'pearl' | 'pearl-on' | 'pearl-ask' | 'paper' | 'gold-coin' | 'glass-bg' | 'glass-card' | 'glass-bar') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});
+export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'lilac' | 'pearl' | 'pearl-on' | 'pearl-ask' | 'paper' | 'gold-coin' | 'glass-bg' | 'glass-card' | 'glass-bar' | 'glass-panel') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});

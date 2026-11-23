@@ -7,7 +7,7 @@ import { useMembers } from '../../lib/routine/access';
 import { Logo } from '../../components/ui';
 import { haptic } from '../../lib/haptics';
 import { fill } from '../../lib/routine/shine';
-import { setRoutine } from '../../lib/routine/model';
+import { session, setRoutine } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 
 const crownArt = require('../../../assets/crown-pink.png');
@@ -63,7 +63,13 @@ export default function Welcome() {
     });
   }, []);
   const rise = (v: Animated.Value) => ({ opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] });
-  const go = () => { haptic(); setRoutine(r => ({ ...r, welcomed: true })); router.replace('/routine'); };
+  // First time through on this visit, the answers open empty; coming back later keeps them for editing.
+  const go = () => {
+    haptic();
+    const fresh = !session.started; session.started = true;
+    setRoutine(r => ({ ...r, welcomed: true, ...(fresh ? { goals: [], hair: {}, areas: [], prefs: {}, started: false } : {}) }));
+    router.replace('/routine/about');
+  };
   const { width: W, height: H } = useWindowDimensions();
   const cw = Math.min(340, W - 56), ch = Math.min(540, Math.max(440, H * 0.64));
   const back = useRef(new Animated.Value(0)).current;
@@ -112,8 +118,8 @@ export default function Welcome() {
             </View>
             {/* Frosted bar with the way in, like the label bar on the reference card. */}
             <Animated.View {...fill('glass-bar')} style={[{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingLeft: 18, paddingRight: 8, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.65)', backgroundColor: 'rgba(255,255,255,0.45)' }, rise(arrow)]}>
-              <Text style={{ flex: 1, fontFamily: F.semibold, fontSize: 13, letterSpacing: 1.2, color: '#2A2F45' }}>{'FIND THE GAPS IN\nYOUR HAIR ROUTINE'}</Text>
-              <Pressable {...fill('lilac')} onPress={go} accessibilityRole="button" accessibilityLabel="Continue to Find the gaps in your hair routine"
+              <Text style={{ flex: 1, fontFamily: F.semibold, fontSize: 13, letterSpacing: 1.2, color: '#2A2F45' }}>{'FIND THE GAPS IN\nYOUR ROUTINE'}</Text>
+              <Pressable {...fill('lilac')} onPress={go} accessibilityRole="button" accessibilityLabel="Continue to find the gaps in your routine"
                 style={({ pressed }: { pressed: boolean }) => ({ width: 52, height: 52, borderRadius: 26, borderWidth: 1.5, borderColor: '#fff', backgroundColor: '#F4F5FC', alignItems: 'center', justifyContent: 'center', transform: [{ scale: pressed ? 0.95 : 1 }] })}>
                 <Animated.View style={{ transform: [{ translateX: nudge.interpolate({ inputRange: [0, 1], outputRange: [-2, 2] }) }] }}>
                   <Svg width={22} height={22} viewBox="0 0 24 24"><Path d="M5 12h13M13 6l6 6-6 6" stroke="#2A2F45" strokeWidth={2.1} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>

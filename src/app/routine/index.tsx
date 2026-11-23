@@ -11,7 +11,7 @@ import { fill, shine } from '../../lib/routine/shine';
 export default function Start() {
   const s = useRoutine();
   const wide = useWide();
-  const [picked, setPicked] = useState<'check' | 'new' | null>(session.started ? s.mode : null);
+  const [picked, setPicked] = useState<'check' | 'new' | null>(session.chose ? s.mode : null);
   const [ask, setAsk] = useState(false);
   const choice = (mode: 'check' | 'new', title: string, body: string, icon: string) => {
     const on = picked === mode;
@@ -31,14 +31,13 @@ export default function Start() {
   };
   const go = () => {
     if (!picked) { haptic('select'); setAsk(true); return; }
-    // First time through on this visit: goals and hair open empty. Coming back later keeps them for editing.
-    const fresh = !session.started; session.started = true;
-    setRoutine(r => ({ ...r, started: true, ...(fresh ? { goals: [], hair: {} } : {}) })); router.push('/routine/goals'); };
+    session.chose = true;
+    setRoutine(r => ({ ...r, started: true })); router.push('/routine/build'); };
   return (
-    <Shell active="start" hideNav={!wide && !s.started} footer={wide ? undefined : <><Btn label="Continue" onPress={go} /><Text style={[st.meta, { textAlign: 'center', fontSize: 12 }]}>Free. No account needed.</Text></>}>
+    <Shell glass active="start" hideNav={!wide && !s.started} footer={wide ? undefined : <><Btn label="Continue" onPress={go} /><Text style={[st.meta, { textAlign: 'center', fontSize: 12 }]}>Free. No account needed.</Text></>}>
       <View style={{ gap: 24, maxWidth: 600 }}>
         <View style={{ gap: 12 }}>
-          <Text {...shine('chrome')} style={[st.h1, { fontSize: wide ? 60 : 40, lineHeight: wide ? 62 : 42 }]}>Find the gaps in your hair routine.</Text>
+          <Text {...shine('chrome')} style={[st.h1, { fontSize: wide ? 60 : 40, lineHeight: wide ? 62 : 42 }]}>Find the gaps in your routine.</Text>
           <Text style={[st.sub, { fontSize: wide ? 17 : 15, lineHeight: wide ? 25 : 22 }]}>Add what you use. We show what’s missing.</Text>
         </View>
         <LinearTeaser />

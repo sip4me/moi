@@ -1,12 +1,12 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { View } from 'react-native';
-import { BLUE, Btn, ChipBtn, GapCard, Heading, InputsPanel, money, NeedInfo, Pill, ProductCard, Shell, useWide, WhereToBuy } from '../../components/routine/Kit';
+import { Image, Pressable, Text, View } from 'react-native';
+import { BLUE, Btn, ChipBtn, GapCard, Heading, iconFor, InputsPanel, money, st, NeedInfo, Pill, ProductCard, Shell, useWide, WhereToBuy } from '../../components/routine/Kit';
+import { GlassCard } from '../../components/routine/Glass';
 import { useAccess } from '../../lib/routine/access';
-import { analyze, picksFor, type GapKind } from '../../lib/routine/gaps';
+import { analyze, KIND_COLOR, picksFor, type GapKind } from '../../lib/routine/gaps';
 import { hasInfo, itemKey, setRoutine, useCatalog, useRoutine } from '../../lib/routine/model';
-import { Text } from 'react-native';
-import { F } from '../../theme';
+import { C, F } from '../../theme';
 
 const FILTERS: { key: 'all' | GapKind; label: string }[] = [{ key: 'all', label: 'All' }, { key: 'step', label: 'Steps' }, { key: 'clash', label: 'Ingredients' }, { key: 'tool', label: 'Tools' }, { key: 'budget', label: 'Budget' }];
 
@@ -25,11 +25,37 @@ export default function Gaps() {
   if (!hasInfo(s)) return <Shell active="gaps"><NeedInfo goals={s.goals.length > 0} /></Shell>;
   // Paywall: the gaps themselves are shown, the fixes and product picks need a plan.
   if (!access.ok && !access.loading) {
-    const plans = () => router.push('/routine/plans');
+    const top = [...gaps].sort((x, y) => y.weight - x.weight).slice(0, 3);
     return (
-      <Shell active="gaps" step="3 of 3" side={wide ? <InputsPanel s={s} /> : undefined} footer={<Btn label="Unlock the fixes" onPress={plans} />}>
-        <Heading title={gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'} for ${s.goals.join(' and ')}` : 'No gaps. Nice routine.'} sub="Unlock each fix and the products matched to you." />
-        <View style={{ gap: 12, maxWidth: 720 }}>{gaps.map(g => <GapCard key={g.id} gap={g} onPress={plans} cta="Unlock fix" />)}</View>
+      <Shell glass active="gaps" step="3 of 3">
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 24 }}>
+          <GlassCard style={{ width: '100%', maxWidth: 420, alignItems: 'center', gap: 18, paddingVertical: 32, paddingHorizontal: 24 }}>
+            {/* The top three gaps as overlapping circles, like a cover of the report. */}
+            <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+              {(top.length ? top : [null]).map((g, i) => (
+                <View key={g?.id ?? i} style={{ width: 76, height: 76, borderRadius: 38, marginLeft: i ? -18 : 0, backgroundColor: '#fff', borderWidth: 3, borderColor: 'rgba(255,255,255,0.95)', alignItems: 'center', justifyContent: 'center', shadowColor: '#283050', shadowOpacity: 0.18, shadowRadius: 10, shadowOffset: { width: 0, height: 6 }, zIndex: 3 - i }}>
+                  <Image source={iconFor(g?.fills[0])} style={{ width: 52, height: 52 }} />
+                </View>
+              ))}
+            </View>
+            <Text style={{ fontFamily: F.display, fontSize: 32, lineHeight: 36, color: C.ink, textAlign: 'center' }}>{gaps.length ? `We found ${gaps.length} gap${gaps.length === 1 ? '' : 's'}` : 'No gaps found'}</Text>
+            {top.length ? (
+              <View style={{ alignSelf: 'stretch', gap: 10 }}>
+                {top.map(g => (
+                  <View key={g.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, paddingHorizontal: 14, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.6)' }}>
+                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: KIND_COLOR[g.kind].fg }} />
+                    <Text style={{ flex: 1, fontFamily: F.semibold, fontSize: 15, color: C.ink }}>{g.title}</Text>
+                  </View>
+                ))}
+                {gaps.length > 3 ? <Text style={[st.meta, { textAlign: 'center' }]}>{`+${gaps.length - 3} more in your report`}</Text> : null}
+              </View>
+            ) : <Text style={[st.sub, { textAlign: 'center' }]}>Your routine covers your goals.</Text>}
+            <Btn label="Save my routines" onPress={() => router.push('/routine/plans')} style={{ alignSelf: 'stretch' }} />
+            <Pressable onPress={() => router.back()} accessibilityRole="button" hitSlop={8}>
+              <Text style={{ fontFamily: F.semibold, fontSize: 15, color: '#5B67C9' }}>Not now</Text>
+            </Pressable>
+          </GlassCard>
+        </View>
       </Shell>
     );
   }

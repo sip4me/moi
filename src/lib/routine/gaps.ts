@@ -1,4 +1,4 @@
-import { allSteps, CATEGORY_LABEL, type Catalog, type Item, type RoutineState } from './model';
+import { allSteps, AREA_OF, CATEGORY_LABEL, pref, type Catalog, type Item, type RoutineState } from './model';
 import { planFor, planMatch, planSteps } from './plan';
 
 export type GapKind = 'step' | 'clash' | 'tool' | 'budget';
@@ -42,6 +42,8 @@ export function analyze(s: RoutineState, cat: Catalog, extra: Item[] = []): { sc
   const gaps: Gap[] = [];
   const add = (g: Omit<Gap, 'weight'>, weight: number) => gaps.push({ ...g, weight });
 
+  const areas = s.areas ?? ['hair'];
+  if (areas.includes('hair')) {
   if (!has('shampoo', 'clarifying', 'anti_dandruff')) add({ id: 'cleanser', kind: 'step', title: 'Shampoo', why: 'Nothing in your routine washes your hair or scalp.', fills: ['shampoo'] }, 12);
   if (!has('conditioner')) add({ id: 'conditioner', kind: 'step', title: 'Conditioner', why: 'Conditioner seals the cuticle after washing. Without it, strands tangle and snap.', fills: ['conditioner'] }, 12);
   if (heatUse && !hasTag('heat_protect')) add({ id: 'heat', kind: 'step', title: 'Heat protectant', why: `You heat style${s.hair.heat ? ` ${s.hair.heat.toLowerCase()}` : ''} and nothing in your routine protects against heat.`, fills: ['heat_protectant'] }, 12);
@@ -54,7 +56,7 @@ export function analyze(s: RoutineState, cat: Catalog, extra: Item[] = []): { sc
 
   // Steps the tracker's wash-routine rules call for (rules.json via the plan engine), if not already covered.
   const plan = planFor(s);
-  for (const st of planSteps(plan)) {
+  for (const st of areas.includes('hair') ? planSteps(plan) : []) {
     if (gaps.some(g => g.id === st.id) || has(...st.fills) || (st.id === 'repair' && has('deep_conditioner'))) continue;
     add({ id: st.id, kind: 'step', title: st.title, why: st.why, fills: st.fills, needTag: st.needTag }, st.weight);
   }
@@ -70,6 +72,49 @@ export function analyze(s: RoutineState, cat: Catalog, extra: Item[] = []): { sc
   if (fineComb && (p.g.has('Grow length') || p.g.has('Repair damage') || p.treated || p.curly)) add({ id: 'comb', kind: 'tool', title: 'Swap the fine-tooth comb', why: 'Fine teeth snap wet, fragile strands. A wide-tooth comb or wet brush keeps your length.', fills: ['wet_brush', 'wide_tooth_comb'], replace: fineComb }, 6);
   if ((p.g.has('Grow length') || p.g.has('Less frizz') || s.occasions.includes('Sleep')) && !has('satin_pillowcase', 'bonnet')) add({ id: 'satin', kind: 'tool', title: 'Satin for sleep', why: 'Cotton pulls on hair all night. Satin cuts friction, breakage and frizz.', fills: p.curly ? ['bonnet', 'satin_pillowcase'] : ['satin_pillowcase', 'bonnet'] }, 6);
   if (s.occasions.includes('Swimming') && !has('swim_cap')) add({ id: 'swim_cap', kind: 'tool', title: 'Swim cap', why: 'A cap keeps most chlorine off your hair while you swim.', fills: ['swim_cap'] }, 4);
+
+  }
+
+  // ── Skin ──────────────────────────────────────────────────────────────────
+  const pv = (k: string) => pref(s, k);
+  const concern = (c: string) => pv('skin_concerns').includes(c);
+  const pregnant = pv('skin_flags').some(f => f.startsWith('Retinoids'));
+  const skinType = pv('skin_type')[0];
+  if (areas.includes('skin')) {
+    if (!has('cleanser')) add({ id: 'sk_cleanser', kind: 'step', title: 'Face cleanser', why: skinType === 'Dry' || skinType === 'Sensitive' ? 'A gentle cream or gel cleanser clears the day without stripping.' : 'Washing morning or night keeps pores clear and lets everything else work.', fills: ['cleanser'] }, 10);
+    if (!has('moisturizer')) add({ id: 'sk_moist', kind: 'step', title: 'Moisturizer', why: skinType === 'Oily' ? 'Oily skin still needs water. A light gel keeps oil in check.' : 'Moisturizer holds water in your skin barrier.', fills: ['moisturizer'] }, 10);
+    if (!has('spf')) add({ id: 'sk_spf', kind: 'step', title: 'Daily SPF', why: 'Sun causes most dark spots and fine lines. SPF 30 every morning.', fills: ['spf'] }, 14);
+    if (concern('Breakouts') && !has('acne', 'exfoliant')) add({ id: 'sk_acne', kind: 'step', title: 'Breakout treatment', why: 'Salicylic acid or benzoyl peroxide clears pores.', fills: ['acne', 'exfoliant'] }, 10);
+    if (concern('Dark spots') && !has('serum')) add({ id: 'sk_spots', kind: 'step', title: 'Brightening serum', why: 'Vitamin C or niacinamide fades dark spots over 8 to 12 weeks.', fills: ['serum'] }, 8);
+    if (concern('Fine lines') && !pregnant && !has('retinoid')) add({ id: 'sk_retinoid', kind: 'step', title: 'Night retinoid', why: 'A retinoid at night is the best-studied ingredient for fine lines.', fills: ['retinoid'] }, 8);
+    if (concern('Fine lines') && pregnant && !has('serum')) add({ id: 'sk_peptide', kind: 'step', title: 'Peptide serum', why: 'Peptides or bakuchiol help fine lines without retinoids.', fills: ['serum'] }, 6);
+    if ((concern('Dullness') || concern('Large pores')) && !has('exfoliant', 'retinoid')) add({ id: 'sk_exfoliant', kind: 'step', title: 'Weekly exfoliant', why: 'A gentle acid once or twice a week clears dull, clogged skin.', fills: ['exfoliant'] }, 6);
+    if (concern('Dehydration') && !has('serum', 'toner')) add({ id: 'sk_hydrate', kind: 'step', title: 'Hydrating serum', why: 'Hyaluronic acid or glycerin pulls water into tight, dehydrated skin.', fills: ['serum', 'toner'] }, 6);
+    const pm = (s.beauty?.skinPM ?? []).map(x => x.item).filter((i): i is Item => !!i);
+    if (pm.some(i => i.category === 'retinoid') && pm.some(i => i.category === 'exfoliant')) add({ id: 'sk_clash', kind: 'clash', title: 'Retinoid and acid together', why: 'Both in one evening can irritate. Use them on different nights.', fills: [] }, 8);
+    if (pregnant && has('retinoid')) add({ id: 'sk_preg', kind: 'clash', title: 'Retinoid while pregnant or nursing', why: 'Retinoids aren\u2019t advised now. Swap for azelaic acid or peptides.', fills: ['serum'] }, 14);
+    if (pv('skin_flags').includes('Fragrance')) { const f = items.find(i => AREA_OF[i.category] === 'skin' && /parfum|fragrance/i.test(i.ingredients ?? '')); if (f) add({ id: 'sk_frag', kind: 'clash', title: 'Fragrance in your skin care', why: `${f.brand} ${f.name} lists fragrance.`, fills: [f.category], replace: f }, 6); }
+  }
+
+  // ── Makeup ────────────────────────────────────────────────────────────────
+  if (areas.includes('makeup')) {
+    const wearsBase = has('foundation', 'concealer', 'mascara', 'eyeliner', 'eyeshadow');
+    if (wearsBase && !has('makeup_remover')) add({ id: 'mk_remover', kind: 'step', title: 'Makeup remover', why: 'Sleeping in makeup clogs pores. Remove it before you cleanse.', fills: ['makeup_remover'] }, 10);
+    if ((skinType === 'Oily' || pv('mk_finish').includes('Matte') || pv('mk_musts').includes('Long-wear')) && has('foundation') && !has('primer', 'powder')) add({ id: 'mk_set', kind: 'step', title: 'Primer or powder', why: 'Oily skin moves makeup. A primer or powder keeps it in place.', fills: ['primer', 'powder'] }, 6);
+    if (pv('mk_musts').includes('SPF in base') && !has('spf')) add({ id: 'mk_spf', kind: 'step', title: 'SPF under makeup', why: 'Most bases hold too little SPF alone. Add a sunscreen first.', fills: ['spf'] }, 10);
+    if ((pv('mk_look').includes('Full glam') || has('eyeshadow')) && !has('setting_spray')) add({ id: 'mk_spray', kind: 'step', title: 'Setting spray', why: 'Locks a full look in place for hours.', fills: ['setting_spray'] }, 4);
+    if (has('foundation') && !has('concealer') && pv('mk_coverage').includes('Full')) add({ id: 'mk_conceal', kind: 'step', title: 'Concealer', why: 'Full coverage looks lighter with a thin base and concealer where needed.', fills: ['concealer'] }, 4);
+  }
+
+  // ── Body ──────────────────────────────────────────────────────────────────
+  if (areas.includes('body')) {
+    const bc = (c: string) => pv('body_concerns').includes(c);
+    if (!has('body_wash')) add({ id: 'bd_wash', kind: 'step', title: 'Body wash', why: 'A gentle wash keeps skin clean without drying it out.', fills: ['body_wash'] }, 8);
+    if ((bc('Dryness') || pv('body_feel').includes('Dry')) && !has('body_lotion', 'body_oil')) add({ id: 'bd_moist', kind: 'step', title: 'Body lotion', why: 'Lotion on damp skin locks in moisture.', fills: ['body_lotion', 'body_oil'] }, 8);
+    if ((bc('Bumps') || bc('Body breakouts')) && !has('body_scrub')) add({ id: 'bd_scrub', kind: 'step', title: 'Exfoliating scrub', why: 'Bumps and breakouts clear faster with gentle exfoliation twice a week.', fills: ['body_scrub'] }, 6);
+    if (bc('Odor') && !has('deodorant')) add({ id: 'bd_deo', kind: 'step', title: 'Deodorant', why: 'Keeps odor down all day.', fills: ['deodorant'] }, 8);
+    if (bc('Uneven tone') && !has('body_spf', 'spf')) add({ id: 'bd_spf', kind: 'step', title: 'Body SPF', why: 'Sun darkens uneven patches. SPF on exposed skin.', fills: ['body_spf', 'spf'] }, 6);
+  }
 
   // Budget swaps: same job and same key tag at roughly half the price
   const seen = new Set<string>();
@@ -100,6 +145,22 @@ export function fitOf(i: Item, s: RoutineState): number {
   f += 4 * Math.min(3, m.good.length) - 12 * m.watch.length;
   // Products the database tags for the person's own goals.
   f += 7 * Math.min(2, goalHits(i, s).length);
+  // Skin, makeup and body: match the quick answers by label and name.
+  if (AREA_OF[i.category]) {
+    const n = `${i.name} ${i.brand}`.toLowerCase();
+    const pv = (k: string) => pref(s, k);
+    if (pv('skin_flags').includes('Fragrance')) f += /fragrance[- ]free|sans parfum|unscented|parfum/.test(n) ? (/(free|sans|unscented)/.test(n) ? 8 : -12) : 0;
+    const type = (pv('skin_type')[0] ?? '').toLowerCase();
+    if (type && (n.includes(type) || (type === 'oily' && /(oil[- ]free|matt|gel)/.test(n)) || (type === 'dry' && /(rich|nourish|hydrat|cream)/.test(n)) || (type === 'sensitive' && /(sensitiv|gentle|calm|tolér|toler)/.test(n)))) f += 8;
+    if (pv('mk_musts').includes('Waterproof') && /waterproof|water ?resistant|wasserfest|résistant/.test(n)) f += 8;
+    if (pv('mk_musts').includes('Long-wear') && /(long|24h|16h|wear|lasting|tenue)/.test(n)) f += 6;
+    if (pv('mk_musts').includes('SPF in base') && /spf/.test(n) && ['foundation', 'primer', 'powder'].includes(i.category)) f += 6;
+    if (pv('mk_musts').includes('Clean or vegan') && /(vegan|clean|organic|bio|natural)/.test(n)) f += 6;
+    const finish = (pv('mk_finish')[0] ?? '').toLowerCase();
+    if (finish && ['foundation', 'powder', 'primer', 'lips'].includes(i.category) && (n.includes(finish) || (finish === 'dewy' && /(glow|lumin|radian)/.test(n)) || (finish === 'matte' && /matt/.test(n)))) f += 6;
+    const cov = (pv('mk_coverage')[0] ?? '').toLowerCase();
+    if (cov && i.category === 'foundation' && (n.includes(cov) || (cov === 'sheer' && /(tint|bb|cc|skin)/.test(n)))) f += 6;
+  }
   return Math.max(50, Math.min(98, Math.round(f)));
 }
 

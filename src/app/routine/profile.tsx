@@ -77,8 +77,8 @@ export default function RoutineProfile() {
 
       <SectionCard label="MY HAIR" style={card}>
         <View>
-          <Row first k={s.goals.length > 1 ? 'Goals' : 'Goal'} v={s.goals.join(', ') || undefined} onPress={() => router.push('/routine/goals')} />
-          <Row k="Hair" v={hair || undefined} onPress={() => router.push('/routine/goals')} />
+          <Row first k={s.goals.length > 1 ? 'Goals' : 'Goal'} v={s.goals.join(', ') || undefined} onPress={() => router.push('/routine/about')} />
+          <Row k="Hair" v={hair || undefined} onPress={() => router.push('/routine/about')} />
           <Row k="Color or chemical" v={s.hair.treated || undefined} />
           <Row k="Budget" v={s.hair.budget || undefined} />
         </View>

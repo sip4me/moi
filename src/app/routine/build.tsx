@@ -4,18 +4,19 @@ import { Image, Pressable, Text, View } from 'react-native';
 import { BLUE, Btn, ChipBtn, Heading, InputsPanel, LivePanel, PlusDot, iconFor, Label, PickerSheet, Pill, ScoreBar, Segmented, Shell, st, Timeline, useWide } from '../../components/routine/Kit';
 import { icon3d } from '../../data/icons3d';
 import { analyze, buildNew, KIND_COLOR, KIND_LABEL } from '../../lib/routine/gaps';
-import { CATEGORY_LABEL, DAYS, defaultOccasion, newStepId, OCCASION_ICON, OCCASIONS, setRoutine, useCatalog, useRoutine, type RoutineState, type Step } from '../../lib/routine/model';
+import { AREAS, BEAUTY_ROUTINES, CATEGORY_LABEL, DAYS, defaultBeauty, defaultOccasion, newStepId, OCCASION_ICON, OCCASIONS, setRoutine, useCatalog, useRoutine, type RoutineState, type Step } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 
-type Where = { list: 'wash' | 'every' } | { list: 'occ'; occ: string };
+type Where = { list: 'wash' | 'every' } | { list: 'occ'; occ: string } | { list: 'beauty'; key: string };
 const ORDER = ['pre_wash', 'shampoo', 'clarifying', 'anti_dandruff', 'swim', 'bond_builder', 'conditioner', 'deep_conditioner', 'leave_in', 'heat_protectant', 'styler', 'oil', 'scalp_treatment'];
 
-const keyOf = (w: Where) => (w.list === 'occ' ? `occ:${w.occ}` : w.list);
+const keyOf = (w: Where) => (w.list === 'occ' ? `occ:${w.occ}` : w.list === 'beauty' ? `b:${w.key}` : w.list);
 
 /** Changing a routine reopens it, so it has to be submitted again. */
 function update(s: RoutineState, w: Where, fn: (steps: Step[]) => Step[]): RoutineState {
   const submitted = { ...(s.submitted ?? {}), [keyOf(w)]: false };
   if (w.list === 'occ') return { ...s, submitted, occ: { ...s.occ, [w.occ]: fn(s.occ[w.occ] ?? defaultOccasion(w.occ)) } };
+  if (w.list === 'beauty') return { ...s, submitted, beauty: { ...(s.beauty ?? {}), [w.key]: fn(s.beauty?.[w.key] ?? defaultBeauty(w.key)) } };
   return { ...s, submitted, [w.list]: fn(s[w.list]) };
 }
 
@@ -24,13 +25,18 @@ export default function Build() {
   const cat = useCatalog();
   const wide = useWide();
   const [tab, setTab] = useState('Wash day');
+  const areas = s.areas ?? ['hair'];
+  const [areaTab, setAreaTab] = useState<string>(areas[0] ?? 'hair');
+  const area = areas.includes(areaTab as any) ? areaTab : areas[0] ?? 'hair';
+  const routinesOf = (a: string) => BEAUTY_ROUTINES.filter(r => r.area === a);
+  const [btab, setBtab] = useState<Record<string, string>>({});
   const [editDays, setEditDays] = useState(false);
   const [open, setOpen] = useState<{ w: Where; id: string } | null>(null);
   const { score, gaps } = useMemo(() => analyze(s, cat), [s, cat]);
 
   // "Build me a new one": fill a routine with the best pick for every step their goals need.
   useEffect(() => {
-    if (s.mode !== 'new' || s.built || !cat.products.length || !s.goals.length) return;
+    if (s.mode !== 'new' || s.built || !cat.products.length || !s.goals.length || !areas.includes('hair')) return;
     const plan = buildNew(s, cat);
     const mk = (label: string, cat: string, item?: any): Step => ({ id: newStepId(), label, hint: cat, item });
     const wash = plan.filter(p => !['satin_pillowcase', 'bonnet', 'swim_cap', 'swim'].includes(p.g.fills[0]))
@@ -40,10 +46,11 @@ export default function Build() {
     setRoutine(r => ({ ...r, built: true, wash: wash.length ? wash : r.wash, every: night ? [mk('Night', night.g.fills[0])] : r.every }));
   }, [s.mode, s.built, cat, s.goals.length]);
 
-  const openStep = open ? (open.w.list === 'occ' ? (s.occ[open.w.occ] ?? []) : s[open.w.list]).find(x => x.id === open.id) ?? null : null;
+  const stepsAt = (w: Where): Step[] => (w.list === 'occ' ? (s.occ[w.occ] ?? []) : w.list === 'beauty' ? (s.beauty?.[w.key] ?? []) : s[w.list]);
+  const openStep = open ? stepsAt(open.w).find(x => x.id === open.id) ?? null : null;
   const edit = (fn: (st: Step) => Step) => open && setRoutine(r => update(r, open.w, steps => steps.map(x => (x.id === open.id ? fn(x) : x))));
   const addStep = (w: Where) => {
-    const st: Step = { id: newStepId(), label: 'New step', hint: 'leave_in' };
+    const st: Step = { id: newStepId(), label: 'New step', hint: w.list === 'beauty' ? (defaultBeauty(w.key)[0]?.hint ?? 'moisturizer') : 'leave_in' };
     setRoutine(r => update(r, w, steps => [...steps, st]));
     setOpen({ w, id: st.id });
   };
@@ -56,7 +63,15 @@ export default function Build() {
   );
 
   const dayNames = s.washDays.map(i => DAYS[i]).join(', ') || 'none yet';
-  const body = tab === 'Wash day' ? (
+  const rs = routinesOf(area);
+  const rkey = btab[area] && rs.some(r => r.key === btab[area]) ? btab[area] : rs[0]?.key;
+  const beautyBody = rkey ? (
+    <View style={{ gap: 20 }}>
+      {rs.length > 1 ? <View style={{ maxWidth: 420 }}><Segmented options={rs.map(r => r.label)} value={rs.find(r => r.key === rkey)!.label} onChange={l => setBtab(b => ({ ...b, [area]: rs.find(r => r.label === l)!.key }))} /></View> : null}
+      {list({ list: 'beauty', key: rkey }, s.beauty?.[rkey] ?? defaultBeauty(rkey))}
+    </View>
+  ) : null;
+  const hairBody = tab === 'Wash day' ? (
     <View style={{ gap: 20 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <Text style={[st.meta, { flex: 1, fontSize: 14, color: C.gray2 }]}>{`Wash days: ${dayNames}`}</Text>
@@ -100,6 +115,7 @@ export default function Build() {
       ))}
     </View>
   );
+  const body = area === 'hair' ? hairBody : beautyBody;
 
   return (
     <Shell active="build" step="2 of 3" side={wide ? <View style={{ gap: 28 }}><LivePanel score={score} gaps={gaps} onOpen={() => router.push('/routine/gaps')} /><View style={{ height: 1, backgroundColor: '#EEF0F3' }} /><InputsPanel s={s} /></View> : undefined}
@@ -107,8 +123,13 @@ export default function Build() {
         ? <Btn label="See my gaps" onPress={() => router.push('/routine/gaps')} />
         : <Btn label={`See my gaps · fit ${score}`} onPress={() => router.push('/routine/gaps')} />}>
       <Heading title={s.mode === 'new' ? 'Your new routine' : 'Your routine'} sub={s.mode === 'new' ? 'Steps your goals need. Add or skip each.' : 'Add what you use, in order. Skip any step.'} />
-      <View style={{ maxWidth: 420 }}><Segmented options={['Wash day', 'Everyday', 'Occasions']} value={tab} onChange={setTab} /></View>
-      {s.mode === 'new' && !s.goals.length ? <Text style={st.sub}>Pick your goals first.</Text> : null}
+      {areas.length > 1 ? (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          {AREAS.filter(x => areas.includes(x.key)).map(x => <Pill key={x.key} label={x.label} on={area === x.key} onPress={() => setAreaTab(x.key)} />)}
+        </View>
+      ) : null}
+      {area === 'hair' ? <View style={{ maxWidth: 420 }}><Segmented options={['Wash day', 'Everyday', 'Occasions']} value={tab} onChange={setTab} /></View> : null}
+      {s.mode === 'new' && areas.includes('hair') && !s.goals.length ? <Text style={st.sub}>Pick your goals first.</Text> : null}
       {body}
       <PickerSheet step={openStep} onClose={() => setOpen(null)}
         onPick={item => { edit(x => ({ ...x, item: { ...item, addedAt: Date.now() }, skipped: false, label: x.label === 'New step' ? CATEGORY_LABEL[item.category] ?? x.label : x.label })); if (item.kind !== 'custom' || item.tags.length) setOpen(null); }}

@@ -3,12 +3,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Svg, { Path } from 'react-native-svg';
 import { ActivityIndicator, Animated, Platform, Easing, Image, Linking, Modal, Pressable, ScrollView, type ScrollViewInstance, StyleSheet, Text, TextInput, useWindowDimensions, View, type ViewStyle } from 'react-native';
 import { useScrollCue } from '../ScrollCue';
+import { GlassBackdrop } from './Glass';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { icon3d } from '../../data/icons3d';
 import { haptic } from '../../lib/haptics';
 import { ingredientsFromPhoto, itemFromPhoto, submitTyped, takeProductPhoto } from '../../lib/routine/capture';
 import { KIND_COLOR, KIND_LABEL, retailerLinks, type Gap } from '../../lib/routine/gaps';
-import { allSteps, CATEGORY_ICON, CATEGORY_LABEL, classify, DAYS, isHydrated, searchCatalogLocal, searchRemote, setRoutine, useRoutine, TOOL_KINDS, useCatalog, type Item, type RoutineState, type Step } from '../../lib/routine/model';
+import { allSteps, AREA_OF, CATEGORY_ICON, CATEGORY_LABEL, classify, DAYS, isHydrated, searchCatalogLocal, searchRemote, setRoutine, useRoutine, TOOL_KINDS, useCatalog, type Item, type RoutineState, type Step } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 import { fill, PALETTE, shine } from '../../lib/routine/shine';
 import { useStore } from '../../state/store';
@@ -20,6 +21,8 @@ export const HOVER_RIM = { borderColor: PALETTE.garnetDeep, borderWidth: 1.5 } a
 type PS = { pressed: boolean; hovered?: boolean };
 export const crownImg = require('../../../assets/crown-pink.png');
 export const useWide = () => useWindowDimensions().width >= 900;
+/** Lower-cases a label for use mid-sentence, keeping acronyms like SPF. */
+const lc = (l: string) => l.split(' ').map(w => (w.length > 1 && w === w.toUpperCase() ? w : w.toLowerCase())).join(' ');
 export const iconFor = (cat?: string) => icon3d(CATEGORY_ICON[cat ?? ''] ?? 'drop');
 export const money = (n?: number | null) => (n == null ? '' : `$${n % 1 ? n.toFixed(2) : n}`);
 
@@ -32,7 +35,7 @@ const NAV = [
   { key: 'build', label: 'Routine', icon: 'conditioner', href: '/routine/build' },
   { key: 'gaps', label: 'Gap report', icon: 'mirror', href: '/routine/gaps' },
   { key: 'shop', label: 'Shop', icon: 'hair_food', href: '/routine/shop' },
-  { key: 'goals', label: 'Goals & hair', icon: 'learn', href: '/routine/goals' },
+  { key: 'goals', label: 'About you', icon: 'learn', href: '/routine/about' },
   { key: 'plans', label: 'Royal plans', icon: 'crown', href: '/routine/plans' },
   { key: 'profile', label: 'My profile', icon: 'avatar', href: '/routine/profile' },
   { key: 'tracker', label: 'Routine tracker', icon: 'goal_target', href: 'tracker' },
@@ -104,7 +107,7 @@ function Menu({ open, onClose, active }: { open: boolean; onClose: () => void; a
   );
 }
 
-export function Shell({ active, children, side, footer, step, hideNav }: { active?: string; children: React.ReactNode; side?: React.ReactNode; footer?: React.ReactNode; step?: string; hideNav?: boolean }) {
+export function Shell({ active, children, side, footer, step, hideNav, glass }: { active?: string; children: React.ReactNode; side?: React.ReactNode; footer?: React.ReactNode; step?: string; hideNav?: boolean; glass?: boolean }) {
   const wide = useWide();
   const r = useRoutine();
   const [menu, setMenu] = useState(false);
@@ -119,7 +122,9 @@ export function Shell({ active, children, side, footer, step, hideNav }: { activ
   const scrollRef = useRef<ScrollViewInstance>(null);
   const cue = useScrollCue(scrollRef);
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: PALETTE.pearl }} edges={['top', 'bottom']}>
+    <View style={{ flex: 1 }}>
+    {glass ? <GlassBackdrop /> : null}
+    <SafeAreaView style={{ flex: 1, backgroundColor: glass ? 'transparent' : PALETTE.pearl }} edges={['top', 'bottom']}>
       {top}
       <View style={{ flex: 1, flexDirection: 'row' }}>
         <View style={{ flex: 1 }}>
@@ -132,13 +137,14 @@ export function Shell({ active, children, side, footer, step, hideNav }: { activ
           {cue.cue}
           </View>
           {footer ? (wide
-            ? <View style={st.wFooter}><View style={{ maxWidth: 808, width: '100%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 12 }}>{footer}</View></View>
-            : <View style={st.mFooter}>{footer}</View>) : null}
+            ? <View style={[st.wFooter, glass && { backgroundColor: 'transparent', borderTopColor: 'rgba(255,255,255,0.4)' }]}><View style={{ maxWidth: 808, width: '100%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 12 }}>{footer}</View></View>
+            : <View style={[st.mFooter, glass && { backgroundColor: 'transparent' }]}>{footer}</View>) : null}
         </View>
         {wide && side ? <ScrollView style={st.side} contentContainerStyle={{ padding: 24, gap: 16 }}>{side}</ScrollView> : null}
       </View>
       <Menu open={menu} onClose={() => setMenu(false)} active={active} />
     </SafeAreaView>
+    </View>
   );
 }
 
@@ -243,7 +249,7 @@ function StepRow({ s, state, last, nextFilled, onOpen }: { s: Step; state: 'done
           {!empty ? <Image source={iconFor(s.item!.category)} style={st.stepIcon} /> : state === 'skipped' ? null : <PlusDot solid={next} />}
           <View style={{ flex: 1, gap: 3 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text style={[st.stepTitle, empty && !next && { color: C.gray2 }, state === 'skipped' && { color: C.gray, textDecorationLine: 'line-through' }]} numberOfLines={1}>{state === 'skipped' ? s.label : empty ? `Add ${(CATEGORY_LABEL[s.hint] ?? s.label).toLowerCase()}` : s.label}</Text>
+              <Text style={[st.stepTitle, empty && !next && { color: C.gray2 }, state === 'skipped' && { color: C.gray, textDecorationLine: 'line-through' }]} numberOfLines={1}>{state === 'skipped' ? s.label : empty ? `Add ${lc(CATEGORY_LABEL[s.hint] ?? s.label)}` : s.label}</Text>
               {state === 'skipped' ? <Text style={st.meta}>Skipped</Text> : null}
               {next ? <View style={st.upNext}><Text style={st.upNextText}>Up next</Text></View> : s.when && !empty ? <Text style={st.meta}>{s.when}</Text> : null}
             </View>
@@ -416,7 +422,7 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename, onSkip 
   };
   const typed = () => {
     const name = q.trim();
-    const guess = TOOL_KINDS.has(step.hint) ? { category: step.hint, tags: [] } : classify(`${name} ${CATEGORY_LABEL[step.hint] ?? ''}`);
+    const guess = TOOL_KINDS.has(step.hint) || AREA_OF[step.hint] ? { category: step.hint, tags: [] } : classify(`${name} ${CATEGORY_LABEL[step.hint] ?? ''}`);
     const category = TOOL_KINDS.has(step.hint) || !/shampoo|condition|oil|gel|cream|spray|mask|serum/i.test(name) ? step.hint : guess.category;
     submitTyped(name, category);
     pick({ kind: TOOL_KINDS.has(category) ? 'tool' : 'custom', brand: '', name, category, tags: guess.tags });
@@ -457,7 +463,7 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename, onSkip 
           )}
           <View style={[st.search, { flexDirection: 'row', alignItems: 'center', gap: 10 }]}>
             <Ico name="search" size={18} color={C.gray} />
-            <TextInput value={q} onChangeText={setQ} placeholder={`Search ${(CATEGORY_LABEL[step.hint] ?? 'products').toLowerCase()}s, brands or tools`} placeholderTextColor={C.gray} style={st.searchInput} autoFocus={wide} returnKeyType="search" />
+            <TextInput value={q} onChangeText={setQ} placeholder={`Search ${lc(CATEGORY_LABEL[step.hint] ?? 'products')} or brands`} placeholderTextColor={C.gray} style={st.searchInput} autoFocus={wide} returnKeyType="search" />
           </View>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <ChipBtn label="Scan barcode" tone="dark" onPress={() => scan(false)} icon={<Svg width={16} height={16} viewBox="0 0 24 24"><Path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M8 9v6M11 9v6M14 9v6M17 9v6" stroke="#fff" strokeWidth={1.8} fill="none" strokeLinecap="round" /></Svg>} />
@@ -514,9 +520,9 @@ export function InputsPanel({ s }: { s: RoutineState }) {
   return (
     <View style={{ gap: 4 }}>
       <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink, marginBottom: 6 }}>Judged on</Text>
-      {row('Goals', s.goals.join(', '), '/routine/goals')}
-      {row('Hair', hair, '/routine/goals')}
-      {row('Budget', s.hair.budget ?? '', '/routine/goals')}
+      {row('Goals', s.goals.join(', '), '/routine/about')}
+      {row('Hair', hair, '/routine/about')}
+      {row('Budget', s.hair.budget ?? '', '/routine/about')}
       {row('Routine', `${logged} product${logged === 1 ? '' : 's'}${skipped ? ` · ${skipped} skipped` : ''} · wash ${s.washDays.map(d => DAYS[d]).join(', ') || 'days not set'}`, '/routine/build')}
       {s.occasions.length ? row('Occasions', s.occasions.join(', '), '/routine/build') : null}
     </View>
@@ -644,7 +650,7 @@ export function NeedInfo({ goals }: { goals: boolean }) {
       <Image source={icon3d(goals ? 'conditioner' : 'learn')} style={{ width: 72, height: 72 }} />
       <Text {...shine('chrome')} style={[st.h1, { fontSize: 30, lineHeight: 34 }]}>{goals ? 'Add your routine first' : 'Your goals come first'}</Text>
       <Text style={st.sub}>{goals ? 'Add one product you use to see your gaps.' : 'Pick your goals and hair type to see your gaps.'}</Text>
-      <Btn label={goals ? 'Add my routine' : 'Start with my goals'} onPress={() => router.push(goals ? '/routine/build' : '/routine/goals')} style={{ alignSelf: 'flex-start' }} />
+      <Btn label={goals ? 'Add my routine' : 'Start with my goals'} onPress={() => router.push(goals ? '/routine/build' : '/routine/about')} style={{ alignSelf: 'flex-start' }} />
     </View>
   );
 }

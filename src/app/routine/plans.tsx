@@ -13,7 +13,7 @@ import { C, F } from '../../theme';
 const crown = require('../../../assets/crown-pink.png');
 const GOLD = '#C99A2E';
 
-const PERKS = ['Every gap and its fix', 'Picks matched to your hair', 'One bundle to close your gaps', 'New products as we add them'];
+const PERKS = ['Your routines, saved on any device', 'Every gap and its fix', 'Picks matched to you', 'New products as we add them'];
 
 /** Moi Routine paywall: founding yearly ($25, lifetime database access, first 1,000 customers) or monthly ($6). */
 export default function Plans() {
@@ -55,14 +55,14 @@ export default function Plans() {
 
   if (a.ok) {
     return (
-      <Shell active="plans" footer={<View style={{ gap: 8, width: wide ? undefined : '100%', flexDirection: wide ? 'row' : 'column' }}><Btn label={signedIn ? 'See my profile' : 'Create my royal profile'} onPress={toProfile} /><Btn kind="secondary" label={hasInfo(s) ? 'See my gap report' : 'Start with my goals'} onPress={() => router.replace(hasInfo(s) ? '/routine/gaps' : '/routine/goals')} /></View>}>
+      <Shell glass active="plans" footer={<View style={{ gap: 8, width: wide ? undefined : '100%', flexDirection: wide ? 'row' : 'column' }}><Btn label={signedIn ? 'See my profile' : 'Create my royal profile'} onPress={toProfile} /><Btn kind="secondary" label={hasInfo(s) ? 'See my gap report' : 'Start with my goals'} onPress={() => router.replace(hasInfo(s) ? '/routine/gaps' : '/routine/about')} /></View>}>
         <Image source={crown} style={{ width: 72, height: 72, transform: [{ rotate: '-12deg' }] }} resizeMode="contain" />
         <Heading title={a.founder ? `Long live Founding Royal #${a.spot}` : 'You’ve been crowned'} sub={a.founder ? 'Lifetime database access is yours, even if you cancel.' : a.test ? 'Test mode: payments aren’t switched on yet, so this device is unlocked.' : 'Your plan is active.'} />
       </Shell>
     );
   }
   if (waiting) {
-    return <Shell active="plans"><View style={{ gap: 12, alignItems: 'flex-start' }}><ActivityIndicator color={C.gray} /><Heading title="Finishing up" sub="Confirming your payment." /></View></Shell>;
+    return <Shell glass active="plans"><View style={{ gap: 12, alignItems: 'flex-start' }}><ActivityIndicator color={C.gray} /><Heading title="Finishing up" sub="Confirming your payment." /></View></Shell>;
   }
 
   const plan = (k: RoutinePlan) => {
@@ -87,13 +87,13 @@ export default function Plans() {
 
   const p = ROUTINE_PLANS[pick];
   return (
-    <Shell active="plans"
+    <Shell glass active="plans"
       footer={<View style={{ width: wide ? undefined : '100%', gap: 8 }}>
         <Btn label={busy ? 'Opening checkout…' : `Continue with ${p.price} a ${p.per}`} onPress={busy ? undefined : buy} />
         <Text style={[st.meta, { textAlign: 'center', fontSize: 12 }]}>{pick === 'routine_founder' && founding ? 'Renews yearly. Database access stays if you cancel.' : 'Renews automatically. Cancel anytime.'}</Text>
       </View>}>
       <Image source={crown} style={{ width: 64, height: 64, transform: [{ rotate: '-12deg' }] }} resizeMode="contain" />
-      <Heading title="Claim your crown" sub={gapCount ? `Unlock your ${gapCount} gap${gapCount === 1 ? '' : 's'} and the products that fill them.` : 'Unlock your gap report and the products that fill it.'} />
+      <Heading title="Save your routines" sub={gapCount ? `Make an account to keep your routines and see the fix for all ${gapCount} gap${gapCount === 1 ? '' : 's'}.` : 'Make an account to keep your routines, gaps and picks.'} />
       {f ? (
         <View {...fill('pearl')} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: 20, backgroundColor: '#fff', maxWidth: 600 }}>
           <View style={{ flex: 1, gap: 6 }}>
@@ -105,7 +105,7 @@ export default function Plans() {
       ) : null}
       <View style={{ flexDirection: wide ? 'row' : 'column', gap: 12, maxWidth: 600 }}>{plan('routine_founder')}{plan('routine_monthly')}</View>
       <View style={{ gap: 10, maxWidth: 600 }}>
-        <Label>Your royal privileges</Label>
+        <Label>With an account</Label>
         {PERKS.map(x => <Text key={x} style={[st.sub, { fontSize: 15 }]}>{`♛  ${x}`}</Text>)}
       </View>
       {err ? <Text style={{ fontFamily: F.semibold, fontSize: 14, color: '#A8576A' }}>{err}</Text> : null}
