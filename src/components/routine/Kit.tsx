@@ -98,7 +98,7 @@ export function Shell({ active, children, side, footer, step, hideNav }: { activ
   const [menu, setMenu] = useState(false);
   const openMenu = () => { setMenu(true); if (!r.menuSeen) setRoutine(x => ({ ...x, menuSeen: true })); };
   const top = (
-    <View style={[st.topBar, wide && { paddingHorizontal: 32, paddingTop: 20 }]}>
+    <View style={[st.topBar, wide && { paddingHorizontal: 32, paddingTop: 24 }]}>
       {hideNav ? <View style={{ height: 44 }} /> : <MenuButton onPress={openMenu} hint={isHydrated() && !r.menuSeen} />}
       <View style={{ flex: 1 }} />
       {step ? <Text style={st.meta}>{step}</Text> : null}
@@ -110,7 +110,7 @@ export function Shell({ active, children, side, footer, step, hideNav }: { activ
       <View style={{ flex: 1, flexDirection: 'row' }}>
         <View style={{ flex: 1 }}>
           <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}
-            contentContainerStyle={wide ? { paddingHorizontal: 56, paddingTop: 24, paddingBottom: 48, gap: 32, width: '100%', maxWidth: 920, alignSelf: 'center' } : { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 40, gap: 24 }}>
+            contentContainerStyle={wide ? { paddingHorizontal: 72, paddingTop: 32, paddingBottom: 64, gap: 32, width: '100%', maxWidth: 920, alignSelf: 'center' } : { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 40, gap: 24 }}>
             {children}
             {!wide && side ? <View style={{ gap: 16 }}>{side}</View> : null}
           </ScrollView>
@@ -204,7 +204,7 @@ export function Node({ state }: { state: 'done' | 'next' | 'empty' }) {
   );
 }
 
-function StepRow({ s, state, last, nextFilled, onOpen }: { s: Step; state: 'done' | 'next' | 'empty'; last: boolean; nextFilled: boolean; onOpen: () => void }) {
+function StepRow({ s, state, last, nextFilled, onOpen }: { s: Step; state: 'done' | 'next' | 'empty' | 'skipped'; last: boolean; nextFilled: boolean; onOpen: () => void }) {
   const empty = !s.item;
   const appear = useRef(new Animated.Value(1)).current;
   const prev = useRef(s.item?.name);
@@ -216,15 +216,16 @@ function StepRow({ s, state, last, nextFilled, onOpen }: { s: Step; state: 'done
   return (
     <View style={{ flexDirection: 'row', gap: 14 }}>
       <View style={{ width: 20, alignItems: 'center', paddingTop: 18 }}>
-        <Node state={state} />
-        {!last ? <Rail filled={!empty} empty={empty && !next} /> : null}
+        {state === 'skipped' ? <View style={st.skipNode}><View style={st.skipDash} /></View> : <Node state={state} />}
+        {!last ? <Rail filled={!empty || state === 'skipped'} empty={empty && !next && state !== 'skipped'} /> : null}
       </View>
       <Pressable onPress={() => { haptic('select'); onOpen(); }} style={({ pressed }) => [{ flex: 1, paddingBottom: 12 }, pressed && { opacity: 0.85 }]}>
         <Animated.View style={[st.stepCard, empty && !next && st.stepQuiet, next && st.stepNext, { opacity: appear, transform: [{ scale: appear.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) }] }]}>
           {!empty ? <Image source={iconFor(s.item!.category)} style={st.stepIcon} /> : null}
           <View style={{ flex: 1, gap: 3 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text style={[st.stepTitle, empty && !next && { color: C.gray2 }]} numberOfLines={1}>{empty ? `+ Add ${(CATEGORY_LABEL[s.hint] ?? s.label).toLowerCase()}` : s.label}</Text>
+              <Text style={[st.stepTitle, empty && !next && { color: C.gray2 }, state === 'skipped' && { color: C.gray, textDecorationLine: 'line-through' }]} numberOfLines={1}>{state === 'skipped' ? s.label : empty ? `+ Add ${(CATEGORY_LABEL[s.hint] ?? s.label).toLowerCase()}` : s.label}</Text>
+              {state === 'skipped' ? <Text style={st.meta}>Skipped</Text> : null}
               {next ? <View style={st.upNext}><Text style={st.upNextText}>Up next</Text></View> : s.when && !empty ? <Text style={st.meta}>{s.when}</Text> : null}
             </View>
             {empty && !next ? null : <Text style={st.stepSub} numberOfLines={2}>{empty ? 'Search, scan a barcode, or skip' : `${s.item!.brand ? `${s.item!.brand} · ` : ''}${s.item!.name}`}</Text>}
@@ -236,8 +237,8 @@ function StepRow({ s, state, last, nextFilled, onOpen }: { s: Step; state: 'done
 }
 
 export function Timeline({ steps, onOpen }: { steps: Step[]; onOpen: (s: Step) => void; active?: string }) {
-  const nextIdx = steps.findIndex(s => !s.item);
-  const done = steps.filter(s => s.item).length;
+  const nextIdx = steps.findIndex(s => !s.item && !s.skipped);
+  const done = steps.filter(s => s.item || s.skipped).length;
   return (
     <View style={{ gap: 12 }}>
       {steps.length ? (
@@ -249,7 +250,7 @@ export function Timeline({ steps, onOpen }: { steps: Step[]; onOpen: (s: Step) =
       <View>
         {steps.map((s, i) => (
           <StepRow key={s.id} s={s} last={i === steps.length - 1} nextFilled={!!steps[i + 1]?.item}
-            state={s.item ? 'done' : i === nextIdx ? 'next' : 'empty'} onOpen={() => onOpen(s)} />
+            state={s.item ? 'done' : s.skipped ? 'skipped' : i === nextIdx ? 'next' : 'empty'} onOpen={() => onOpen(s)} />
         ))}
       </View>
     </View>
@@ -257,7 +258,7 @@ export function Timeline({ steps, onOpen }: { steps: Step[]; onOpen: (s: Step) =
 }
 
 // ── Add / change a step ──────────────────────────────────────────────────────
-export function PickerSheet({ step, onClose, onPick, onRemove, onRename }: { step: Step | null; onClose: () => void; onPick: (i: Item) => void; onRemove: () => void; onRename: (label: string) => void }) {
+export function PickerSheet({ step, onClose, onPick, onRemove, onRename, onSkip }: { step: Step | null; onClose: () => void; onPick: (i: Item) => void; onRemove: () => void; onRename: (label: string) => void; onSkip?: () => void }) {
   const wide = useWide();
   const cat = useCatalog();
   const [q, setQ] = useState('');
@@ -318,7 +319,12 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename }: { ste
               <Text style={{ fontSize: 18 }}>🧴</Text>
               <View style={{ flex: 1 }}><Text style={st.cardTitle}>Snap the ingredient list</Text><Text style={st.meta}>We don’t have this one yet. A photo lets us check it now.</Text></View>
             </Pressable>
-          ) : <Pressable onPress={onRemove} hitSlop={8} style={{ alignSelf: 'flex-start' }}><Text style={{ fontFamily: F.medium, color: C.gray, fontSize: 13 }}>Delete this step</Text></Pressable>}
+          ) : (
+            <View style={{ flexDirection: 'row', gap: 20 }}>
+              {onSkip ? <Pressable onPress={onSkip} hitSlop={8}><Text style={{ fontFamily: F.semibold, color: BLUE, fontSize: 14 }}>{step.skipped ? 'Undo skip' : 'Skip this step'}</Text></Pressable> : null}
+              <Pressable onPress={onRemove} hitSlop={8}><Text style={{ fontFamily: F.medium, color: C.gray, fontSize: 14 }}>Delete this step</Text></Pressable>
+            </View>
+          )}
           <View style={st.search}>
             <TextInput value={q} onChangeText={setQ} placeholder={`Search ${(CATEGORY_LABEL[step.hint] ?? 'products').toLowerCase()}s, brands or tools`} placeholderTextColor={C.gray} style={st.searchInput} autoFocus={wide} returnKeyType="search" />
           </View>
@@ -413,8 +419,8 @@ function TeaserStep({ label, sub, state }: { label: string; sub: string; state: 
 export function LinearTeaser() {
   const narrow = useWindowDimensions().width < 420;
   const steps = (narrow
-    ? [['Pre-poo', 'Oil'], ['Cleanse', 'Shampoo'], ['Condition', 'Conditioner'], ['Style', 'Styler']]
-    : [['Pre-poo', 'Oil'], ['Cleanse', 'Shampoo'], ['Condition', 'Conditioner'], ['Hair oil', 'Oil'], ['Style', 'Styler']]);
+    ? [['Pre-poo', 'Oil'], ['Shampoo', 'Added'], ['Condition', 'Conditioner'], ['Style', 'Styler']]
+    : [['Pre-poo', 'Oil'], ['Shampoo', 'Added'], ['Condition', 'Conditioner'], ['Hair oil', 'Oil'], ['Style', 'Styler']]);
   const [n, setN] = useState(0);
   useEffect(() => {
     const t = setTimeout(() => setN(x => (x >= steps.length + 2 ? 0 : x + 1)), n === 0 ? 700 : n >= steps.length ? 1500 : 1000);
@@ -483,15 +489,15 @@ export const st = StyleSheet.create({
   navText: { fontFamily: F.medium, fontSize: 15, color: C.gray2 },
   side: { width: 360, flexGrow: 0, backgroundColor: '#fff', borderLeftWidth: 1, borderLeftColor: '#EEF0F3' },
   mHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, height: 52 },
-  topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4, minHeight: 56 },
+  topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4, minHeight: 60 },
   menuBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 3 } },
   tip: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.ink, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7 },
   tipArrow: { position: 'absolute', left: -4, top: '50%', marginTop: -4, width: 8, height: 8, backgroundColor: C.ink, transform: [{ rotate: '45deg' }] },
   tipText: { fontFamily: F.semibold, fontSize: 13, color: '#fff' },
   menuScrim: { flex: 1, backgroundColor: 'rgba(20,20,24,0.28)' },
   menuPanel: { position: 'absolute', left: 0, top: 0, bottom: 0, backgroundColor: '#F8F9FA', paddingHorizontal: 16, paddingTop: 28, paddingBottom: 24, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 24, shadowOffset: { width: 6, height: 0 } },
-  wFooter: { paddingHorizontal: 56, paddingVertical: 16, borderTopWidth: 1, borderTopColor: '#EEF0F3', backgroundColor: C.bg },
-  mFooter: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12, backgroundColor: C.bg, gap: 8 },
+  wFooter: { paddingHorizontal: 72, paddingVertical: 16, borderTopWidth: 1, borderTopColor: '#EEF0F3', backgroundColor: C.bg },
+  mFooter: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 16, backgroundColor: C.bg, gap: 8 },
   tabbar: { flexDirection: 'row', backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#F0F1F3', paddingTop: 8, paddingBottom: 6 },
   tab: { flex: 1, alignItems: 'center', gap: 3 },
   tabText: { fontFamily: F.medium, fontSize: 11, color: C.gray },
@@ -518,6 +524,8 @@ export const st = StyleSheet.create({
   stepCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 14 },
   stepEmpty: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#C9CDD2', borderStyle: 'dashed' },
   stepOn: { backgroundColor: BLUE },
+  skipNode: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#E6E8EB', alignItems: 'center', justifyContent: 'center' },
+  skipDash: { width: 8, height: 2, borderRadius: 1, backgroundColor: C.gray },
   stepQuiet: { backgroundColor: 'transparent', paddingVertical: 10 },
   stepNext: { backgroundColor: '#fff', borderWidth: 1.5, borderColor: BLUE, borderStyle: 'dashed', shadowColor: BLUE, shadowOpacity: 0.16, shadowRadius: 16, shadowOffset: { width: 0, height: 6 } },
   upNext: { backgroundColor: '#EAF1FF', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
@@ -526,7 +534,7 @@ export const st = StyleSheet.create({
   stepTitle: { flex: 1, fontFamily: F.semibold, fontSize: 16, color: C.ink },
   stepSub: { fontFamily: F.regular, fontSize: 14, lineHeight: 19, color: C.gray },
   scrim: { flex: 1, backgroundColor: 'rgba(20,20,24,0.35)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 20, paddingBottom: 32, gap: 14 },
+  sheet: { backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: 36, gap: 14 },
   dialog: { width: 540, borderRadius: 28, paddingBottom: 24 },
   sheetTitle: { flex: 1, fontFamily: F.display, fontSize: 30, color: C.ink, paddingVertical: 2, outlineStyle: 'none' } as any,
   current: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#F4F7FE', borderRadius: 16, padding: 12 },

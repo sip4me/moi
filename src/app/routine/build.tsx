@@ -31,9 +31,9 @@ export default function Build() {
     const mk = (label: string, cat: string, item?: any): Step => ({ id: newStepId(), label, hint: cat, item });
     const wash = plan.filter(p => !['satin_pillowcase', 'bonnet', 'swim_cap', 'swim'].includes(p.g.fills[0]))
       .sort((a, b) => ORDER.indexOf(a.g.fills[0]) - ORDER.indexOf(b.g.fills[0]))
-      .map(p => mk(p.g.title, p.g.fills[0], p.item));
+      .map(p => mk(p.g.title, p.g.fills[0]));
     const night = plan.find(p => ['satin_pillowcase', 'bonnet'].includes(p.g.fills[0]));
-    setRoutine(r => ({ ...r, built: true, wash: wash.length ? wash : r.wash, every: night ? [mk('Night', night.g.fills[0], night.item)] : r.every }));
+    setRoutine(r => ({ ...r, built: true, wash: wash.length ? wash : r.wash, every: night ? [mk('Night', night.g.fills[0])] : r.every }));
   }, [s.mode, s.built, cat, s.goals.length]);
 
   const openStep = open ? (open.w.list === 'occ' ? (s.occ[open.w.occ] ?? []) : s[open.w.list]).find(x => x.id === open.id) ?? null : null;
@@ -102,14 +102,15 @@ export default function Build() {
       footer={wide
         ? <><Text style={[st.meta, { flex: 1 }]}>{`Routine fit ${score} · ${gaps.length} gap${gaps.length === 1 ? '' : 's'} so far`}</Text><Btn label="See my gaps" onPress={() => router.push('/routine/gaps')} /></>
         : <Btn label={`See my gaps · fit ${score}`} onPress={() => router.push('/routine/gaps')} />}>
-      <Heading title={s.mode === 'new' ? 'Your new routine' : 'Your routine'} sub={s.mode === 'new' ? 'We picked a product for each step. Tap one to swap it.' : 'Add products in the order you use them.'} />
+      <Heading title={s.mode === 'new' ? 'Your new routine' : 'Your routine'} sub={s.mode === 'new' ? 'These are the steps your goals need. Add what you use, or skip any step.' : 'Add products in the order you use them. Skip any step you don\u2019t do.'} />
       <View style={{ maxWidth: 420 }}><Segmented options={['Wash day', 'Everyday', 'Occasions']} value={tab} onChange={setTab} /></View>
       {s.mode === 'new' && !s.goals.length ? <Text style={st.sub}>Pick your goals first so we know what to build.</Text> : null}
       {body}
       <PickerSheet step={openStep} onClose={() => setOpen(null)}
-        onPick={item => { edit(x => ({ ...x, item, label: x.label === 'New step' ? CATEGORY_LABEL[item.category] ?? x.label : x.label })); if (item.kind !== 'custom' || item.tags.length) setOpen(null); }}
+        onPick={item => { edit(x => ({ ...x, item, skipped: false, label: x.label === 'New step' ? CATEGORY_LABEL[item.category] ?? x.label : x.label })); if (item.kind !== 'custom' || item.tags.length) setOpen(null); }}
         onRemove={() => (openStep?.item ? edit(x => ({ ...x, item: undefined })) : removeStep())}
-        onRename={label => edit(x => ({ ...x, label }))} />
+        onRename={label => edit(x => ({ ...x, label }))}
+        onSkip={() => { edit(x => ({ ...x, skipped: !x.skipped, item: x.skipped ? x.item : undefined })); setOpen(null); }} />
     </Shell>
   );
 }

@@ -13,7 +13,7 @@ export type Item = {
   price?: number | null;
   hairTypes?: string[];
 };
-export type Step = { id: string; label: string; hint: string; item?: Item; when?: string };
+export type Step = { id: string; label: string; hint: string; item?: Item; when?: string; skipped?: boolean };
 export type Hair = { texture?: string; strands?: string; heat?: string; treated?: string; budget?: string; scalp?: string };
 export type RoutineState = {
   mode: 'check' | 'new';
@@ -65,9 +65,10 @@ export const TOOL_KINDS = new Set(['flat_iron', 'blow_dryer', 'diffuser', 'curli
 
 let n = 0;
 const sid = () => `s${Date.now().toString(36)}${(n++).toString(36)}`;
-const step = (label: string, hint: string, when?: string): Step => ({ id: sid(), label, hint, when });
+// Steps are empty input boxes: no example products or preset timings, only what the person enters.
+const step = (label: string, hint: string, _when?: string): Step => ({ id: sid(), label, hint });
 
-export const defaultWash = () => [step('Pre-poo oil', 'pre_wash', 'Before washing'), step('Cleanse', 'shampoo', 'Every wash'), step('Condition', 'conditioner', '3 min'), step('Oil after conditioner', 'oil', 'Damp ends'), step('Leave-in', 'leave_in'), step('Detangle', 'wide_tooth_comb', 'Wet'), step('Style', 'styler')];
+export const defaultWash = () => [step('Pre-poo oil', 'pre_wash', 'Before washing'), step('Shampoo', 'shampoo', 'Every wash'), step('Condition', 'conditioner', '3 min'), step('Oil after conditioner', 'oil', 'Damp ends'), step('Leave-in', 'leave_in'), step('Detangle', 'wide_tooth_comb', 'Wet'), step('Style', 'styler')];
 
 /** Older saved routines get the pre-poo and after-conditioner oil spots too. */
 function withOilSteps(wash: Step[]): Step[] {
@@ -99,7 +100,8 @@ let hydrated = false;
 const subs = new Set<() => void>();
 const emit = () => subs.forEach(f => f());
 let saveT: ReturnType<typeof setTimeout> | null = null;
-AsyncStorage.getItem(KEY).then(v => { if (v) { try { const saved = { ...initial(), ...JSON.parse(v) }; state = { ...saved, wash: withOilSteps(saved.wash) }; } catch {} } else state = { ...state }; hydrated = true; emit(); }).catch(() => { state = { ...state }; hydrated = true; emit(); });
+AsyncStorage.getItem(KEY).then(v => { if (v) { try { const saved = { ...initial(), ...JSON.parse(v) }; const clean = (st: Step[] = []) => st.map(x => ({ ...x, when: undefined, label: x.label === 'Cleanse' ? 'Shampoo' : x.label }));
+      state = { ...saved, wash: withOilSteps(clean(saved.wash)), every: clean(saved.every), occ: Object.fromEntries(Object.entries(saved.occ ?? {}).map(([k, v]) => [k, clean(v as Step[])])) }; } catch {} } else state = { ...state }; hydrated = true; emit(); }).catch(() => { state = { ...state }; hydrated = true; emit(); });
 
 export function setRoutine(fn: (s: RoutineState) => RoutineState) {
   state = fn(state);

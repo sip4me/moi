@@ -41,7 +41,7 @@ export function analyze(s: RoutineState, cat: Catalog, extra: Item[] = []): { sc
   const gaps: Gap[] = [];
   const add = (g: Omit<Gap, 'weight'>, weight: number) => gaps.push({ ...g, weight });
 
-  if (!has('shampoo', 'clarifying', 'anti_dandruff')) add({ id: 'cleanser', kind: 'step', title: 'A cleanser', why: 'Nothing in your routine washes your hair or scalp.', fills: ['shampoo'] }, 12);
+  if (!has('shampoo', 'clarifying', 'anti_dandruff')) add({ id: 'cleanser', kind: 'step', title: 'Shampoo', why: 'Nothing in your routine washes your hair or scalp.', fills: ['shampoo'] }, 12);
   if (!has('conditioner')) add({ id: 'conditioner', kind: 'step', title: 'Conditioner', why: 'Conditioner seals the cuticle after washing. Without it, strands tangle and snap.', fills: ['conditioner'] }, 12);
   if (heatUse && !hasTag('heat_protect')) add({ id: 'heat', kind: 'step', title: 'Heat protectant', why: `You heat style${s.hair.heat ? ` ${s.hair.heat.toLowerCase()}` : ''} and nothing in your routine protects against heat.`, fills: ['heat_protectant'] }, 12);
   if ((p.treated || p.g.has('Repair damage')) && !hasTag('bond_builder') && !has('deep_conditioner')) add({ id: 'repair', kind: 'step', title: 'Bond repair', why: `${p.treated ? `${s.hair.treated} breaks` : 'Damage breaks'} the bonds inside each strand. A bond builder or mask rebuilds them.`, fills: ['bond_builder', 'deep_conditioner'] }, 12);
@@ -53,7 +53,7 @@ export function analyze(s: RoutineState, cat: Catalog, extra: Item[] = []): { sc
 
   // Clashes
   const harsh = items.filter(i => i.tags.includes('sulfate_strong'));
-  if (harsh.length >= 2 && (p.treated || p.g.has('Repair damage'))) add({ id: 'two_harsh', kind: 'clash', title: 'Two harsh cleansers', why: `${harsh.slice(0, 2).map(i => i.brand).join(' and ')} both use strong sulfates. Together they strip ${p.treated ? 'treated' : 'damaged'} hair. Swap one for a gentle shampoo.`, fills: ['shampoo'], replace: harsh[0], needTag: 'sulfate_free' }, 9);
+  if (harsh.length >= 2 && (p.treated || p.g.has('Repair damage'))) add({ id: 'two_harsh', kind: 'clash', title: 'Two harsh shampoos', why: `${harsh.slice(0, 2).map(i => i.brand).join(' and ')} both use strong sulfates. Together they strip ${p.treated ? 'treated' : 'damaged'} hair. Swap one for a gentle shampoo.`, fills: ['shampoo'], replace: harsh[0], needTag: 'sulfate_free' }, 9);
   else if (harsh.length === 1 && p.treated && harsh[0].category === 'shampoo') add({ id: 'harsh', kind: 'clash', title: 'A harsh everyday shampoo', why: `${harsh[0].brand} ${harsh[0].name} uses strong sulfates, which fade color and dry out ${s.hair.treated?.toLowerCase()}ed hair.`, fills: ['shampoo'], replace: harsh[0], needTag: 'sulfate_free' }, 9);
   if (p.fine && (p.g.has('More volume') || p.g.has('Thicker look'))) { const heavy = items.find(i => i.tags.includes('heavy_oil')); if (heavy) add({ id: 'heavy', kind: 'clash', title: 'Too heavy for fine hair', why: `${heavy.brand} ${heavy.name} has rich oils and butters that flatten fine strands and work against volume.`, fills: [heavy.category], replace: heavy, needTag: 'light' }, 6); }
 
