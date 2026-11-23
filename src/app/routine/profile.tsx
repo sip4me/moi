@@ -49,7 +49,8 @@ export default function RoutineProfile() {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, maxWidth: 640 }}>
         <View>
           <Image source={require('../../../assets/avatar.png')} resizeMode="contain" style={{ width: 76, height: 79 }} accessibilityLabel="Your profile picture" />
-          {a.ok ? <Image source={crown} resizeMode="contain" style={{ position: 'absolute', top: -14, right: -6, width: 34, height: 34, transform: [{ rotate: '14deg' }] }} /> : null}
+          {/* Crown sits on the head the way it sits on the "o" in the Moi logo: head-wide, tipped 14° left, base on top. */}
+          {a.ok ? <Image source={crown} resizeMode="contain" style={{ position: 'absolute', top: -3, left: 23, width: 29, height: 29.5, transform: [{ rotate: '-14deg' }] }} /> : null}
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: F.bold, fontSize: 26, color: C.ink }}>{name && name !== 'Your name' ? name : 'Your royal profile'}</Text>
