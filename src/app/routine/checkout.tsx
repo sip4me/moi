@@ -82,7 +82,7 @@ export default function Checkout() {
           style={({ hovered }: any) => ({ width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: hovered ? 'rgba(255,255,255,0.5)' : 'transparent' })}>
           <Svg width={10} height={16} viewBox="0 0 10 16"><Path d="M8 2 2 8l6 6" stroke={SILVER.ink} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" fill="none" /></Svg>
         </Pressable>
-        <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.medium, fontWeight: '700', fontSize: wide ? 38 : 32, lineHeight: wide ? 46 : 39, letterSpacing: -0.9, color: SILVER.ink }}>Confirm and buy</Text>
+        <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.medium, fontWeight: '700', fontSize: wide ? 32 : 26, lineHeight: wide ? 38 : 31, letterSpacing: -0.7, color: SILVER.ink }}>Confirm and buy</Text>
       </View>
 
       <View style={{ maxWidth: 600, gap: 22 }}>

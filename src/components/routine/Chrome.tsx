@@ -20,8 +20,8 @@ export function SilverCard({ children, style }: { children: React.ReactNode; sty
 export function LabelValue({ label, value, big, onPress }: { label: string; value: string; big?: boolean; onPress?: () => void }) {
   const body = (
     <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 16 }}>
-      <Text style={{ flex: 1, fontFamily: F.medium, fontSize: big ? 22 : 16, letterSpacing: -0.3, color: SILVER.label }} numberOfLines={2}>{label}</Text>
-      <Text style={{ fontFamily: F.medium, fontSize: big ? 24 : 16, letterSpacing: -0.4, color: SILVER.ink, fontVariant: ['tabular-nums'], textAlign: 'right', flexShrink: 1 }} numberOfLines={2}>{value}</Text>
+      <Text style={{ flex: 1, fontFamily: F.medium, fontSize: big ? 18 : 15, lineHeight: big ? 23 : 20, letterSpacing: -0.2, color: SILVER.label }}>{label}</Text>
+      <Text style={{ fontFamily: F.medium, fontSize: big ? 20 : 15, lineHeight: big ? 25 : 20, letterSpacing: -0.3, color: SILVER.ink, fontVariant: ['tabular-nums'], textAlign: 'right', flexShrink: 1, maxWidth: '55%' }}>{value}</Text>
     </View>
   );
   return onPress ? <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`Edit ${label}`}>{({ hovered }: any) => <View style={{ opacity: hovered ? 0.7 : 1 }}>{body}</View>}</Pressable> : body;
@@ -53,7 +53,7 @@ export function StepperCard({ name, sub, price, n, onChange, onRemove, footer }:
     <SilverCard>
       <View style={{ gap: 4 }}>
         <LabelValue label={name} value={price} big />
-        {sub ? <Text style={{ fontFamily: F.medium, fontSize: 13, color: SILVER.label }} numberOfLines={1}>{sub}</Text> : null}
+        {sub ? <Text style={{ fontFamily: F.medium, fontSize: 13, lineHeight: 18, color: SILVER.label }}>{sub}</Text> : null}
       </View>
       <ChromeTrack>
         {n <= 1

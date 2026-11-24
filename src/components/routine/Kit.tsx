@@ -164,7 +164,7 @@ export function Heading({ title, sub, right }: { title: string; sub?: string; ri
   return (
     <View style={{ gap: 16, maxWidth: 720 }}>
       <View style={{ gap: 10 }}>
-        <Text {...({ dataSet: { grad: 'title' } } as any)} style={[st.h1, { fontSize: wide ? 44 : 34, lineHeight: wide ? 52 : 40 }]}>{title}</Text>
+        <Text {...({ dataSet: { grad: 'title' } } as any)} style={[st.h1, { fontSize: wide ? 36 : 28, lineHeight: wide ? 42 : 33 }]}>{title}</Text>
         {sub ? <Text style={st.sub}>{sub}</Text> : null}
       </View>
       {right}
@@ -747,7 +747,7 @@ export function GapBall({ gap, selected, onPress, price }: { gap: Gap; selected?
         <><View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: c.fg }} /><Text numberOfLines={1} style={{ fontFamily: SYS ?? F.medium, fontWeight: '500', fontSize: 13, color: '#5E5E66' }}>{KIND_LABEL[gap.kind]}</Text></>
       } />
       <View style={{ alignItems: 'center', gap: 4 }}>
-        <Text {...({ dataSet: { grad: 'name' } } as any)} style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 19, lineHeight: 24, letterSpacing: -0.4, color: '#1D1D22', textAlign: 'center' }}>{gap.title}</Text>
+        <Text {...({ dataSet: { grad: 'name' } } as any)} style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 16, lineHeight: 21, letterSpacing: -0.3, color: '#1D1D22', textAlign: 'center' }}>{gap.title}</Text>
         {price ? <Text style={{ fontFamily: SYS ?? F.regular, fontWeight: '400', fontSize: 13, color: '#8A8A93' }}>{price}</Text> : null}
       </View>
     </Pressable>
@@ -763,12 +763,12 @@ export function PickBubble({ item, gain, badge, why, inBag, onAdd, fit }: { item
     <View style={{ flexGrow: 1, flexBasis: 140, maxWidth: 200, alignItems: 'center', gap: 8, paddingTop: 14, paddingBottom: 12, paddingHorizontal: 12, borderRadius: 24, backgroundColor: '#fff', borderWidth: 1, borderColor: '#EEF0F3' }}>
       <Bubble category={item.category} chip={chip} size={66} lead={badge === 'best'} />
       <View style={{ alignItems: 'center', gap: 2, alignSelf: 'stretch' }}>
-        <Text {...({ dataSet: { grad: 'name' } } as any)} style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 15, lineHeight: 20, letterSpacing: -0.2, color: C.ink, textAlign: 'center' }} numberOfLines={2}>{item.name}</Text>
+        <Text {...({ dataSet: { grad: 'name' } } as any)} style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 14, lineHeight: 19, letterSpacing: -0.2, color: C.ink, textAlign: 'center' }}>{item.name}</Text>
         <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 15, color: C.ink, textAlign: 'center', fontVariant: ['tabular-nums'] }}>{item.price != null ? money(item.price) : 'At store'}</Text>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
         {gain ? <><Ico name="up" size={11} color={BLUE} /><Text style={{ fontFamily: F.bold, fontSize: 12, color: BLUE }}>{`+${gain} fit`}</Text></> : null}
-        {why ? <Text style={[st.meta, { fontSize: 12 }]} numberOfLines={1}>{gain ? `· ${why}` : why}</Text> : null}
+        {why ? <Text style={[st.meta, { fontSize: 12, textAlign: 'center' }]}>{gain ? `· ${why}` : why}</Text> : null}
       </View>
       <Pressable {...(inBag ? {} : fill('chrome-key'))} onPress={() => { haptic(); onAdd(); }} accessibilityRole="button" accessibilityLabel={inBag ? `Remove ${item.name} from bag` : `Add ${item.name} to bag`}
         style={({ hovered }: PS) => [st.btnSm, st.tint, { borderRadius: 12 }, { alignSelf: 'stretch', height: 34, flexDirection: 'row', gap: 5 }, hovered && { backgroundColor: 'rgba(94,106,206,0.24)' }, inBag && { backgroundColor: '#E5F4EA', borderColor: '#CDEBD6' }]}>

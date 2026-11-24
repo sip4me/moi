@@ -39,7 +39,7 @@ export default function Shop() {
         <View key={itemKey(i)} style={{ gap: 8 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <View style={{ width: 52, height: 52, borderRadius: 14, backgroundColor: '#F4F5F7', alignItems: 'center', justifyContent: 'center' }}><Image source={iconFor(i.category)} style={{ width: 42, height: 42 }} /></View>
-            <View style={{ flex: 1 }}><Text style={st.meta}>{i.brand}</Text><Text style={st.cardTitle} numberOfLines={2}>{i.name}</Text></View>
+            <View style={{ flex: 1 }}><Text style={st.meta}>{i.brand}</Text><Text style={st.cardTitle}>{i.name}</Text></View>
             <Text style={st.price}>{money(i.price)}</Text>
           </View>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingLeft: 64 }}>
@@ -84,7 +84,7 @@ export default function Shop() {
       {rows.length === 0 ? <Text style={st.sub}>{gaps.length ? 'No matches. Turn a filter off.' : 'No gaps to fill.'}</Text> : null}
       {rows.map(({ g, picks }) => (
         <Panel key={g.id} style={{ gap: 14, maxWidth: 720 }}>
-          <View style={{ gap: 4 }}><Text style={{ fontFamily: F.semibold, fontSize: 20, color: C.ink }}>{g.title}</Text><Text style={[st.sub, { fontSize: 13, lineHeight: 19 }]}>{g.why}</Text></View>
+          <View style={{ gap: 4 }}><Text style={{ fontFamily: F.semibold, fontSize: 18, lineHeight: 23, color: C.ink }}>{g.title}</Text><Text style={[st.sub, { fontSize: 13, lineHeight: 19 }]}>{g.why}</Text></View>
           {/* A ranked list, not a carousel: options side by side in one column are easier to compare. */}
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, maxWidth: 720 }}>
             {picks.map(p => <PickBubble key={p.item.id} item={p.item} fit={p.fit} gain={p.gain} badge={p.badge} why={p.why} inBag={s.bag.includes(itemKey(p.item))} onAdd={() => toggle(itemKey(p.item))} />)}

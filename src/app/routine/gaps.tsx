@@ -73,8 +73,8 @@ export default function Gaps() {
       footer={gaps.length ? <Btn label="Shop the fixes" onPress={() => router.push('/routine/shop')} /> : <Btn kind="secondary" label="Edit routine" onPress={() => router.push('/routine/build')} />}>
       {/* Big, bold system sans with tight tracking, as in the glass-ball reference. */}
       <View style={{ gap: 10 }}>
-        <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.bold, fontWeight: '700', fontSize: wide ? 40 : 34, lineHeight: wide ? 48 : 41, letterSpacing: -1, color: '#111114' }}>{gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'} ${goals}` : 'No gaps. Nice routine.'}</Text>
-        <Text style={{ fontFamily: SYS ?? F.regular, fontWeight: '400', fontSize: 16, color: '#6E6E78' }}>{`Routine fit ${score} of 100. Tap a gap to see its picks.`}</Text>
+        <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.bold, fontWeight: '700', fontSize: wide ? 32 : 26, lineHeight: wide ? 38 : 31, letterSpacing: -0.7, color: '#111114' }}>{gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'} ${goals}` : 'No gaps. Nice routine.'}</Text>
+        <Text style={{ fontFamily: SYS ?? F.regular, fontWeight: '400', fontSize: 15, lineHeight: 21, color: '#6E6E78' }}>{`Fit ${score} of 100. Tap a gap for picks.`}</Text>
       </View>
       {kinds.length > 2 ? <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{kinds.map(f => <Pill key={f.key} label={f.label} on={filter === f.key} onPress={() => setFilter(f.key)} />)}</View> : null}
       <View style={{ gap: 28, maxWidth: 720 }}>
