@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Linking, Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { money, NeedInfo, ScoreBar, Shell, useWide } from '../../components/routine/Kit';
+import { money, NeedInfo, ScoreBar, Shell, SYS, useWide } from '../../components/routine/Kit';
 import { ChromeButton, ChromeChoice, LabelValue, SILVER, SilverCard, StepperCard } from '../../components/routine/Chrome';
 import { analyze, retailerLinks } from '../../lib/routine/gaps';
 import { allSteps, AREA_Q, AREAS, BEAUTY_ROUTINES, CATEGORY_LABEL, DAYS, findByKey, GOALS, hasInfo, HAIR_Q, itemKey, placeItems, pref, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
@@ -82,10 +82,10 @@ export default function Checkout() {
           style={({ hovered }: any) => ({ width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: hovered ? 'rgba(255,255,255,0.5)' : 'transparent' })}>
           <Svg width={10} height={16} viewBox="0 0 10 16"><Path d="M8 2 2 8l6 6" stroke={SILVER.ink} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" fill="none" /></Svg>
         </Pressable>
-        <Text style={{ fontFamily: F.medium, fontSize: wide ? 34 : 28, letterSpacing: -0.8, color: SILVER.ink }}>Confirm and buy</Text>
+        <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.medium, fontWeight: '700', fontSize: wide ? 38 : 32, lineHeight: wide ? 46 : 39, letterSpacing: -0.9, color: SILVER.ink }}>Confirm and buy</Text>
       </View>
 
-      <View style={{ maxWidth: 600, gap: 16 }}>
+      <View style={{ maxWidth: 600, gap: 22 }}>
         {bag.map(i => (
           <StepperCard key={itemKey(i)} name={i.name} sub={`${i.brand}${CATEGORY_LABEL[i.category] ? ` · ${CATEGORY_LABEL[i.category]}` : ''}`}
             price={i.price != null ? money(i.price * q(i)) : 'At store'} n={q(i)} onChange={n => setQ(i, n)} onRemove={() => removeItem(i)} footer={stores(i)} />

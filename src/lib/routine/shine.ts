@@ -119,6 +119,19 @@ const CSS = `
 [data-fill="chrome-key"]:hover { background-image: linear-gradient(180deg, #EAEAEA 0%, #D8D8D8 100%) !important; }
 [data-fill="chrome-key"]:active, [data-fill="chrome-key-on"] { background-image: linear-gradient(180deg, #D6D6D6 0%, #E2E2E2 100%) !important;
   box-shadow: inset 0 0 0 2px #F2F2F2, inset 0 0 0 3.5px #8E8E8E, inset 0 0 0 5px #E4E4E4, inset 0 4px 8px rgba(0,0,0,0.18), 0 4px 8px -4px rgba(0,0,0,0.3); }
+/* Glass ball (Juicy "Taste mix" recipe). */
+[data-fill="ball"] { background-image: radial-gradient(circle at 50% 42%, #FFFFFF 0%, #F1EEF6 55%, #DAD4E6 100%) !important; }
+[data-fill="ball"][data-tone="lilac"] { background-image: radial-gradient(circle at 50% 42%, #FBFAFE 0%, #E7E2F3 55%, #C9C0E0 100%) !important; }
+[data-fill="ball"][data-tone="silver"] { background-image: radial-gradient(circle at 50% 42%, #FCFCFD 0%, #EBEBF0 55%, #CFCFD9 100%) !important; }
+[data-fill="ball"][data-tone="steel"] { background-image: radial-gradient(circle at 50% 42%, #FAFCFE 0%, #E4EAF3 55%, #C3CEE0 100%) !important; }
+[data-fill="ball-tint"] { background-image: radial-gradient(closest-side, rgba(255,255,255,0) 0%, rgba(184,212,240,0.05) 62%, rgba(156,192,230,0.34) 100%); }
+[data-fill="ball-edge"] { background-image: radial-gradient(closest-side, rgba(10,20,40,0) 0%, rgba(10,20,40,0) 55%, rgba(10,20,40,0.45) 100%); filter: blur(1.5px); }
+[data-fill="ball-soft"] { background-image: radial-gradient(closest-side, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0) 100%); filter: blur(1.2px); }
+[data-fill="ball-glint"] { background-color: rgba(255,255,255,0.9); filter: blur(0.8px); transform: rotate(-18deg); }
+[data-fill="ball-shadow"] { background-image: radial-gradient(closest-side, rgba(20,20,40,0.28) 0%, rgba(20,20,40,0) 100%); filter: blur(3px); }
+/* Headline text with a gradient that answers the page: steel blue into ink, like the reference titles. */
+[data-grad="title"] { background-image: linear-gradient(180deg, #4B6A8F 0%, #2A3550 55%, #14161E 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+[data-grad="name"] { background-image: linear-gradient(180deg, #3E6FA8 0%, #263652 60%, #16181F 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
 [data-fill="glass-card"] { background-color: rgba(255,255,255,0.14) !important; background-image: linear-gradient(160deg, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0.16) 100%) !important;
   -webkit-backdrop-filter: blur(30px) saturate(135%); backdrop-filter: blur(30px) saturate(135%); border-color: rgba(255,255,255,0.6) !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 0 0 1px rgba(255,255,255,0.12), 0 40px 70px -30px rgba(25,40,70,0.45); }
@@ -147,4 +160,4 @@ if (Platform.OS === 'web' && typeof document !== 'undefined' && !document.getEle
 /** Props that give a Text shiny letters (web) — spread onto <Text>. */
 export const shine = (kind: 'chrome' | 'rose' | 'titanium' | 'blush') => (Platform.OS === 'web' ? ({ dataSet: { shine: kind } } as any) : {});
 /** Props that give a View a jewellery fill (web). */
-export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'lilac' | 'pearl' | 'pearl-on' | 'pearl-ask' | 'paper' | 'gold-coin' | 'glass-bg' | 'soft-bg' | 'soft-orb' | 'soft-frost' | 'silver-card' | 'chrome-track' | 'chrome-cell' | 'chrome-key' | 'chrome-key-on' | 'metal' | 'metal-well' | 'metal-card' | 'frost-panel' | 'bubble' | 'bubble-lens' | 'bubble-gloss' | 'bubble-chip' | 'glass-card' | 'glass-bar' | 'glass-panel') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});
+export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'lilac' | 'pearl' | 'pearl-on' | 'pearl-ask' | 'paper' | 'gold-coin' | 'glass-bg' | 'soft-bg' | 'soft-orb' | 'soft-frost' | 'silver-card' | 'chrome-track' | 'chrome-cell' | 'chrome-key' | 'chrome-key-on' | 'metal' | 'metal-well' | 'metal-card' | 'frost-panel' | 'ball' | 'ball-tint' | 'ball-edge' | 'ball-soft' | 'ball-glint' | 'ball-shadow' | 'bubble' | 'bubble-lens' | 'bubble-gloss' | 'bubble-chip' | 'glass-card' | 'glass-bar' | 'glass-panel') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});

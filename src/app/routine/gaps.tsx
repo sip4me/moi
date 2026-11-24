@@ -72,19 +72,19 @@ export default function Gaps() {
     <Shell active="gaps" step="3 of 3" side={wide ? <InputsPanel s={s} /> : undefined}
       footer={gaps.length ? <Btn label="Shop the fixes" onPress={() => router.push('/routine/shop')} /> : <Btn kind="secondary" label="Edit routine" onPress={() => router.push('/routine/build')} />}>
       {/* Big, bold system sans with tight tracking, as in the glass-ball reference. */}
-      <View style={{ gap: 6 }}>
-        <Text style={{ fontFamily: SYS ?? F.bold, fontWeight: '700', fontSize: wide ? 40 : 34, lineHeight: wide ? 44 : 38, letterSpacing: -1, color: '#111114' }}>{gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'} ${goals}` : 'No gaps. Nice routine.'}</Text>
+      <View style={{ gap: 10 }}>
+        <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.bold, fontWeight: '700', fontSize: wide ? 40 : 34, lineHeight: wide ? 48 : 41, letterSpacing: -1, color: '#111114' }}>{gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'} ${goals}` : 'No gaps. Nice routine.'}</Text>
         <Text style={{ fontFamily: SYS ?? F.regular, fontWeight: '400', fontSize: 16, color: '#6E6E78' }}>{`Routine fit ${score} of 100. Tap a gap to see its picks.`}</Text>
       </View>
       {kinds.length > 2 ? <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{kinds.map(f => <Pill key={f.key} label={f.label} on={filter === f.key} onPress={() => setFilter(f.key)} />)}</View> : null}
-      <View style={{ gap: 18, maxWidth: 720 }}>
+      <View style={{ gap: 28, maxWidth: 720 }}>
         {groups.map(grp => {
           const sel = grp.gaps.find(g => g.id === open);
           const p = sel ? rankPicks(sel, s, cat, score) : [];
           return (
             <View key={grp.key} style={{ gap: 14 }}>
               {groups.length > 1 ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 4 }}><Image source={icon3d(grp.icon)} style={{ width: 26, height: 26 }} /><Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 18, color: '#1D1D22', flex: 1 }}>{grp.label}</Text><Text style={{ fontFamily: SYS ?? F.medium, fontSize: 13, color: '#8A8A93' }}>{`${grp.gaps.length} gap${grp.gaps.length === 1 ? '' : 's'}`}</Text></View> : null}
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 14 }}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
                 {grp.gaps.map(g => {
                   const pr = picksFor(g, s, cat, 3).filter(x => x.item.price != null);
                   const from = pr.length ? Math.min(...pr.map(x => x.item.price!)) : null;

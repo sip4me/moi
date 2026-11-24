@@ -136,9 +136,9 @@ export function Shell({ active, children, side, footer, step, hideNav, glass, si
         <View style={{ flex: 1 }}>
           <View style={{ flex: 1 }}>
           <ScrollView ref={scrollRef} style={{ flex: 1 }} {...cue.props}
-            contentContainerStyle={wide ? { paddingHorizontal: 72, paddingTop: 32, paddingBottom: 64, gap: 32, width: '100%', maxWidth: 920, alignSelf: 'center' } : { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 40, gap: 24 }}>
+            contentContainerStyle={wide ? { paddingHorizontal: 72, paddingTop: 36, paddingBottom: 80, gap: 36, width: '100%', maxWidth: 960, alignSelf: 'center' } : { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 48, gap: 28 }}>
             {glass || silver ? children : (
-              <View {...fill('glass-panel')} style={{ borderRadius: 30, padding: wide ? 32 : 18, gap: wide ? 28 : 22, backgroundColor: 'rgba(255,255,255,0.66)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.7)' }}>
+              <View {...fill('glass-panel')} style={{ borderRadius: 32, padding: wide ? 40 : 24, gap: wide ? 36 : 30, backgroundColor: 'rgba(255,255,255,0.66)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.7)' }}>
                 {children}
               </View>
             )}
@@ -163,8 +163,8 @@ export function Heading({ title, sub, right }: { title: string; sub?: string; ri
   const wide = useWide();
   return (
     <View style={{ gap: 16, maxWidth: 720 }}>
-      <View style={{ gap: 6 }}>
-        <Text {...shine('chrome')} style={[st.h1, { fontSize: wide ? 44 : 34, lineHeight: wide ? 48 : 38 }]}>{title}</Text>
+      <View style={{ gap: 10 }}>
+        <Text {...({ dataSet: { grad: 'title' } } as any)} style={[st.h1, { fontSize: wide ? 44 : 34, lineHeight: wide ? 52 : 40 }]}>{title}</Text>
         {sub ? <Text style={st.sub}>{sub}</Text> : null}
       </View>
       {right}
@@ -703,20 +703,30 @@ const toneOf = (c: string) => TONES[c] ?? ['lilac', 'silver', 'steel'][[...c].re
 
 /** Frosted separation: a section as a soft frosted plate on the flat grey ground. */
 export function Panel({ children, style }: { children: React.ReactNode; style?: ViewStyle }) {
-  return <View {...fill('frost-panel')} style={[{ borderRadius: 24, padding: 18, gap: 12, backgroundColor: 'rgba(250,250,252,0.85)', borderWidth: 1, borderColor: '#FFFFFF' }, style]}>{children}</View>;
+  return <View {...fill('frost-panel')} style={[{ borderRadius: 26, padding: 22, gap: 16, backgroundColor: 'rgba(250,250,252,0.85)', borderWidth: 1, borderColor: '#FFFFFF' }, style]}>{children}</View>;
 }
 
 /** The product as a glass bubble: the category icon floats inside a glossy sphere, a frosted chip sits on its lower edge. */
-export function Bubble({ category, size = 84, chip, lead }: { category: string; size?: number; chip?: React.ReactNode; lead?: boolean }) {
+/**
+ * A glass ball, built layer for layer from the Juicy "Taste mix" balls in Figma: the contents, a blue glass tint
+ * toward the rim, a darker edge falloff low on the right, a soft highlight and a sharp glint up top-left, and a soft
+ * shadow on the ground below. (Juicy's coloured rings are left out on purpose.)
+ */
+export function Bubble({ category, size = 84, chip }: { category: string; size?: number; chip?: React.ReactNode; lead?: boolean }) {
+  const tone = toneOf(category);
+  const web = (k: string, extra?: object) => (Platform.OS === 'web' ? ({ dataSet: { fill: k, ...extra } } as any) : {});
   return (
-    <View style={{ width: chip ? Math.max(size + 40, 140) : size, height: chip ? size + 12 : size, alignItems: 'center' }}>
-      <View {...(Platform.OS === 'web' ? ({ dataSet: { fill: 'bubble', tone: toneOf(category) } } as any) : {})} style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: '#EEE9F3', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        {/* The product sits inside the glass, filling it, slightly low as if afloat. */}
-        <Image source={iconFor(category)} style={{ width: size * 0.96, height: size * 0.96, marginTop: size * 0.1 }} resizeMode="contain" />
-        <View {...fill('bubble-lens')} pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, borderRadius: size / 2 }} />
-        <View {...fill('bubble-gloss')} pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, borderRadius: size / 2 }} />
+    <View style={{ width: chip ? Math.max(size + 40, 140) : size, height: chip ? size + 14 : size + 6, alignItems: 'center' }}>
+      {/* Shadow on the ground (Figma: 80% wide, 22% tall, under the ball) */}
+      <View {...web('ball-shadow')} pointerEvents="none" style={{ position: 'absolute', top: size * 0.82, width: size * 0.8, height: size * 0.22, borderRadius: size }} />
+      <View {...web('ball', { tone })} style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: '#EEE9F3', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <Image source={iconFor(category)} style={{ width: size * 0.6, height: size * 0.6, marginTop: size * 0.04 }} resizeMode="contain" />
+        <View {...web('ball-tint')} pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, borderRadius: size }} />
+        <View {...web('ball-edge')} pointerEvents="none" style={{ position: 'absolute', left: '8%', top: '10%', width: '105%', height: '105%', borderRadius: size }} />
+        <View {...web('ball-soft')} pointerEvents="none" style={{ position: 'absolute', left: '12%', top: '6%', width: '52%', height: '34%', borderRadius: size }} />
+        <View {...web('ball-glint')} pointerEvents="none" style={{ position: 'absolute', left: '22%', top: '15%', width: '21%', height: '10%', borderRadius: size }} />
       </View>
-      {chip ? <View {...fill('bubble-chip')} style={{ position: 'absolute', bottom: 0, flexDirection: 'row', alignItems: 'center', gap: 4, height: 30, paddingHorizontal: 12, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.9)', borderWidth: HAIR, borderColor: 'rgba(20,20,40,0.08)' }}>{chip}</View> : null}
+      {chip ? <View {...fill('bubble-chip')} style={{ position: 'absolute', bottom: 0, flexDirection: 'row', alignItems: 'center', gap: 5, height: 30, paddingHorizontal: 12, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.9)', borderWidth: HAIR, borderColor: 'rgba(20,20,40,0.08)' }}>{chip}</View> : null}
     </View>
   );
 }
@@ -730,14 +740,14 @@ export function GapBall({ gap, selected, onPress, price }: { gap: Gap; selected?
   const c = KIND_COLOR[gap.kind];
   return (
     <Pressable onPress={() => { haptic('select'); onPress(); }} accessibilityRole="button" accessibilityState={{ expanded: selected }} accessibilityLabel={`${gap.title}. ${KIND_LABEL[gap.kind]}`}
-      style={({ hovered }: PS) => ({ flexGrow: 1, flexBasis: 130, maxWidth: 340, alignItems: 'center', gap: 12, paddingTop: 22, paddingBottom: 18, paddingHorizontal: 10, borderRadius: 28,
+      style={({ hovered }: PS) => ({ flexGrow: 1, flexBasis: 130, maxWidth: 340, alignItems: 'center', gap: 16, paddingTop: 26, paddingBottom: 24, paddingHorizontal: 12, borderRadius: 30,
         backgroundColor: '#FFFFFF', borderWidth: selected ? 1 : HAIR, borderColor: selected ? '#8F86C6' : 'rgba(20,20,40,0.10)',
         shadowColor: '#14142A', shadowOpacity: hovered ? 0.10 : 0.06, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } })}>
       <Bubble category={gap.fills[0]} size={100} chip={
         <><View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: c.fg }} /><Text numberOfLines={1} style={{ fontFamily: SYS ?? F.medium, fontWeight: '500', fontSize: 13, color: '#5E5E66' }}>{KIND_LABEL[gap.kind]}</Text></>
       } />
       <View style={{ alignItems: 'center', gap: 4 }}>
-        <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 19, lineHeight: 23, letterSpacing: -0.4, color: '#1D1D22', textAlign: 'center' }}>{gap.title}</Text>
+        <Text {...({ dataSet: { grad: 'name' } } as any)} style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 19, lineHeight: 24, letterSpacing: -0.4, color: '#1D1D22', textAlign: 'center' }}>{gap.title}</Text>
         {price ? <Text style={{ fontFamily: SYS ?? F.regular, fontWeight: '400', fontSize: 13, color: '#8A8A93' }}>{price}</Text> : null}
       </View>
     </Pressable>
@@ -753,7 +763,7 @@ export function PickBubble({ item, gain, badge, why, inBag, onAdd, fit }: { item
     <View style={{ flexGrow: 1, flexBasis: 140, maxWidth: 200, alignItems: 'center', gap: 8, paddingTop: 14, paddingBottom: 12, paddingHorizontal: 12, borderRadius: 24, backgroundColor: '#fff', borderWidth: 1, borderColor: '#EEF0F3' }}>
       <Bubble category={item.category} chip={chip} lead={badge === 'best'} />
       <View style={{ alignItems: 'center', gap: 2, alignSelf: 'stretch' }}>
-        <Text style={{ fontFamily: F.semibold, fontSize: 15, lineHeight: 19, color: C.ink, textAlign: 'center' }} numberOfLines={2}>{item.name}</Text>
+        <Text {...({ dataSet: { grad: 'name' } } as any)} style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 15, lineHeight: 20, letterSpacing: -0.2, color: C.ink, textAlign: 'center' }} numberOfLines={2}>{item.name}</Text>
         <Text style={[st.meta, { fontSize: 12, textAlign: 'center' }]} numberOfLines={1}>{[item.brand, why].filter(Boolean).join(' · ')}</Text>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -895,7 +905,7 @@ export function NeedInfo({ goals }: { goals: boolean }) {
   return (
     <View style={{ gap: 16, maxWidth: 520, paddingTop: 8 }}>
       <Image source={icon3d(goals ? 'conditioner' : 'learn')} style={{ width: 72, height: 72 }} />
-      <Text {...shine('chrome')} style={[st.h1, { fontSize: 30, lineHeight: 34 }]}>{goals ? 'Add your routine first' : 'A few questions first'}</Text>
+      <Text {...({ dataSet: { grad: 'title' } } as any)} style={[st.h1, { fontSize: 30, lineHeight: 36 }]}>{goals ? 'Add your routine first' : 'A few questions first'}</Text>
       <Text style={st.sub}>{goals ? 'Add one product you use to see your gaps.' : 'Answer a few quick questions to see your gaps.'}</Text>
       <Btn label={goals ? 'Add my routine' : 'Start'} onPress={() => router.push(goals ? '/routine/build' : '/routine/about')} style={{ alignSelf: 'flex-start' }} />
     </View>

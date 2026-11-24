@@ -13,7 +13,7 @@ import { F } from '../../theme';
 export const SILVER = { ground: '#C9C9CA', card: '#F2F2F2', label: '#A3A3A3', ink: '#0E0E0E', track: '#EDEDED', cell: '#EAEAEA', icon: '#8E8E8E' };
 
 export function SilverCard({ children, style }: { children: React.ReactNode; style?: ViewStyle }) {
-  return <View {...fill('silver-card')} style={[{ borderRadius: 30, padding: 22, gap: 18, backgroundColor: SILVER.card }, style]}>{children}</View>;
+  return <View {...fill('silver-card')} style={[{ borderRadius: 32, padding: 26, gap: 22, backgroundColor: SILVER.card }, style]}>{children}</View>;
 }
 
 /** Grey label left, black value right, as in "Credits  $30.00". */
