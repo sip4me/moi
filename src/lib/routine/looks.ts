@@ -77,3 +77,25 @@ export function shouldLine(s: RoutineState, gaps: { title: string; fills: string
   const things = top.map(g => `${article(g.title)} ${g.title.toLowerCase()}`);
   return `Get ${list(things)} to ${goal}.`;
 }
+
+/** What a typed look ("glossy lip and smudged kohl", "defined curls") says about their routine and looks. */
+export function lookFromText(text: string): { area?: 'hair' | 'skin' | 'makeup' | 'body'; prefs: Record<string, string[]>; goals: string[] } {
+  const t = text.toLowerCase();
+  const has = (re: RegExp) => re.test(t);
+  const prefs: Record<string, string[]> = {};
+  const lip = has(/lip contour|overline|over-line/) ? 'Lip contour' : has(/blur(red)? lip|soft lip|bitten/) ? 'Blurred lip' : has(/gloss|glossy|glass lip/) ? 'Glossy' : has(/bold lip|red lip|oxblood|cherry|berry lip|dark lip/) ? 'Bold lip' : null;
+  const eye = has(/siren/) ? 'Siren eyes' : has(/kohl|smudg|smok|tired girl|indie/) ? 'Smudged kohl' : has(/wing|flick|cat.?eye/) ? 'Micro wing' : has(/metallic|shimmer|glitter/) ? 'Soft metallic' : has(/no.?makeup|natural|barely|clean girl/) ? 'Barely there' : null;
+  const face = has(/full glam|glam/) ? 'Full glam' : has(/toast|bronz|sun.?kiss|latte|warm/) ? 'Toasty' : has(/cloud|soft.?matte|velvet|blur/) ? 'Cloud skin' : has(/sculpt|contour|cheekbone/) ? 'Soft sculpt' : has(/skin first|clean girl|no.?makeup|natural|tint/) ? 'Skin first' : null;
+  if (lip) prefs.mk_lip_look = [lip];
+  if (eye) prefs.mk_eye_look = [eye];
+  if (face) prefs.mk_face_look = [face];
+  const goals = [
+    has(/curl|coil|ringlet/) && 'Define curls', has(/frizz|smooth|sleek/) && 'Less frizz', has(/grow|length|long hair/) && 'Grow length',
+    has(/volume|bounce|blowout/) && 'More volume', has(/damage|repair|bleach|broken/) && 'Repair damage', has(/thick|fuller/) && 'Thicker look',
+  ].filter((g): g is string => !!g);
+  const makeup = !!(lip || eye || face) || has(/makeup|make-up|lip|eye|lash|brow|blush|glam/);
+  const hair = goals.length > 0 || has(/hair|braid|wave|bun|ponytail/);
+  const skin = has(/skin|glow|dewy|acne|spot|glass skin|pores/);
+  const body = has(/body|lotion|shower/);
+  return { area: makeup ? 'makeup' : hair ? 'hair' : skin ? 'skin' : body ? 'body' : undefined, prefs, goals };
+}

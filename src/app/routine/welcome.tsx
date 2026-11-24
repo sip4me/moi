@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Image, Pressable, Text, useWindowDimensions, View } from 'react-native';
+import { Animated, Easing, Image, Pressable, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMembers } from '../../lib/routine/access';
@@ -8,6 +8,9 @@ import { Logo } from '../../components/ui';
 import { haptic } from '../../lib/haptics';
 import { fill } from '../../lib/routine/shine';
 import { session, setRoutine } from '../../lib/routine/model';
+import { lookFromText } from '../../lib/routine/looks';
+import { takeProductPhoto } from '../../lib/routine/capture';
+import { useStore } from '../../state/store';
 import { C, F } from '../../theme';
 
 const crownArt = require('../../../assets/crown-pink.png');
@@ -70,6 +73,22 @@ export default function Welcome() {
     setRoutine(r => ({ ...r, welcomed: true, ...(fresh ? { goals: [], hair: {}, areas: [], prefs: {}, started: false } : {}) }));
     router.push('/routine/about'); // push, so the browser's Back returns here
   };
+  // "Copy a look": describe it or add a photo, then sign up and the routine starts from it.
+  const [look, setLook] = useState('');
+  const [photo, setPhoto] = useState<string | null>(null);
+  const { account } = useStore();
+  const addPhoto = async () => { const uri = await takeProductPhoto(true); if (uri) { haptic('select'); setPhoto(uri); } };
+  const start = () => {
+    if (!look.trim() && !photo) return;
+    haptic('success');
+    session.started = true;
+    const r0 = lookFromText(look);
+    session.lookPhoto = photo ?? undefined;
+    setRoutine(r => ({ ...r, welcomed: true, started: false, lookText: look.trim() || undefined, areas: r0.area ? [r0.area] : [], prefs: r0.prefs, goals: r0.goals, hair: {} }));
+    const next = '/routine/about';
+    if (account && !account.anonymous) router.push(next);
+    else router.push({ pathname: '/sign-in', params: { mode: 'signup', next } });
+  };
   const { width: W, height: H } = useWindowDimensions();
   const cw = Math.min(340, W - 56), ch = Math.min(540, Math.max(440, H * 0.64));
   const back = useRef(new Animated.Value(0)).current;
@@ -112,17 +131,32 @@ export default function Welcome() {
           <Animated.View {...fill('glass-card')} style={[{ width: cw, height: ch, borderRadius: 28, borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)', backgroundColor: 'rgba(255,255,255,0.28)', padding: 16, justifyContent: 'space-between' }, rise(logo)]}>
             <View />
             <View style={{ alignItems: 'center' }}>
-              <Logo size={96} color={C.ink} />
-              <Animated.Text style={[{ fontFamily: F.display, fontSize: 26, lineHeight: 32, letterSpacing: 0.2, color: '#9E3550', marginTop: 20, transform: [{ translateY: float.interpolate({ inputRange: [0, 1], outputRange: [0, -6] }) }] }, { opacity: line }]}>beauty is genius</Animated.Text>
-              <Animated.View style={{ height: 1, width: cw * 0.62, backgroundColor: 'rgba(255,255,255,0.7)', marginTop: 18, opacity: line }} />
+              <Logo size={76} color={C.ink} />
+              <Animated.Text style={[{ fontFamily: F.display, fontSize: 24, lineHeight: 30, letterSpacing: 0.2, color: '#9E3550', marginTop: 14, transform: [{ translateY: float.interpolate({ inputRange: [0, 1], outputRange: [0, -6] }) }] }, { opacity: line }]}>beauty is genius</Animated.Text>
+              <Animated.Text style={[{ fontFamily: F.medium, fontSize: 16, lineHeight: 22, color: '#2A2F45', marginTop: 6 }, { opacity: line }]}>Yours is a routine you love.</Animated.Text>
             </View>
-            {/* Frosted bar with the way in, like the label bar on the reference card. */}
-            <Animated.View {...fill('glass-bar')} style={[{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingLeft: 18, paddingRight: 8, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.65)', backgroundColor: 'rgba(255,255,255,0.45)' }, rise(arrow)]}>
-              <Text style={{ flex: 1, fontFamily: F.semibold, fontSize: 13, letterSpacing: 1.2, color: '#2A2F45' }}>{'FIND THE GAPS IN\nYOUR ROUTINE'}</Text>
-              <Pressable {...fill('lilac')} onPress={go} accessibilityRole="button" accessibilityLabel="Continue to find the gaps in your routine"
-                style={({ pressed }: { pressed: boolean }) => ({ width: 52, height: 52, borderRadius: 26, borderWidth: 1.5, borderColor: '#fff', backgroundColor: '#F4F5FC', alignItems: 'center', justifyContent: 'center', transform: [{ scale: pressed ? 0.95 : 1 }] })}>
+            {/* Lovable-style prompt: describe a look or add a photo, then go. */}
+            <Animated.View style={[{ gap: 10 }, rise(arrow)]}>
+              <View {...fill('glass-bar')} style={{ borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.75)', backgroundColor: 'rgba(255,255,255,0.72)', padding: 12, gap: 10 }}>
+                <TextInput value={look} onChangeText={setLook} placeholder="Describe a look you love, or add a photo" placeholderTextColor="#8A8DA0" multiline
+                  accessibilityLabel="Describe a look you love" onSubmitEditing={start} blurOnSubmit
+                  style={{ minHeight: 52, fontFamily: F.medium, fontSize: 16, lineHeight: 22, color: C.ink, paddingHorizontal: 4, paddingTop: 2, ...({ outlineStyle: 'none' } as object) }} />
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <Pressable onPress={addPhoto} accessibilityRole="button" accessibilityLabel={photo ? 'Change photo' : 'Add a photo of a look'}
+                    style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(20,20,40,0.12)', backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                    {photo ? <Image source={{ uri: photo }} style={{ width: 40, height: 40 }} /> : <Svg width={18} height={18} viewBox="0 0 24 24"><Path d="M12 5v14M5 12h14" stroke="#2A2F45" strokeWidth={1.8} strokeLinecap="round" /></Svg>}
+                  </Pressable>
+                  <Text style={{ flex: 1, fontFamily: F.medium, fontSize: 13, color: '#6B6F84' }}>{photo ? 'Photo added' : 'Copy a look'}</Text>
+                  <Pressable {...fill('chrome-key')} onPress={start} accessibilityRole="button" accessibilityLabel="Build my routine from this look" disabled={!look.trim() && !photo}
+                    style={{ width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: '#DADADA', borderWidth: 1.5, borderColor: '#161616', opacity: look.trim() || photo ? 1 : 0.45 }}>
+                    <Svg width={18} height={18} viewBox="0 0 24 24"><Path d="M12 19V5M6 11l6-6 6 6" stroke="#111114" strokeWidth={2.1} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
+                  </Pressable>
+                </View>
+              </View>
+              <Pressable onPress={go} accessibilityRole="button" accessibilityLabel="Or start with a few questions" hitSlop={8} style={{ alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={{ fontFamily: F.semibold, fontSize: 13, letterSpacing: 0.4, color: '#2A2F45' }}>Or answer a few questions</Text>
                 <Animated.View style={{ transform: [{ translateX: nudge.interpolate({ inputRange: [0, 1], outputRange: [-2, 2] }) }] }}>
-                  <Svg width={22} height={22} viewBox="0 0 24 24"><Path d="M5 12h13M13 6l6 6-6 6" stroke="#2A2F45" strokeWidth={2.1} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
+                  <Svg width={14} height={14} viewBox="0 0 24 24"><Path d="M5 12h13M13 6l6 6-6 6" stroke="#2A2F45" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
                 </Animated.View>
               </Pressable>
             </Animated.View>

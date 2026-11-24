@@ -39,6 +39,8 @@ export type RoutineState = {
   bag: string[]; // item keys: p:<id> / t:<id>
   qty?: Record<string, number>; // how many of each bag item (default 1)
   /** Picks paging per gap: how many refreshes used, whether they asked for cheaper, and why nothing fit. */
+  /** The look they described on the first screen, if they started there. */
+  lookText?: string;
   refresh?: Record<string, { n: number; cheap?: boolean; why?: string }>;
   /** Picks whose store page was opened from Your picks, so Moi can ask "Did you buy it?" next time. */
   opened?: Record<string, { store: string; at: number }>;
@@ -378,7 +380,7 @@ export async function searchRemote(q: string, hint?: string, areaOverride?: Area
 }
 
 /** Per app-open flags (reset on every load): the start choice and the goals page open empty the first time through. */
-export const session = { started: false, chose: false };
+export const session: { started: boolean; chose: boolean; lookPhoto?: string } = { started: false, chose: false };
 
 /** True once the person has told us enough to judge: goals, plus a routine (entered or built). */
 /** Puts bag items into the person's routines: an empty matching step first, else a new step in the right routine. */
