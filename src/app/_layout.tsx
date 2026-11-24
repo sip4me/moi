@@ -19,6 +19,16 @@ import { useContentProtection } from '../lib/protect';
  * Web loads Latin-subset WOFF2 copies (about 265 KB in all, instead of 1.6 MB of TTF), so the first screen
  * appears much sooner. Native apps keep the full TTF files.
  */
+// Web: someone who lands deep inside Routine (a shared link, a refresh) still gets the Moi welcome
+// one step behind them, so the browser's Back shows it instead of leaving the site.
+if (Platform.OS === 'web' && typeof window !== 'undefined') {
+  const { pathname, search, hash } = window.location;
+  if (pathname.startsWith('/routine/') && pathname !== '/routine/welcome' && !window.history.state?.moiBase) {
+    window.history.replaceState({ moiBase: true }, '', '/routine/welcome');
+    window.history.pushState({ moiBase: true }, '', pathname + search + hash);
+  }
+}
+
 const FONTS = Platform.OS === 'web'
   ? {
       Inter_400Regular: require('../../assets/fonts/Inter_400Regular.woff2'),

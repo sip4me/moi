@@ -1,5 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { celebrate } from '../../components/routine/Celebrate';
 import { Image, Pressable, Text, View } from 'react-native';
 import { BLUE, Btn, ChipBtn, Faint, Heading, InputsPanel, LivePanel, PlusDot, iconFor, Label, PickerSheet, Pill, ScoreBar, Segmented, Shell, st, Timeline, useWide } from '../../components/routine/Kit';
 import { icon3d } from '../../data/icons3d';
@@ -39,6 +40,15 @@ export default function Build() {
   const [shelf, setShelf] = useState(false);
   const [open, setOpen] = useState<{ w: Where; id: string } | null>(null);
   const { score, gaps } = useMemo(() => analyze(s, cat), [s, cat]);
+  // Rewards: every fit gain shows as "+N fit"; crossing 70 and 85 gets a bigger moment.
+  const lastScore = useRef<number | null>(null);
+  useEffect(() => {
+    const was = lastScore.current; lastScore.current = score;
+    if (was == null || score <= was) return;
+    if (was < 85 && score >= 85) celebrate(`Glow tier · fit ${score}`, true);
+    else if (was < 70 && score >= 70) celebrate(`Nearly there · fit ${score}`, true);
+    else celebrate(`+${score - was} fit`);
+  }, [score]);
 
   // "Build me a new one": fill a routine with the best pick for every step their goals need.
   useEffect(() => {
@@ -64,7 +74,7 @@ export default function Build() {
 
   const list = (w: Where, steps: Step[]) => (
     <Timeline steps={steps} onOpen={x => setOpen({ w, id: x.id })} submitted={!!s.submitted?.[keyOf(w)]}
-      onSubmit={() => setRoutine(r => ({ ...r, submitted: { ...(r.submitted ?? {}), [keyOf(w)]: true } }))}
+      onSubmit={() => { setRoutine(r => ({ ...r, submitted: { ...(r.submitted ?? {}), [keyOf(w)]: true } })); celebrate('Routine complete', true); }}
       extra={<View style={{ paddingBottom: 12 }}><Pressable onPress={() => addStep(w)} style={({ hovered }: { pressed: boolean; hovered?: boolean }) => ({ marginLeft: 26, paddingHorizontal: 6, paddingVertical: 6, alignSelf: 'flex-start', borderRadius: 10, borderWidth: 1.5, borderColor: hovered ? '#7E3A4C' : 'transparent', backgroundColor: hovered ? '#F6E7E6' : 'transparent' })}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}><PlusDot size={28} /><Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>Add another step</Text></View></Pressable></View>} />
   );
 

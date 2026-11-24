@@ -4,6 +4,7 @@ import { Image, Pressable, Text, View } from 'react-native';
 import { BLUE, Btn, ChipBtn, GapCard, Heading, iconFor, InputsPanel, money, st, NeedInfo, Pill, ProductCard, Shell, useWide, WhereToBuy } from '../../components/routine/Kit';
 import { icon3d } from '../../data/icons3d';
 import { GlassCard } from '../../components/routine/Glass';
+import { celebrate } from '../../components/routine/Celebrate';
 import { useAccess } from '../../lib/routine/access';
 import { analyze, gapArea, KIND_COLOR, picksFor, type Gap, type GapKind } from '../../lib/routine/gaps';
 import { AREAS, hasInfo, itemKey, setRoutine, useCatalog, useRoutine } from '../../lib/routine/model';
@@ -21,7 +22,8 @@ export default function Gaps() {
   const [open, setOpen] = useState<string | undefined>(params.g);
   const [where, setWhere] = useState<string | undefined>();
   const access = useAccess();
-  const toggleBag = (k: string) => setRoutine(r => ({ ...r, bag: r.bag.includes(k) ? r.bag.filter(x => x !== k) : [...r.bag, k] }));
+  const toggleBag = (k: string) => { if (!s.bag.includes(k)) celebrate('Added to bag'); setBag(k); };
+  const setBag = (k: string) => setRoutine(r => ({ ...r, bag: r.bag.includes(k) ? r.bag.filter(x => x !== k) : [...r.bag, k] }));
 
   if (!hasInfo(s)) return <Shell active="gaps"><NeedInfo goals={s.goals.length > 0} /></Shell>;
   // Paywall: the gaps themselves are shown, the fixes and product picks need a plan.

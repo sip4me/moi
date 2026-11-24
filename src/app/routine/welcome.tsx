@@ -68,7 +68,7 @@ export default function Welcome() {
     haptic();
     const fresh = !session.started; session.started = true;
     setRoutine(r => ({ ...r, welcomed: true, ...(fresh ? { goals: [], hair: {}, areas: [], prefs: {}, started: false } : {}) }));
-    router.replace('/routine/about');
+    router.push('/routine/about'); // push, so the browser's Back returns here
   };
   const { width: W, height: H } = useWindowDimensions();
   const cw = Math.min(340, W - 56), ch = Math.min(540, Math.max(440, H * 0.64));

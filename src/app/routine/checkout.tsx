@@ -60,7 +60,7 @@ export default function Checkout() {
   const confirm = () => {
     setRoutine(r => ({ ...placeItems(r, bag), bag: [] }));
     if (how === 'buy') bag.forEach((i, n) => setTimeout(() => Linking.openURL(retailerLinks(i)[0].url), n * 400));
-    router.replace('/routine/build');
+    router.replace({ pathname: '/routine/done', params: { from: String(score), to: String(after), n: String(bag.length), buy: how } });
   };
 
   const option = (key: 'buy' | 'save', title: string, sub: string, first: boolean) => {

@@ -100,7 +100,7 @@ export default function Plans() {
       {f ? (
         <View {...fill('pearl')} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: 20, backgroundColor: '#fff', maxWidth: 600 }}>
           <View style={{ flex: 1, gap: 6 }}>
-            <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>{founding ? `Founding Royals: ${f.left.toLocaleString()} of ${FOUNDING_CAP.toLocaleString()} crowns left` : 'Every founding crown has been claimed'}</Text>
+            <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>{founding ? `Founding Royals: ${(f.left ?? FOUNDING_CAP).toLocaleString()} of ${FOUNDING_CAP.toLocaleString()} crowns left` : 'Every founding crown has been claimed'}</Text>
             <View style={{ height: 6, borderRadius: 3, backgroundColor: '#ECEEF2', overflow: 'hidden' }}><View style={{ height: 6, width: `${Math.max(2, (f.taken / FOUNDING_CAP) * 100)}%`, backgroundColor: GOLD }} /></View>
             <Text style={st.meta}>{founding ? 'First 1,000 yearly members keep database access for life.' : 'Yearly includes everything except lifetime access.'}</Text>
           </View>

@@ -4,6 +4,7 @@ import Svg, { Path } from 'react-native-svg';
 import { ActivityIndicator, Animated, Platform, Easing, Image, Linking, Modal, Pressable, ScrollView, type ScrollViewInstance, StyleSheet, Text, TextInput, useWindowDimensions, View, type ViewStyle } from 'react-native';
 import { useScrollCue } from '../ScrollCue';
 import { GlassBackdrop } from './Glass';
+import { CelebrateLayer } from './Celebrate';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { icon3d } from '../../data/icons3d';
 import { haptic } from '../../lib/haptics';
@@ -44,7 +45,7 @@ const NAV = [
 /** The daily tracker add-on: Moi's original app (its onboarding the first time). */
 function useGo() {
   const { onboarded } = useStore();
-  return (href: string) => (href === 'tracker' ? router.push((onboarded ? '/(tabs)' : '/onboarding') as any) : router.replace(href as any));
+  return (href: string) => (href === 'tracker' ? router.push((onboarded ? '/(tabs)' : '/onboarding') as any) : router.push(href as any));
 }
 
 function MenuButton({ onPress, hint }: { onPress: () => void; hint: boolean }) {
@@ -116,7 +117,8 @@ export function Shell({ active, children, side, footer, step, hideNav, glass }: 
     <View style={[st.topBar, wide && { paddingHorizontal: 32, paddingTop: 24 }]}>
       {hideNav ? <View style={{ height: 44 }} /> : <MenuButton onPress={openMenu} hint={isHydrated() && !r.menuSeen} />}
       <View style={{ flex: 1 }} />
-      {step ? <Text style={st.meta}>{step}</Text> : null}
+      {r.bag.length ? <BagPill n={r.bag.length} /> : null}
+      {step ? <Text style={[st.meta, r.bag.length ? { marginLeft: 12 } : null]}>{step}</Text> : null}
     </View>
   );
   const scrollRef = useRef<ScrollViewInstance>(null);
@@ -145,6 +147,7 @@ export function Shell({ active, children, side, footer, step, hideNav, glass }: 
         {wide && side ? <ScrollView style={st.side} contentContainerStyle={{ paddingHorizontal: 22, paddingVertical: 20, gap: 12 }}>{side}</ScrollView> : null}
       </View>
       <Menu open={menu} onClose={() => setMenu(false)} active={active} />
+      <CelebrateLayer />
     </SafeAreaView>
     </View>
   );
@@ -171,6 +174,25 @@ export function Pill({ label, on, onPress }: { label: string; on?: boolean; onPr
       style={({ pressed, hovered }: PS) => [st.pill, on && st.pillOn, hovered && { ...HOVER_RIM, backgroundColor: on ? PALETTE.garnetDeep : '#ECEDEF' }, pressed && { opacity: 0.8 }]}>
       <Text style={[st.pillText, on && { color: '#fff' }]}>{label}</Text>
     </Pressable>
+  );
+}
+
+/** The bag, always in reach once something's in it: bounces when the count changes, opens checkout. */
+function BagPill({ n }: { n: number }) {
+  const pop = useRef(new Animated.Value(1)).current;
+  const prev = useRef(n);
+  useEffect(() => {
+    if (n > prev.current) Animated.sequence([Animated.spring(pop, { toValue: 1.25, friction: 3, tension: 220, useNativeDriver: true }), Animated.spring(pop, { toValue: 1, friction: 4, useNativeDriver: true })]).start();
+    prev.current = n;
+  }, [n, pop]);
+  return (
+    <Animated.View style={{ transform: [{ scale: pop }] }}>
+      <Pressable {...fill('pearl')} onPress={() => router.push('/routine/checkout')} accessibilityRole="button" accessibilityLabel={`Bag, ${n} item${n === 1 ? '' : 's'}. Check out`}
+        style={({ hovered }: PS) => ({ flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 12, borderRadius: 18, backgroundColor: '#fff', borderWidth: 1.5, borderColor: hovered ? '#C9CEF0' : 'transparent' })}>
+        <Ico name="bag" size={16} />
+        <Text style={{ fontFamily: F.semibold, fontSize: 13, color: C.ink }}>{n}</Text>
+      </Pressable>
+    </Animated.View>
   );
 }
 
