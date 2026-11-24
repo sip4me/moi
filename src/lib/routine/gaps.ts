@@ -197,14 +197,29 @@ export function picksFor(g: Gap, s: RoutineState, cat: Catalog, n = 3): { item: 
 
 /** Picks for a gap, ranked by advantage: how much each one actually raises this routine's fit, then match, then price.
  *  The top pick is "Best for you"; a cheaper one within 2 points of it is "Best value". */
+/** Up to 3 refreshes, 3 picks each: the 12 best matches for a gap, ranked by how much they lift the fit score. */
+export const MAX_REFRESH = 3;
+function rankAll(g: Gap, s: RoutineState, cat: Catalog, score: number, keep: (i: Item) => boolean, cheap?: boolean) {
+  const all = picksFor(g, s, cat, (MAX_REFRESH + 1) * 3).filter(p => keep(p.item))
+    .map(p => ({ ...p, gain: Math.max(0, analyze(s, cat, [p.item]).score - score) }));
+  // "It's the price": cheapest first (priced ones before unpriced), fit as the tie-breaker.
+  return cheap ? all.sort((a, b) => (a.item.price ?? 999) - (b.item.price ?? 999) || b.gain - a.gain)
+    : all.sort((a, b) => b.gain - a.gain || b.fit - a.fit || (a.item.price ?? 999) - (b.item.price ?? 999));
+}
+/** The 3 picks on screen for a gap: page 0 is the best 3, each refresh shows the next 3. */
 export function rankPicks(g: Gap, s: RoutineState, cat: Catalog, score: number, keep: (i: Item) => boolean = () => true, n = 3) {
-  const ps = picksFor(g, s, cat, 6).filter(p => keep(p.item))
-    .map(p => ({ ...p, gain: Math.max(0, analyze(s, cat, [p.item]).score - score) }))
-    .sort((a, b) => b.gain - a.gain || b.fit - a.fit || (a.item.price ?? 999) - (b.item.price ?? 999))
-    .slice(0, n);
+  const r = s.refresh?.[g.id];
+  const all = rankAll(g, s, cat, score, keep, r?.cheap);
+  const page = Math.min(r?.n ?? 0, Math.max(0, Math.ceil(all.length / n) - 1));
+  const ps = all.slice(page * n, page * n + n);
   const top = ps[0];
   const value = top ? ps.slice(1).filter(p => p.item.price != null && top.item.price != null && p.item.price < top.item.price && p.gain >= top.gain - 2).sort((a, b) => (a.item.price ?? 0) - (b.item.price ?? 0))[0] : undefined;
-  return ps.map((p, i) => ({ ...p, badge: i === 0 ? ('best' as const) : p === value ? ('value' as const) : undefined }));
+  return ps.map((p, i) => ({ ...p, badge: i === 0 && page === 0 && !r?.cheap ? ('best' as const) : p === value ? ('value' as const) : undefined }));
+}
+/** Whether a refresh would show new picks for this gap. */
+export function hasMorePicks(g: Gap, s: RoutineState, cat: Catalog, keep: (i: Item) => boolean = () => true, n = 3) {
+  const count = picksFor(g, s, cat, (MAX_REFRESH + 1) * n).filter(p => keep(p.item)).length;
+  return ((s.refresh?.[g.id]?.n ?? 0) + 1) * n < count;
 }
 
 /** For "Build me a new one": the steps a routine for these goals should have, each filled with the best pick. */

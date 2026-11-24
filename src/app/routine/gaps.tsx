@@ -1,12 +1,12 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
-import { BLUE, Btn, ChipBtn, GapBall, GapCard, Heading, SYS, iconFor, InputsPanel, money, st, NeedInfo, Pill, PickBubble, Shell, useWide, WhereToBuy } from '../../components/routine/Kit';
+import { BLUE, Btn, ChipBtn, GapBall, GapCard, Heading, SYS, iconFor, InputsPanel, money, MorePicks, st, NeedInfo, Pill, PickBubble, Shell, useWide, WhereToBuy } from '../../components/routine/Kit';
 import { icon3d } from '../../data/icons3d';
 import { GlassCard } from '../../components/routine/Glass';
 import { celebrate } from '../../components/routine/Celebrate';
 import { useAccess } from '../../lib/routine/access';
-import { analyze, gapArea, KIND_COLOR, picksFor, rankPicks, type Gap, type GapKind } from '../../lib/routine/gaps';
+import { analyze, gapArea, hasMorePicks, KIND_COLOR, picksFor, rankPicks, type Gap, type GapKind } from '../../lib/routine/gaps';
 import { AREAS, hasInfo, hasInput, itemKey, setRoutine, useCatalog, useRoutine } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 
@@ -100,6 +100,7 @@ export default function Gaps() {
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
                     {p.map((x: any) => <PickBubble key={x.item.id} item={x.item} fit={x.fit} gain={x.gain} badge={x.badge} why={x.why} inBag={s.bag.includes(itemKey(x.item))} onAdd={() => toggleBag(itemKey(x.item))} />)}
                   </View>
+                  <MorePicks gap={sel} more={hasMorePicks(sel, s, cat)} />
                   {where === sel.id ? <WhereToBuy item={p[0].item} /> : <ChipBtn label="Where to buy" icon="store" onPress={() => setWhere(sel.id)} />}
                 </View>
               ) : null}

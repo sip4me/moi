@@ -9,7 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { icon3d } from '../../data/icons3d';
 import { haptic } from '../../lib/haptics';
 import { ingredientsFromPhoto, itemFromPhoto, submitTyped, takeProductPhoto } from '../../lib/routine/capture';
-import { KIND_COLOR, KIND_LABEL, retailerLinks, type Gap } from '../../lib/routine/gaps';
+import { KIND_COLOR, KIND_LABEL, MAX_REFRESH, retailerLinks, type Gap } from '../../lib/routine/gaps';
 import { allSteps, AREA_OF, CATEGORY_ICON, CATEGORY_LABEL, classify, DAYS, isHydrated, searchCatalogLocal, searchRemote, setRoutine, useRoutine, TOOL_KINDS, useCatalog, type Item, type RoutineState, type Step } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 import { fill, PALETTE, shine } from '../../lib/routine/shine';
@@ -33,12 +33,12 @@ const AVATAR_ART = require('../../../assets/avatar.png');
 
 // ── Layout ───────────────────────────────────────────────────────────────────
 const NAV = [
+  { key: 'profile', label: 'My profile', icon: 'avatar', href: '/routine/profile' },
   { key: 'build', label: 'Routine', icon: 'conditioner', href: '/routine/build' },
   { key: 'gaps', label: 'Gap report', icon: 'mirror', href: '/routine/gaps' },
   { key: 'shop', label: 'Shop', icon: 'hair_food', href: '/routine/shop' },
   { key: 'goals', label: 'About you', icon: 'learn', href: '/routine/about' },
   { key: 'plans', label: 'Royal plans', icon: 'crown', href: '/routine/plans' },
-  { key: 'profile', label: 'My profile', icon: 'avatar', href: '/routine/profile' },
   { key: 'tracker', label: 'Routine tracker', icon: 'goal_target', href: 'tracker' },
 ] as const;
 
@@ -328,6 +328,7 @@ const ICON_PATHS: Record<string, string> = {
   trash: 'M4 7h16M9 7V4.8h6V7M6.5 7l1 12.2h9l1-12.2M10 11v5.5M14 11v5.5',
   minus: 'M6 12h12',
   up: 'M12 19V5M6 11l6-6 6 6',
+  refresh: 'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7',
   tag: 'M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.3 8.3-8.7 8.7zM8 8h.01',
   crown: 'M4 17h16M5 17 3.5 8l5 4L12 6l3.5 6 5-4L19 17',
   bell: 'M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5h4',
@@ -839,6 +840,50 @@ export function LinearTeaser({ area = 'hair' }: { area?: string }) {
             <TeaserStep label={label} sub={sub} state={i < done ? 'done' : i === done ? 'next' : 'empty'} />
           </React.Fragment>
         ))}
+      </View>
+    </View>
+  );
+}
+
+/**
+ * Under a gap's 3 picks: refresh for 3 more, up to 3 times. After that (or when we run out), ask whether
+ * price is the problem: yes shows the cheapest matches first; no asks what else was off.
+ */
+export function MorePicks({ gap, more }: { gap: Gap; more: boolean }) {
+  const s = useRoutine();
+  const r = s.refresh?.[gap.id];
+  const n = r?.n ?? 0;
+  const [asking, setAsking] = useState(false);
+  const set = (v: { n: number; cheap?: boolean; why?: string } | undefined) =>
+    setRoutine(x => { const { [gap.id]: _, ...rest } = x.refresh ?? {}; return { ...x, refresh: v ? { ...rest, [gap.id]: v } : rest }; });
+  const t = { fontFamily: SYS ?? F.medium, fontSize: 13, lineHeight: 18, color: '#6C6A80' };
+  if (r?.why) return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
+      <Text style={t}>{r.why === 'price' ? 'Lowest prices first.' : 'Thanks. That helps us pick better.'}</Text>
+      <Pressable onPress={() => { setAsking(false); set(undefined); }} accessibilityRole="button" hitSlop={8}><Text style={[t, { color: '#111114', fontWeight: '600', textDecorationLine: 'underline' }]}>Start over</Text></Pressable>
+    </View>
+  );
+  if (n < MAX_REFRESH && more) return (
+    <View style={{ flexDirection: 'row' }}>
+      <ChipBtn label={`More options · ${MAX_REFRESH - n} left`} icon="refresh" onPress={() => { haptic('select'); set({ n: n + 1 }); }} />
+    </View>
+  );
+  // Only one set of picks exists and they haven't refreshed: nothing to offer yet, so stay quiet.
+  if (!more && n === 0) return null;
+  if (asking) return (
+    <View style={{ gap: 8 }}>
+      <Text style={t}>What was off?</Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        {['Ingredients', 'Finish or shade', 'Brand', 'Something else'].map(w => <ChipBtn key={w} label={w} onPress={() => set({ n, why: w })} />)}
+      </View>
+    </View>
+  );
+  return (
+    <View style={{ gap: 8 }}>
+      <Text style={t}>{more ? 'Still not right? Is it the price?' : 'That’s every match we have. Is it the price?'}</Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        <ChipBtn label="Yes, show cheaper" onPress={() => set({ n: 0, cheap: true, why: 'price' })} />
+        <ChipBtn label="No, something else" onPress={() => setAsking(true)} />
       </View>
     </View>
   );

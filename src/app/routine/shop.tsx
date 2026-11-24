@@ -1,10 +1,10 @@
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Linking, Pressable, ScrollView, Text, View } from 'react-native';
-import { BLUE, Btn, ChipBtn, Heading, iconFor, Label, money, NeedInfo, Pill, Bubble, Panel, ScoreBar, SYS, Shell, st, useWide } from '../../components/routine/Kit';
+import { BLUE, Btn, ChipBtn, Heading, iconFor, Label, money, MorePicks, NeedInfo, Pill, Bubble, Panel, ScoreBar, SYS, Shell, st, useWide } from '../../components/routine/Kit';
 import { useAccess } from '../../lib/routine/access';
 import { celebrate } from '../../components/routine/Celebrate';
-import { analyze, profileOf, rankPicks, retailerLinks } from '../../lib/routine/gaps';
+import { analyze, hasMorePicks, profileOf, rankPicks, retailerLinks } from '../../lib/routine/gaps';
 import { findByKey, hasInfo, hasInput, itemKey, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 import { fill } from '../../lib/routine/shine';
@@ -34,7 +34,8 @@ export default function Shop() {
   const max = profileOf(s).budgetMax;
   // Ranked by advantage: how much each pick actually raises this routine's fit, then match, then price.
   // The top pick is "Best for you"; a cheaper one within 2 points of it is "Best value".
-  const rows = useMemo(() => gaps.map(g => ({ g, picks: rankPicks(g, s, cat, score, i => (!budgetOnly || (i.price ?? 0) <= max || max > 999) && (!under15 || (i.price ?? 0) <= 15)) })
+  const keep = (i: Item) => (!budgetOnly || (i.price ?? 0) <= max || max > 999) && (!under15 || (i.price ?? 0) <= 15);
+  const rows = useMemo(() => gaps.map(g => ({ g, picks: rankPicks(g, s, cat, score, keep) })
   ).filter(r => r.picks.length), [gaps, s, cat, budgetOnly, under15, max, score]);
   const bundle = rows.map(r => r.picks[0].item).filter(i => i.price != null);
   const bundleAfter = useMemo(() => analyze(s, cat, bundle).score, [s, cat, bundle.length]);
@@ -124,6 +125,7 @@ export default function Shop() {
                 );
               })}
             </View>
+            <MorePicks gap={g} more={hasMorePicks(g, s, cat, keep)} />
           </Panel>
         ))}
       </View>
