@@ -5,7 +5,7 @@
 export const LINKS = {
   terms: 'https://app.notion.com/p/Terms-of-Use-41c0edb7cf3a8045bf7efb30c37bdbd7',
   privacy: 'https://app.notion.com/p/Moi-Privacy-Policy-41c0edb7cf3a804faee2d427f12a96fe',
-  contact: '', // e.g. 'mailto:hello@yourdomain.com'
+  contact: 'mailto:hello@usemoi.com',
 };
 
 /** Opens a link in a new tab on the web (so the app stays open) and in the browser on phones. */

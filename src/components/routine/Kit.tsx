@@ -13,6 +13,7 @@ import { KIND_COLOR, KIND_LABEL, MAX_REFRESH, retailerLinks, type Gap } from '..
 import { allSteps, AREA_OF, CATEGORY_ICON, CATEGORY_LABEL, classify, DAYS, isHydrated, searchCatalogLocal, searchRemote, setRoutine, useRoutine, TOOL_KINDS, useCatalog, type Item, type RoutineState, type Step } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 import { fill, PALETTE, shine } from '../../lib/routine/shine';
+import { shadeOf } from '../../lib/routine/shade';
 import { useStore } from '../../state/store';
 
 export const BLUE = PALETTE.cobalt;
@@ -651,8 +652,10 @@ export function Panel({ children, style }: { children: React.ReactNode; style?: 
  * toward the rim, a darker edge falloff low on the right, a soft highlight and a sharp glint up top-left, and a soft
  * shadow on the ground below. (Juicy's coloured rings are left out on purpose.)
  */
-export function Bubble({ category, size = 84, chip }: { category: string; size?: number; chip?: React.ReactNode; lead?: boolean }) {
+export function Bubble({ category, size = 84, chip, item }: { category: string; size?: number; chip?: React.ReactNode; lead?: boolean; item?: Item }) {
   const tone = toneOf(category);
+  // The product's own shade colours the glass (a red lipstick glows red), when we know it.
+  const shade = shadeOf(item);
   const web = (k: string, extra?: object) => (Platform.OS === 'web' ? ({ dataSet: { fill: k, ...extra } } as any) : {});
   return (
     <View style={{ width: chip ? Math.max(size + 40, 140) : size, height: chip ? size + 20 : size + 6, alignItems: 'center' }}>
@@ -663,6 +666,7 @@ export function Bubble({ category, size = 84, chip }: { category: string; size?:
         <Image {...web('ball-scene')} source={iconFor(category)} style={{ position: 'absolute', width: size * 1.7, height: size * 1.7, left: -size * 0.35, top: -size * 0.3 }} resizeMode="cover" />
         <Image source={iconFor(category)} style={{ width: size * 0.64, height: size * 0.64, marginTop: size * 0.06 }} resizeMode="contain" />
         <View {...web('ball-tint')} pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, borderRadius: size }} />
+        {shade ? <View pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, borderRadius: size, backgroundColor: shade, opacity: Platform.OS === 'web' ? 0.9 : 0.45, ...(Platform.OS === 'web' ? ({ mixBlendMode: 'color' } as any) : {}) }} /> : null}
         <View {...web('ball-edge')} pointerEvents="none" style={{ position: 'absolute', left: '8%', top: '10%', width: '105%', height: '105%', borderRadius: size }} />
         <View {...web('ball-bounce')} pointerEvents="none" style={{ position: 'absolute', left: '20%', bottom: '3%', width: '60%', height: '22%', borderRadius: size }} />
         <View {...web('ball-soft')} pointerEvents="none" style={{ position: 'absolute', left: '13%', top: '3%', width: '74%', height: '42%', borderRadius: size }} />
@@ -705,7 +709,7 @@ export function PickBubble({ item, gain, badge, why, inBag, onAdd, fit }: { item
   ) : <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.gray2 }}>{`${fit}% match`}</Text>;
   return (
     <View style={{ flexGrow: 1, flexBasis: 140, maxWidth: 200, alignItems: 'center', gap: 8, paddingTop: 14, paddingBottom: 12, paddingHorizontal: 12, borderRadius: 24, backgroundColor: '#fff', borderWidth: 1, borderColor: '#EEF0F3' }}>
-      <Bubble category={item.category} chip={chip} size={66} lead={badge === 'best'} />
+      <Bubble category={item.category} item={item} chip={chip} size={66} lead={badge === 'best'} />
       <View style={{ alignItems: 'center', gap: 2, alignSelf: 'stretch' }}>
         <Text {...({ dataSet: { grad: 'name' } } as any)} style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 14, lineHeight: 19, letterSpacing: -0.2, color: C.ink, textAlign: 'center' }}>{item.name}</Text>
         <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 15, color: C.ink, textAlign: 'center', fontVariant: ['tabular-nums'] }}>{item.price != null ? money(item.price) : 'At store'}</Text>
@@ -862,7 +866,7 @@ export function PicksFocus({ gap, picks, inBag, onToggle, more }: { gap: Gap; pi
   return (
     <View style={{ alignItems: 'center', gap: 14, paddingVertical: 22, paddingHorizontal: 18, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.72)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
       <View style={{ flexDirection: 'row' }}>
-        {picks.slice(0, 3).map((p, n) => <View key={p.item.id} style={{ marginLeft: n ? -18 : 0, zIndex: 3 - n }}><Bubble category={p.item.category} size={64} /></View>)}
+        {picks.slice(0, 3).map((p, n) => <View key={p.item.id} style={{ marginLeft: n ? -18 : 0, zIndex: 3 - n }}><Bubble category={p.item.category} item={p.item} size={64} /></View>)}
       </View>
       <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.bold, fontWeight: '700', fontSize: 24, lineHeight: 29, letterSpacing: -0.5, color: '#1D1D22', textAlign: 'center' }}>{`Picks for your ${gap.title.toLowerCase()}`}</Text>
       <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 15, lineHeight: 21, color: '#4A4858', textAlign: 'center' }}>{`Best for you: ${line}`}</Text>
@@ -878,7 +882,7 @@ export function PicksFocus({ gap, picks, inBag, onToggle, more }: { gap: Gap; pi
             const on = inBag(p.item);
             return (
               <View key={p.item.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 10, borderTopWidth: n ? 0.5 : 0, borderTopColor: 'rgba(20,20,40,0.10)' }}>
-                <Bubble category={p.item.category} size={40} />
+                <Bubble category={p.item.category} item={p.item} size={40} />
                 <View style={{ flex: 1, gap: 2 }}>
                   <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 14, lineHeight: 19, color: '#1D1D22' }}>{p.item.name}</Text>
                   <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 12, color: '#6C6A80' }}>{[p.item.price != null ? money(p.item.price) : 'At store', p.gain ? `+${p.gain} fit` : null].filter(Boolean).join(' · ')}</Text>

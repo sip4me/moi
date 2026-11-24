@@ -93,7 +93,7 @@ export default function Shop() {
       </View>
       {bundle.length > 1 ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.75)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
-          <View style={{ flexDirection: 'row' }}>{bundle.slice(0, 3).map((i, n) => <View key={n} style={{ marginLeft: n ? -10 : 0 }}><Bubble category={i.category} size={36} /></View>)}</View>
+          <View style={{ flexDirection: 'row' }}>{bundle.slice(0, 3).map((i, n) => <View key={n} style={{ marginLeft: n ? -10 : 0 }}><Bubble category={i.category} item={i} size={36} /></View>)}</View>
           <View style={{ flex: 1, gap: 2 }}>
             <Text style={T.h2}>{`All ${bundle.length} · ${money(Math.round(total(bundle)))}`}</Text>
             <Text style={T.meta}>{`+${bundleAfter - score} fit`}</Text>
@@ -111,7 +111,7 @@ export default function Shop() {
               const store = retailerLinks(i)[0]?.name;
               return (
                 <View key={itemKey(i)} style={{ width: 148, gap: 8, padding: 12, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.75)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
-                  <Bubble category={i.category} size={44} />
+                  <Bubble category={i.category} item={i} size={44} />
                   <Text numberOfLines={2} style={[T.name, { minHeight: 38 }]}>{i.name}</Text>
                   <Text style={T.meta}>{i.price != null ? money(i.price) : i.brand}</Text>
                   {store ? (
@@ -140,7 +140,7 @@ export default function Shop() {
                 const inBag = s.bag.includes(itemKey(p.item));
                 return (
                   <View key={p.item.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderTopWidth: n ? 0.5 : 0, borderTopColor: 'rgba(20,20,40,0.10)' }}>
-                    <Bubble category={p.item.category} size={40} />
+                    <Bubble category={p.item.category} item={p.item} size={40} />
                     <View style={{ flex: 1, gap: 2 }}>
                       <Text style={T.name}>{p.item.name}</Text>
                       <Text style={T.meta}>{[p.badge === 'best' ? 'Best' : p.badge === 'value' ? 'Best value' : null, p.gain ? `+${p.gain} fit` : null].filter(Boolean).join(' · ')}</Text>

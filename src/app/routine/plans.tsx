@@ -1,6 +1,9 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Animated, Image, Pressable, Text, View } from 'react-native';
+import { Confetti } from '../../components/routine/Confetti';
+import { celebrate } from '../../components/routine/Celebrate';
+import { openPortal } from '../../lib/billing';
 import { Btn, Bubble, Heading, Shell, SYS, useWide } from '../../components/routine/Kit';
 import { Logo } from '../../components/ui';
 import { haptic } from '../../lib/haptics';
@@ -25,6 +28,11 @@ export default function Plans() {
   const [pick, setPick] = useState<RoutinePlan>('routine_founder');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const [justPaid, setJustPaid] = useState(false);
+  // The crown pops in on the celebration.
+  const pop = useRef(new Animated.Value(0)).current;
+  useEffect(() => { if (a.ok) Animated.spring(pop, { toValue: 1, friction: 4, tension: 60, useNativeDriver: true }).start(); }, [a.ok, pop]);
+  useEffect(() => { if (a.ok && (status === 'success' || justPaid)) celebrate('Welcome to Royal', true); }, [a.ok, status, justPaid]);
   const { account } = useStore();
   const signedIn = !!account && !account.anonymous;
   // After payment: make the account profile (the tracker's sign-up screen attaches an email or phone to this account).
@@ -45,16 +53,46 @@ export default function Plans() {
     setBusy(true); setErr('');
     try {
       const r = await checkoutRoutine(pick);
-      if (r === 'test') { haptic('success'); toProfile(); }
+      if (r === 'test') { haptic('success'); setJustPaid(true); }
     } catch { setErr('Checkout couldn’t open. Check your connection and try again.'); }
     setBusy(false);
   };
 
+  const H = { fontFamily: SYS ?? F.bold, fontWeight: '700' as const, fontSize: wide ? 34 : 28, lineHeight: wide ? 40 : 34, letterSpacing: -0.8, color: '#111114', textAlign: 'center' as const };
+  const G = { dataSet: { grad: 'title' } } as any; // the steel-to-ink title gradient used on every page
+  const small = { fontFamily: SYS ?? F.medium, fontSize: 14, color: '#6C6A80', textAlign: 'center' as const };
   if (a.ok) {
+    // Just paid (back from Stripe, or a test unlock): the celebration. Later visits: a calm "your plan" page.
+    const fresh = status === 'success' || justPaid;
+    const unlocked = ['Every gap and its fix', 'Picks matched to you', 'Your routines on any device'];
     return (
-      <Shell glass active="plans" footer={<View style={{ gap: 8, width: wide ? undefined : '100%', flexDirection: wide ? 'row' : 'column' }}><Btn label={signedIn ? 'See my profile' : 'Create my royal profile'} onPress={toProfile} /><Btn kind="secondary" label={hasInfo(s) ? 'See my gap report' : 'Start with my goals'} onPress={() => router.replace(hasInfo(s) ? '/routine/gaps' : '/routine/about')} /></View>}>
-        <Image source={crown} style={{ width: 72, height: 72, transform: [{ rotate: '-12deg' }] }} resizeMode="contain" />
-        <Heading title={a.founder ? `Long live Founding Royal #${a.spot}` : 'You’ve been crowned'} sub={a.founder ? 'Lifetime database access is yours, even if you cancel.' : a.test ? 'Test mode: payments aren’t switched on yet, so this device is unlocked.' : 'Your plan is active.'} />
+      <Shell active="plans"
+        footer={<View style={{ width: wide ? 420 : '100%', gap: 12, alignItems: 'center' }}>
+          <View style={{ width: '100%' }}><Btn label={hasInfo(s) ? 'See my picks' : 'Start with my goals'} onPress={() => router.replace(hasInfo(s) ? '/routine/gaps' : '/routine/about')} /></View>
+          <Pressable onPress={toProfile} accessibilityRole="button" hitSlop={8}>
+            <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 15, color: '#111114' }}>{signedIn ? 'My profile' : 'Save my account'}</Text>
+          </Pressable>
+        </View>}>
+        {fresh ? <Confetti /> : null}
+        <View style={{ alignItems: 'center', gap: 16, maxWidth: 460, alignSelf: 'center', width: '100%', paddingTop: 12 }}>
+          <Animated.Image source={crown} resizeMode="contain" style={{ width: 120, height: 120, transform: [{ rotate: '-14deg' }, { scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) }], opacity: pop }} />
+          <Text {...G} style={[H, { fontSize: 32, lineHeight: 38 }]}>{a.founder ? `Founding Royal #${a.spot}` : fresh ? 'You’re Royal!' : 'Your plan is active'}</Text>
+          <Text style={[small, { fontSize: 16, lineHeight: 22, color: '#4A4858' }]}>{a.test ? 'Test mode: payments aren’t on yet, so this device is unlocked.' : a.founder ? 'Payment done. Database access is yours for life, even if you cancel.' : 'Payment done. Everything is unlocked.'}</Text>
+          <View style={{ alignSelf: 'stretch', gap: 10, padding: 18, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.75)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
+            {unlocked.map(x => (
+              <View key={x} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#111114', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>✓</Text></View>
+                <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 16, color: '#111114' }}>{x}</Text>
+              </View>
+            ))}
+          </View>
+          {!fresh && !a.test ? (
+            <Pressable onPress={async () => { const r = await openPortal(); if (r !== 'opened') setErr('Billing isn’t available yet.'); }} accessibilityRole="button" hitSlop={8}>
+              <Text style={[small, { textDecorationLine: 'underline' }]}>Manage billing</Text>
+            </Pressable>
+          ) : null}
+          {err ? <Text style={small}>{err}</Text> : null}
+        </View>
       </Shell>
     );
   }
@@ -69,9 +107,6 @@ export default function Plans() {
   const fit = hasInfo(s) ? analyze(s, cat).score : 0;
   const fixed = gaps.map(g => picksFor(g, s, cat, 1)[0]?.item).filter((i): i is NonNullable<typeof i> => !!i);
   const after = hasInfo(s) ? analyze(s, cat, fixed).score : 0;
-  const H = { fontFamily: SYS ?? F.bold, fontWeight: '700' as const, fontSize: wide ? 34 : 28, lineHeight: wide ? 40 : 34, letterSpacing: -0.8, color: '#111114', textAlign: 'center' as const };
-  const G = { dataSet: { grad: 'title' } } as any; // the steel-to-ink title gradient used on every page
-  const small = { fontFamily: SYS ?? F.medium, fontSize: 14, color: '#6C6A80', textAlign: 'center' as const };
   return (
     <Shell active="plans"
       footer={<View style={{ width: wide ? 420 : '100%', gap: 10, alignItems: 'center' }}>

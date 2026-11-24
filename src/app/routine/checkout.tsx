@@ -79,7 +79,7 @@ export default function Picks() {
           return (
             <SilverCard key={itemKey(i)} style={{ gap: 14 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-                <Bubble category={i.category} size={52} />
+                <Bubble category={i.category} item={i} size={52} />
                 <View style={{ flex: 1, gap: 2 }}>
                   <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 16, lineHeight: 21, color: SILVER.ink }}>{i.name}</Text>
                   <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 13, color: SILVER.label }}>{i.price != null ? `about ${money(i.price)}` : i.brand}</Text>
