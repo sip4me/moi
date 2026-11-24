@@ -78,21 +78,24 @@ const CSS = `
 [data-fill="soft-frost"] { background-color: rgba(246,247,250,0.42) !important; -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
 [data-fill="bubble"] { position: relative; background-color: #E9E3F0 !important;
   background-image: radial-gradient(circle at 50% 38%, #FBF9FD 0%, #EFE9F5 42%, #DCD2E6 78%, #C7BBD6 100%) !important;
-  box-shadow: inset 0 -16px 26px rgba(48,36,78,0.26), inset 0 10px 18px rgba(255,255,255,0.7), inset 0 0 0 1px rgba(255,255,255,0.55), 0 22px 30px -14px rgba(48,36,78,0.42), 0 3px 8px rgba(48,36,78,0.10); }
+  box-shadow: inset 0 -16px 26px rgba(48,36,78,0.26), inset 0 10px 18px rgba(255,255,255,0.7), inset 0 0 0 1px rgba(255,255,255,0.55), 0 26px 34px -16px rgba(48,36,78,0.5), 0 4px 10px rgba(48,36,78,0.12); }
 /* A tinted interior per kind of product, deep enough that the glass highlight reads. */
 [data-fill="bubble"][data-tone="sage"] { background-image: radial-gradient(circle at 50% 40%, #EEF3EA 0%, #CBD9C4 45%, #94AE8C 82%, #6F8C69 100%) !important; }
 [data-fill="bubble"][data-tone="peach"] { background-image: radial-gradient(circle at 50% 40%, #FBEDE3 0%, #F1CDB6 45%, #D99A7C 82%, #B87459 100%) !important; }
 [data-fill="bubble"][data-tone="lilac"] { background-image: radial-gradient(circle at 50% 40%, #F3EEF8 0%, #D9CCE8 45%, #A894C6 82%, #7F6AA6 100%) !important; }
 [data-fill="bubble"][data-tone="rose"] { background-image: radial-gradient(circle at 50% 40%, #FBEDEF 0%, #EDC6CD 45%, #C98391 82%, #A35A6B 100%) !important; }
 [data-fill="bubble"][data-tone="sky"] { background-image: radial-gradient(circle at 50% 40%, #EEF3F9 0%, #CAD8EA 45%, #8EA6C8 82%, #637FA6 100%) !important; }
-/* The glass dome over the icon: a broad specular arc up top, a thin bright rim, a small glint low on the right. */
+/* Liquid glass: the edge of the sphere bends and blurs what is inside it, like a lens. */
+[data-fill="bubble-lens"] { border-radius: 50%; -webkit-backdrop-filter: blur(3px) saturate(170%) brightness(1.06); backdrop-filter: blur(3px) saturate(170%) brightness(1.06);
+  -webkit-mask-image: radial-gradient(circle, transparent 60%, #000 78%); mask-image: radial-gradient(circle, transparent 60%, #000 78%); }
+/* The dome: a sharp specular cap, light gathered at the bottom (caustic), a darker refracting edge, a thin bright rim. */
 [data-fill="bubble-gloss"] { border-radius: 50%;
   background-image:
-    radial-gradient(ellipse 62% 34% at 50% 9%, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.55) 38%, rgba(255,255,255,0) 72%),
-    radial-gradient(circle at 72% 80%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 9%),
-    radial-gradient(circle at 50% 50%, rgba(255,255,255,0) 66%, rgba(255,255,255,0.45) 70.5%, rgba(255,255,255,0) 72%),
-    radial-gradient(circle at 50% 120%, rgba(40,28,70,0.22) 0%, rgba(40,28,70,0) 55%) !important;
-  box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.5), inset 0 -3px 6px rgba(255,255,255,0.35); }
+    radial-gradient(ellipse 66% 36% at 50% 5%, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.78) 32%, rgba(255,255,255,0) 64%),
+    radial-gradient(ellipse 58% 20% at 50% 95%, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0) 70%),
+    radial-gradient(circle at 76% 70%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 6%),
+    radial-gradient(circle, rgba(30,20,60,0) 60%, rgba(30,20,60,0.16) 84%, rgba(30,20,60,0.34) 100%) !important;
+  box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.65), inset 0 2px 1px rgba(255,255,255,0.8), inset 0 -2px 3px rgba(255,255,255,0.5); }
 [data-fill="bubble-chip"] { background-color: rgba(255,255,255,0.86) !important; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(60,50,90,0.14); }
 [data-fill="glass-card"] { background-color: rgba(255,255,255,0.14) !important; background-image: linear-gradient(160deg, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0.16) 100%) !important;
   -webkit-backdrop-filter: blur(30px) saturate(135%); backdrop-filter: blur(30px) saturate(135%); border-color: rgba(255,255,255,0.6) !important;
@@ -122,4 +125,4 @@ if (Platform.OS === 'web' && typeof document !== 'undefined' && !document.getEle
 /** Props that give a Text shiny letters (web) — spread onto <Text>. */
 export const shine = (kind: 'chrome' | 'rose' | 'titanium' | 'blush') => (Platform.OS === 'web' ? ({ dataSet: { shine: kind } } as any) : {});
 /** Props that give a View a jewellery fill (web). */
-export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'lilac' | 'pearl' | 'pearl-on' | 'pearl-ask' | 'paper' | 'gold-coin' | 'glass-bg' | 'soft-bg' | 'soft-orb' | 'soft-frost' | 'bubble' | 'bubble-gloss' | 'bubble-chip' | 'glass-card' | 'glass-bar' | 'glass-panel') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});
+export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'lilac' | 'pearl' | 'pearl-on' | 'pearl-ask' | 'paper' | 'gold-coin' | 'glass-bg' | 'soft-bg' | 'soft-orb' | 'soft-frost' | 'bubble' | 'bubble-lens' | 'bubble-gloss' | 'bubble-chip' | 'glass-card' | 'glass-bar' | 'glass-panel') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});

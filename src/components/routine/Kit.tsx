@@ -702,8 +702,10 @@ export function Bubble({ category, size = 112, chip, lead }: { category: string;
   return (
     <View style={{ width: size, height: size + 14, alignItems: 'center' }}>
       <View {...(Platform.OS === 'web' ? ({ dataSet: { fill: 'bubble', tone: toneOf(category) } } as any) : {})} style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: '#EEE9F3', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        <Image source={iconFor(category)} style={{ width: size * 0.8, height: size * 0.8, marginTop: size * 0.06 }} resizeMode="contain" />
-        <View {...fill('bubble-gloss')} pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }} />
+        {/* The product sits inside the glass, filling it, slightly low as if afloat. */}
+        <Image source={iconFor(category)} style={{ width: size * 0.96, height: size * 0.96, marginTop: size * 0.1 }} resizeMode="contain" />
+        <View {...fill('bubble-lens')} pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, borderRadius: size / 2 }} />
+        <View {...fill('bubble-gloss')} pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, borderRadius: size / 2 }} />
       </View>
       {chip ? <View {...fill('bubble-chip')} style={{ position: 'absolute', bottom: 0, flexDirection: 'row', alignItems: 'center', gap: 4, height: 28, paddingHorizontal: 10, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.92)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.9)' }}>{chip}</View> : null}
     </View>
