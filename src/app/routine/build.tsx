@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { celebrate } from '../../components/routine/Celebrate';
 import { Image, Pressable, Text, View } from 'react-native';
-import { BLUE, Btn, ChipBtn, Faint, Heading, InputsPanel, LivePanel, LiveStrip, PlusDot, iconFor, Label, PickerSheet, Pill, ScoreBar, Segmented, Shell, st, Timeline, useWide } from '../../components/routine/Kit';
+import { BLUE, Btn, ChipBtn, Faint, Heading, InputsPanel, LivePanel, LiveStrip, Panel, PlusDot, iconFor, Label, PickerSheet, Pill, ScoreBar, Segmented, Shell, st, Timeline, useWide } from '../../components/routine/Kit';
 import { icon3d } from '../../data/icons3d';
 import { ShelfSheet } from '../../components/routine/ShelfSheet';
 import { fill } from '../../lib/routine/shine';
@@ -153,7 +153,7 @@ export default function Build() {
       ) : null}
       {area === 'hair' ? <View style={{ maxWidth: 420 }}><Segmented progress={{ 'Wash day': prog(s.wash), Everyday: prog(s.every), Occasions: prog(s.occasions.flatMap(o => s.occ[o] ?? [])) }} options={['Wash day', 'Everyday', 'Occasions']} value={tab} onChange={setTab} /></View> : null}
       {/* Faster than adding one by one: photograph the shelf. */}
-      <Pressable onPress={() => setShelf(true)} accessibilityRole="button" style={({ hovered }: any) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8, paddingHorizontal: 10, borderRadius: 16, backgroundColor: hovered ? 'rgba(94,106,206,0.08)' : 'transparent', borderWidth: 1, borderColor: '#E3E5EE', borderStyle: 'dashed', maxWidth: 640 })}>
+      <Pressable onPress={() => setShelf(true)} accessibilityRole="button" style={({ hovered }: any) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8, paddingHorizontal: 10, borderRadius: 16, backgroundColor: hovered ? 'rgba(250,250,252,0.85)' : 'rgba(250,250,252,0.62)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.9)', maxWidth: 640 })}>
         <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: '#EEF0FB', alignItems: 'center', justifyContent: 'center' }}><Image source={icon3d('mirror')} style={{ width: 24, height: 24 }} /></View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: F.semibold, fontSize: 14, color: '#4652B5' }}>Snap your shelf</Text>
@@ -163,7 +163,8 @@ export default function Build() {
       </Pressable>
       <ShelfSheet open={shelf} area={area as any} onClose={() => setShelf(false)} />
       {s.mode === 'new' && areas.includes('hair') && !s.goals.length ? <Text style={st.sub}>Pick your goals first.</Text> : null}
-      {body}
+      {/* The steps sit on a frosted plate so they read clearly over the ambient ground. */}
+      <Panel style={{ maxWidth: 720, paddingVertical: 16 }}>{body}</Panel>
       <PickerSheet step={openStep} onClose={() => setOpen(null)}
         onPick={item => { edit(x => ({ ...x, item: { ...item, addedAt: Date.now() }, skipped: false, label: x.label === 'New step' ? CATEGORY_LABEL[item.category] ?? x.label : x.label })); if (item.kind !== 'custom' || item.tags.length) setOpen(null); }}
         onRemove={() => (openStep?.item ? edit(x => ({ ...x, item: undefined })) : removeStep())}

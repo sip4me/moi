@@ -75,7 +75,7 @@ const CSS = `
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E"); }
 [data-fill="soft-orb"] { filter: blur(44px) saturate(70%); }
 /* Frost: a white veil over the circles so the colour reads as a tint, not a picture. */
-[data-fill="soft-frost"] { background-color: rgba(246,247,250,0.42) !important; -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
+[data-fill="soft-frost"] { background-color: rgba(244,244,248,0.5) !important; -webkit-backdrop-filter: blur(40px) saturate(80%); backdrop-filter: blur(40px) saturate(80%); }
 [data-fill="bubble"] { position: relative; background-color: #E9E3F0 !important;
   background-image: radial-gradient(circle at 50% 38%, #FBF9FD 0%, #EFE9F5 42%, #DCD2E6 78%, #C7BBD6 100%) !important;
   box-shadow: inset 0 -16px 26px rgba(48,36,78,0.26), inset 0 10px 18px rgba(255,255,255,0.7), inset 0 0 0 1px rgba(255,255,255,0.55), 0 26px 34px -16px rgba(48,36,78,0.5), 0 4px 10px rgba(48,36,78,0.12); }

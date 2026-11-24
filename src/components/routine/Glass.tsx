@@ -43,8 +43,14 @@ export function GlassBackdrop({ anchor }: { anchor?: { w: number; h: number } })
  * same three colour circles, softer and kept to the top corners so they never sit behind a form or a list.
  */
 export function SoftBackdrop() {
-  // Flat, quiet ground (as in the bubble reference): no gradient, no circles. Sections float on it as frosted plates.
-  return <View pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, backgroundColor: '#EFEFF3' }} />;
+  // The welcome screen's own ground (same gradient, same drifting circles) for ambiance, under a frosted veil so the
+  // working pages stay calm and every frosted plate reads clearly on top.
+  return (
+    <>
+      <GlassBackdrop />
+      <View {...fill('soft-frost')} pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, backgroundColor: 'rgba(244,244,248,0.55)' }} />
+    </>
+  );
 }
 
 /** A frosted glass card with a fine white edge (web blurs what's behind it; native gets a translucent card). */

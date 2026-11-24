@@ -142,8 +142,8 @@ export function Shell({ active, children, side, footer, step, hideNav, glass }: 
           {cue.cue}
           </View>
           {footer ? (wide
-            ? <View style={[st.wFooter, glass && { backgroundColor: 'transparent', borderTopColor: 'rgba(255,255,255,0.4)' }]}><View style={{ maxWidth: 808, width: '100%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 12 }}>{footer}</View></View>
-            : <View style={[st.mFooter, glass && { backgroundColor: 'transparent' }]}>{footer}</View>) : null}
+            ? <View {...(glass ? {} : fill('frost-panel'))} style={[st.wFooter, { backgroundColor: glass ? 'transparent' : 'rgba(250,250,252,0.7)', borderTopColor: 'rgba(255,255,255,0.6)' }]}><View style={{ maxWidth: 808, width: '100%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 12 }}>{footer}</View></View>
+            : <View {...(glass ? {} : fill('frost-panel'))} style={[st.mFooter, { backgroundColor: glass ? 'transparent' : 'rgba(250,250,252,0.7)', borderTopLeftRadius: glass ? 0 : 24, borderTopRightRadius: glass ? 0 : 24 }]}>{footer}</View>) : null}
         </View>
         {wide && side ? <ScrollView style={st.side} contentContainerStyle={{ paddingHorizontal: 22, paddingVertical: 20, gap: 12 }}>{side}</ScrollView> : null}
       </View>
@@ -904,7 +904,7 @@ export const st = StyleSheet.create({
   navOn: { backgroundColor: '#fff' },
   navAddon: { marginTop: 12, borderTopWidth: 1, borderTopColor: '#E3E5E8', borderTopLeftRadius: 0, borderTopRightRadius: 0, paddingTop: 12, height: 56 },
   navText: { fontFamily: F.medium, fontSize: 15, color: C.gray2 },
-  side: { width: 300, flexGrow: 0, backgroundColor: 'transparent', borderLeftWidth: 1, borderLeftColor: '#ECEEF2', opacity: 0.92 },
+  side: { width: 300, flexGrow: 0, backgroundColor: 'rgba(250,250,252,0.62)', borderLeftWidth: 1, borderLeftColor: 'rgba(255,255,255,0.7)' },
   mHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, height: 52 },
   topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4, minHeight: 60 },
   menuBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderColor: 'transparent', backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 3 } },
