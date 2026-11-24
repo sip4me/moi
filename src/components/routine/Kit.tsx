@@ -693,8 +693,13 @@ export function GapCard({ gap, onPress, selected, cta, price }: { gap: Gap; onPr
 /** One ranked option for a gap. The category picture is a small marker, not a product photo, so it stays thumbnail-sized (48, like the bag and checkout); the advantage reads first. */
 const TINT_INK = '#4652B5';
 
-const TONES: Record<string, string> = { cleanser: 'sage', exfoliant: 'sage', toner: 'sky', serum: 'sky', spf: 'peach', sun: 'peach', moisturizer: 'lilac', mask: 'lilac', foundation: 'peach', concealer: 'peach', powder: 'rose', blush: 'rose', lips: 'rose', mascara: 'sky', shampoo: 'sky', conditioner: 'lilac', leave_in: 'sage', styler: 'rose', oil: 'peach', body_wash: 'sky', body_lotion: 'lilac', body_scrub: 'sage', deodorant: 'sky' };
-const toneOf = (c: string) => TONES[c] ?? ['lilac', 'sage', 'peach', 'rose', 'sky'][[...c].reduce((a, ch) => a + ch.charCodeAt(0), 0) % 5];
+const TONES: Record<string, string> = { cleanser: 'silver', exfoliant: 'steel', toner: 'steel', serum: 'lilac', spf: 'silver', sun: 'silver', moisturizer: 'lilac', mask: 'lilac', foundation: 'silver', concealer: 'silver', powder: 'lilac', blush: 'lilac', lips: 'lilac', mascara: 'steel', shampoo: 'steel', conditioner: 'lilac', leave_in: 'silver', styler: 'lilac', oil: 'silver', body_wash: 'steel', body_lotion: 'lilac', body_scrub: 'silver', deodorant: 'steel' };
+const toneOf = (c: string) => TONES[c] ?? ['lilac', 'silver', 'steel'][[...c].reduce((a, ch) => a + ch.charCodeAt(0), 0) % 3];
+
+/** Frosted separation: a section as a soft frosted plate on the flat grey ground. */
+export function Panel({ children, style }: { children: React.ReactNode; style?: ViewStyle }) {
+  return <View {...fill('frost-panel')} style={[{ borderRadius: 24, padding: 18, gap: 12, backgroundColor: 'rgba(250,250,252,0.85)', borderWidth: 1, borderColor: '#FFFFFF' }, style]}>{children}</View>;
+}
 
 /** The product as a glass bubble: the category icon floats inside a glossy sphere, a frosted chip sits on its lower edge. */
 export function Bubble({ category, size = 84, chip, lead }: { category: string; size?: number; chip?: React.ReactNode; lead?: boolean }) {
@@ -714,7 +719,7 @@ export function Bubble({ category, size = 84, chip, lead }: { category: string; 
 /** A ranked option as a bubble card (shop and gap report): bubble, its advantage on the chip, name, price, Add. */
 export function PickBubble({ item, gain, badge, why, inBag, onAdd, fit }: { item: Item; gain?: number; badge?: 'best' | 'value'; why?: string; inBag?: boolean; onAdd: () => void; fit: number }) {
   const chip = badge ? (
-    <><Ico name={badge === 'best' ? 'crown' : 'tag'} size={12} color={badge === 'best' ? PALETTE.garnet : '#1E7B45'} /><Text style={{ fontFamily: F.semibold, fontSize: 12, color: badge === 'best' ? PALETTE.garnet : '#1E7B45' }}>{badge === 'best' ? 'Best for you' : 'Best value'}</Text></>
+    <><Ico name={badge === 'best' ? 'crown' : 'tag'} size={12} color={badge === 'best' ? '#5F55A3' : '#1E7B45'} /><Text style={{ fontFamily: F.semibold, fontSize: 12, color: badge === 'best' ? '#5F55A3' : '#1E7B45' }}>{badge === 'best' ? 'Best for you' : 'Best value'}</Text></>
   ) : <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.gray2 }}>{`${fit}% match`}</Text>;
   return (
     <View style={{ flexGrow: 1, flexBasis: 140, maxWidth: 200, alignItems: 'center', gap: 8, paddingTop: 14, paddingBottom: 12, paddingHorizontal: 12, borderRadius: 24, backgroundColor: '#fff', borderWidth: 1, borderColor: '#EEF0F3' }}>
@@ -745,7 +750,7 @@ export function PickRow({ rank, item, fit, gain, badge, why, inBag, onAdd }: { r
       <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
           {badge ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: badge === 'best' ? PALETTE.garnet : '#1E7B45' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: badge === 'best' ? '#5F55A3' : '#1E7B45' }}>
               <Ico name={badge === 'best' ? 'crown' : 'tag'} size={11} color="#fff" />
               <Text style={{ fontFamily: F.semibold, fontSize: 11, color: '#fff' }}>{badge === 'best' ? 'Best for you' : 'Best value'}</Text>
             </View>
@@ -914,9 +919,9 @@ export const st = StyleSheet.create({
   tab: { flex: 1, alignItems: 'center', gap: 3 },
   tabText: { fontFamily: F.medium, fontSize: 11, color: C.gray },
   h1: { fontFamily: F.display, color: C.ink, letterSpacing: -0.5 },
-  // Subheads take the welcome gradient's deep rose-plum so they read as part of the picture, not grey filler.
-  sub: { fontFamily: F.medium, fontSize: 15, lineHeight: 22, color: '#7A4A5E' },
-  label: { fontFamily: F.semibold, fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: '#9E3550' },
+  // Subheads: a lilac-grey, quieter than the title but warmer than plain grey.
+  sub: { fontFamily: F.medium, fontSize: 15, lineHeight: 22, color: '#6C6A80' },
+  label: { fontFamily: F.semibold, fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: '#7D74B0' },
   meta: { fontFamily: F.medium, fontSize: 13, color: '#9A9EA4' },
   pill: { paddingHorizontal: 16, height: 40, borderRadius: 20, justifyContent: 'center', backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#D3D6DB' },
   pillOn: { backgroundColor: PALETTE.garnet, borderColor: PALETTE.garnet },

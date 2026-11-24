@@ -43,33 +43,8 @@ export function GlassBackdrop({ anchor }: { anchor?: { w: number; h: number } })
  * same three colour circles, softer and kept to the top corners so they never sit behind a form or a list.
  */
 export function SoftBackdrop() {
-  const { width: W } = useWindowDimensions();
-  const t = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    const loop = Animated.loop(Animated.sequence([
-      Animated.timing(t, { toValue: 1, duration: 11000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-      Animated.timing(t, { toValue: 0, duration: 11000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-    ]));
-    loop.start();
-    return () => loop.stop();
-  }, [t]);
-  const u = Math.min(W, 900);
-  const orb = (size: number, left: number, top: number, id: string, a: string, b: string, dx: number, dy: number, o: number) => (
-    <Animated.View key={id} {...fill('soft-orb')} pointerEvents="none" style={{ position: 'absolute', left, top, width: size, height: size, opacity: o, transform: [{ translateX: t.interpolate({ inputRange: [0, 1], outputRange: [0, dx] }) }, { translateY: t.interpolate({ inputRange: [0, 1], outputRange: [0, dy] }) }] }}>
-      <Svg width={size} height={size}>
-        <Defs><LinearGradient id={id} x1="0.2" y1="0" x2="0.8" y2="1"><Stop offset="0" stopColor={a} /><Stop offset="1" stopColor={b} /></LinearGradient></Defs>
-        <Circle cx={size / 2} cy={size / 2} r={size / 2} fill={`url(#${id})`} />
-      </Svg>
-    </Animated.View>
-  );
-  return (
-    <View {...fill('soft-bg')} pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, backgroundColor: '#F6F7FA' }}>
-      {orb(u * 0.42, -u * 0.16, -u * 0.12, 's1', '#E8A06B', '#C8164E', 12, 8, 0.2)}
-      {orb(u * 0.36, W - u * 0.22, u * 0.08, 's2', '#C996A8', '#5E9468', -10, 10, 0.16)}
-      {orb(u * 0.2, W * 0.58, -u * 0.06, 's3', '#F4A38C', '#E06B4F', 8, 6, 0.16)}
-      <View {...fill('soft-frost')} style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }} />
-    </View>
-  );
+  // Flat, quiet ground (as in the bubble reference): no gradient, no circles. Sections float on it as frosted plates.
+  return <View pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, backgroundColor: '#EFEFF3' }} />;
 }
 
 /** A frosted glass card with a fine white edge (web blurs what's behind it; native gets a translucent card). */

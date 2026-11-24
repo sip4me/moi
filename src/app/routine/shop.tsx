@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Linking, Pressable, ScrollView, Text, View } from 'react-native';
-import { BLUE, Btn, ChipBtn, Heading, iconFor, Label, money, NeedInfo, Pill, PickBubble, Bubble, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
+import { BLUE, Btn, ChipBtn, Heading, iconFor, Label, money, NeedInfo, Pill, PickBubble, Bubble, Panel, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
 import { useAccess } from '../../lib/routine/access';
 import { celebrate } from '../../components/routine/Celebrate';
 import { analyze, profileOf, rankPicks, retailerLinks } from '../../lib/routine/gaps';
@@ -83,13 +83,13 @@ export default function Shop() {
       </View>
       {rows.length === 0 ? <Text style={st.sub}>{gaps.length ? 'No matches. Turn a filter off.' : 'No gaps to fill.'}</Text> : null}
       {rows.map(({ g, picks }) => (
-        <View key={g.id} style={{ gap: 16 }}>
+        <Panel key={g.id} style={{ gap: 14, maxWidth: 720 }}>
           <View style={{ gap: 4 }}><Text style={{ fontFamily: F.semibold, fontSize: 20, color: C.ink }}>{g.title}</Text><Text style={[st.sub, { fontSize: 13, lineHeight: 19 }]}>{g.why}</Text></View>
           {/* A ranked list, not a carousel: options side by side in one column are easier to compare. */}
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, maxWidth: 720 }}>
             {picks.map(p => <PickBubble key={p.item.id} item={p.item} fit={p.fit} gain={p.gain} badge={p.badge} why={p.why} inBag={s.bag.includes(itemKey(p.item))} onAdd={() => toggle(itemKey(p.item))} />)}
           </View>
-        </View>
+        </Panel>
       ))}
       {!wide && bag.length ? <View style={{ backgroundColor: '#fff', borderRadius: 24, padding: 20 }}>{bagPanel}</View> : null}
       <Label>{`Product data: Moi, Open Beauty Facts contributors (ODbL), California Safe Cosmetics Program (CC-BY)`}</Label>

@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Image, Linking, Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { Bubble, QtyStepper, Btn, ChipBtn, iconFor, money, NeedInfo, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
+import { Panel, Bubble, QtyStepper, Btn, ChipBtn, iconFor, money, NeedInfo, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
 import { analyze, retailerLinks } from '../../lib/routine/gaps';
 import { allSteps, AREA_Q, AREAS, BEAUTY_ROUTINES, CATEGORY_LABEL, DAYS, findByKey, GOALS, hasInfo, HAIR_Q, itemKey, placeItems, pref, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
 import { C, F } from '../../theme';
@@ -30,7 +30,6 @@ function Row({ label, value, onEdit }: { label: string; value: string; onEdit?: 
   );
 }
 
-const Divider = () => <View style={{ height: 1, backgroundColor: '#E3E5EB', marginVertical: 20 }} />;
 const H2 = ({ children }: { children: string }) => <Text style={{ fontFamily: F.semibold, fontSize: 21, color: C.ink, marginBottom: 6 }}>{children}</Text>;
 
 export default function Checkout() {
@@ -72,7 +71,7 @@ export default function Checkout() {
     const on = how === key;
     return (
       <Pressable key={key} onPress={() => setHow(key)} accessibilityRole="radio" accessibilityState={{ checked: on }}
-        style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 16, borderWidth: on ? 2 : 1, borderColor: on ? '#7A4A5E' : '#DCD4E0', marginTop: first ? 0 : -1, borderTopLeftRadius: first ? 14 : 0, borderTopRightRadius: first ? 14 : 0, borderBottomLeftRadius: first ? 0 : 14, borderBottomRightRadius: first ? 0 : 14, zIndex: on ? 1 : 0, backgroundColor: on ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.7)' }}>
+        style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 16, borderWidth: on ? 2 : 1, borderColor: on ? '#7D74B0' : '#DDDCE4', marginTop: first ? 0 : -1, borderTopLeftRadius: first ? 14 : 0, borderTopRightRadius: first ? 14 : 0, borderBottomLeftRadius: first ? 0 : 14, borderBottomRightRadius: first ? 0 : 14, zIndex: on ? 1 : 0, backgroundColor: on ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.7)' }}>
         <View style={{ flex: 1, gap: 4 }}>
           <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>{title}</Text>
           <Text style={{ fontFamily: F.regular, fontSize: 14, lineHeight: 20, color: '#4A4F5C' }}>{sub}</Text>
@@ -127,20 +126,23 @@ export default function Checkout() {
         <Text style={{ fontFamily: F.semibold, fontSize: wide ? 32 : 26, color: C.ink }}>Confirm and buy</Text>
       </View>
 
-      <View style={{ maxWidth: 600 }}>
+      <View style={{ maxWidth: 600, gap: 14 }}>
+        <Panel style={{ gap: 0 }}>
         <H2>{`Your ${areaLabel.toLowerCase()} routine`}</H2>
         {answerRows.map(r => <Row key={r.label} label={r.label} value={r.value} onEdit={about} />)}
         <Row label="Routine" value={routineValue} onEdit={() => router.push({ pathname: '/routine/build', params: { area } })} />
         <Row label="Budget" value={s.hair.budget ?? ''} onEdit={about} />
-        <Divider />
+        </Panel>
 
+        <Panel style={{ gap: 0 }}>
         <H2>Choose how to buy</H2>
         <View style={{ marginTop: 8 }}>
           {option('buy', 'Buy now', `Add ${bag.length || 'your'} pick${bag.length === 1 ? '' : 's'} to your routine and open each store.`, true)}
           {option('save', 'Save for later', 'Add them to your routine now and buy whenever you like.', false)}
         </View>
-        <Divider />
+        </Panel>
 
+        <Panel>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <View style={{ flex: 1 }}><H2>{`Your picks · ${count}`}</H2></View>
           <Underline label="Edit picks" onPress={() => router.push('/routine/shop')} />
@@ -166,10 +168,10 @@ export default function Checkout() {
           ))}
         </View>
         {!bag.length ? <Text style={st.sub}>Nothing in your bag yet.</Text> : null}
-        {!wide ? <View style={{ marginTop: 20 }}>{card}</View> : null}
-        <Divider />
+        </Panel>
+        {!wide ? card : null}
         <Text style={[st.meta, { fontSize: 12, lineHeight: 18 }]}>Prices are estimates. You buy from the store at its price.</Text>
-        <View style={{ marginTop: 18, alignSelf: wide ? 'flex-start' : 'stretch' }}>
+        <View style={{ marginTop: 4, alignSelf: wide ? 'flex-start' : 'stretch' }}>
           <Btn label={how === 'buy' ? 'Confirm and buy' : 'Confirm and save'} onPress={confirm} disabled={!bag.length} />
         </View>
       </View>

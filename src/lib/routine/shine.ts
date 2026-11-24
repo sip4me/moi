@@ -80,11 +80,9 @@ const CSS = `
   background-image: radial-gradient(circle at 50% 38%, #FBF9FD 0%, #EFE9F5 42%, #DCD2E6 78%, #C7BBD6 100%) !important;
   box-shadow: inset 0 -16px 26px rgba(48,36,78,0.26), inset 0 10px 18px rgba(255,255,255,0.7), inset 0 0 0 1px rgba(255,255,255,0.55), 0 26px 34px -16px rgba(48,36,78,0.5), 0 4px 10px rgba(48,36,78,0.12); }
 /* A tinted interior per kind of product, deep enough that the glass highlight reads. */
-[data-fill="bubble"][data-tone="sage"] { background-image: radial-gradient(circle at 50% 40%, #EEF3EA 0%, #CBD9C4 45%, #94AE8C 82%, #6F8C69 100%) !important; }
-[data-fill="bubble"][data-tone="peach"] { background-image: radial-gradient(circle at 50% 40%, #FBEDE3 0%, #F1CDB6 45%, #D99A7C 82%, #B87459 100%) !important; }
-[data-fill="bubble"][data-tone="lilac"] { background-image: radial-gradient(circle at 50% 40%, #F3EEF8 0%, #D9CCE8 45%, #A894C6 82%, #7F6AA6 100%) !important; }
-[data-fill="bubble"][data-tone="rose"] { background-image: radial-gradient(circle at 50% 40%, #FBEDEF 0%, #EDC6CD 45%, #C98391 82%, #A35A6B 100%) !important; }
-[data-fill="bubble"][data-tone="sky"] { background-image: radial-gradient(circle at 50% 40%, #EEF3F9 0%, #CAD8EA 45%, #8EA6C8 82%, #637FA6 100%) !important; }
+[data-fill="bubble"][data-tone="lilac"] { background-image: radial-gradient(circle at 50% 40%, #F4F2F9 0%, #D9D3EA 45%, #A79DC9 82%, #8277AC 100%) !important; }
+[data-fill="bubble"][data-tone="silver"] { background-image: radial-gradient(circle at 50% 40%, #F6F6F8 0%, #DCDCE3 45%, #A9A9B7 82%, #85859A 100%) !important; }
+[data-fill="bubble"][data-tone="steel"] { background-image: radial-gradient(circle at 50% 40%, #F1F3F7 0%, #D3D8E3 45%, #9AA2B8 82%, #737D97 100%) !important; }
 /* Liquid glass: the edge of the sphere bends and blurs what is inside it, like a lens. */
 [data-fill="bubble-lens"] { border-radius: 50%; -webkit-backdrop-filter: blur(3px) saturate(170%) brightness(1.06); backdrop-filter: blur(3px) saturate(170%) brightness(1.06);
   -webkit-mask-image: radial-gradient(circle, transparent 60%, #000 78%); mask-image: radial-gradient(circle, transparent 60%, #000 78%); }
@@ -97,18 +95,21 @@ const CSS = `
     radial-gradient(circle, rgba(30,20,60,0) 60%, rgba(30,20,60,0.16) 84%, rgba(30,20,60,0.34) 100%) !important;
   box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.65), inset 0 2px 1px rgba(255,255,255,0.8), inset 0 -2px 3px rgba(255,255,255,0.5); }
 [data-fill="bubble-chip"] { background-color: rgba(255,255,255,0.86) !important; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(60,50,90,0.14); }
-/* Frosted metal in Moi's palette: a chrome bezel tinted lilac and rose, a frosted pearl face, pressed-in when tapped. */
+/* Frosted metal, grey and lilac: a chrome bezel, a frosted silver face, pressed-in when tapped. */
 [data-fill="metal"] { border: 1.5px solid transparent !important;
-  background: linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(240,236,244,0.92) 100%) padding-box, linear-gradient(150deg, #FFFFFF 0%, #C8BCD6 26%, #F8F1F4 48%, #B3A3C1 72%, #EEE5EE 100%) border-box !important;
+  background: linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(236,236,242,0.94) 100%) padding-box, linear-gradient(150deg, #FFFFFF 0%, #BDBBCB 26%, #F5F5F8 48%, #9D9AAF 72%, #ECEBF1 100%) border-box !important;
   -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -2px 4px rgba(122,74,94,0.10), 0 4px 10px -4px rgba(74,52,96,0.30); }
-[data-fill="metal"]:hover { background: linear-gradient(180deg, #FFFFFF 0%, #F4F0F7 100%) padding-box, linear-gradient(150deg, #FFFFFF 0%, #BDAFCE 26%, #FBF5F7 48%, #A693B6 72%, #F1E8F0 100%) border-box !important; }
-[data-fill="metal"]:active { box-shadow: inset 0 2px 5px rgba(74,52,96,0.22); transform: translateY(1px); }
-[data-fill="metal-well"] { background-color: rgba(236,230,240,0.85) !important; box-shadow: inset 0 1px 3px rgba(74,52,96,0.12), inset 0 -1px 0 rgba(255,255,255,0.9); }
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -2px 4px rgba(80,76,110,0.10), 0 4px 10px -4px rgba(50,48,70,0.30); }
+[data-fill="metal"]:hover { background: linear-gradient(180deg, #FFFFFF 0%, #F2F2F6 100%) padding-box, linear-gradient(150deg, #FFFFFF 0%, #B1AEC2 26%, #F8F8FA 48%, #8F8CA3 72%, #EFEEF3 100%) border-box !important; }
+[data-fill="metal"]:active { box-shadow: inset 0 2px 5px rgba(50,48,70,0.22); transform: translateY(1px); }
+[data-fill="metal-well"] { background-color: rgba(228,228,234,0.9) !important; box-shadow: inset 0 1px 3px rgba(50,48,70,0.12), inset 0 -1px 0 rgba(255,255,255,0.9); }
 [data-fill="metal-card"] { border: 1px solid transparent !important;
-  background: linear-gradient(180deg, rgba(255,255,255,0.78) 0%, rgba(250,246,250,0.70) 100%) padding-box, linear-gradient(155deg, #FFFFFF 0%, #D4C8DE 28%, #FBF6F8 50%, #C2B2CC 76%, #F4EDF3 100%) border-box !important;
-  -webkit-backdrop-filter: blur(20px) saturate(120%); backdrop-filter: blur(20px) saturate(120%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 12px 26px -14px rgba(74,52,96,0.32); }
+  background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(248,248,250,0.86) 100%) padding-box, linear-gradient(155deg, #FFFFFF 0%, #CFCDD9 28%, #F7F7F9 50%, #B6B3C5 76%, #F1F1F4 100%) border-box !important;
+  -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 12px 26px -14px rgba(50,48,70,0.30); }
+/* Frosted separation: each section is a soft frosted plate on the flat grey ground. */
+[data-fill="frost-panel"] { background-color: rgba(250,250,252,0.72) !important; -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(50,48,70,0.05), 0 14px 32px -18px rgba(50,48,70,0.22); border-color: rgba(255,255,255,0.95) !important; }
 [data-fill="glass-card"] { background-color: rgba(255,255,255,0.14) !important; background-image: linear-gradient(160deg, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0.16) 100%) !important;
   -webkit-backdrop-filter: blur(30px) saturate(135%); backdrop-filter: blur(30px) saturate(135%); border-color: rgba(255,255,255,0.6) !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 0 0 1px rgba(255,255,255,0.12), 0 40px 70px -30px rgba(25,40,70,0.45); }
@@ -137,4 +138,4 @@ if (Platform.OS === 'web' && typeof document !== 'undefined' && !document.getEle
 /** Props that give a Text shiny letters (web) — spread onto <Text>. */
 export const shine = (kind: 'chrome' | 'rose' | 'titanium' | 'blush') => (Platform.OS === 'web' ? ({ dataSet: { shine: kind } } as any) : {});
 /** Props that give a View a jewellery fill (web). */
-export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'lilac' | 'pearl' | 'pearl-on' | 'pearl-ask' | 'paper' | 'gold-coin' | 'glass-bg' | 'soft-bg' | 'soft-orb' | 'soft-frost' | 'metal' | 'metal-well' | 'metal-card' | 'bubble' | 'bubble-lens' | 'bubble-gloss' | 'bubble-chip' | 'glass-card' | 'glass-bar' | 'glass-panel') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});
+export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'lilac' | 'pearl' | 'pearl-on' | 'pearl-ask' | 'paper' | 'gold-coin' | 'glass-bg' | 'soft-bg' | 'soft-orb' | 'soft-frost' | 'metal' | 'metal-well' | 'metal-card' | 'frost-panel' | 'bubble' | 'bubble-lens' | 'bubble-gloss' | 'bubble-chip' | 'glass-card' | 'glass-bar' | 'glass-panel') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});
