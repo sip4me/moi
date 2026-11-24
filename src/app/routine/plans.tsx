@@ -1,20 +1,17 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, Text, View } from 'react-native';
-import { Btn, Heading, Label, Shell, st, useWide } from '../../components/routine/Kit';
+import { Btn, Bubble, Heading, Shell, SYS, useWide } from '../../components/routine/Kit';
+import { Logo } from '../../components/ui';
 import { haptic } from '../../lib/haptics';
 import { checkoutRoutine, FOUNDING_CAP, refreshAccess, ROUTINE_PLANS, useAccess, useFounding, type RoutinePlan } from '../../lib/routine/access';
-import { analyze } from '../../lib/routine/gaps';
+import { analyze, picksFor } from '../../lib/routine/gaps';
 import { hasInfo, useCatalog, useRoutine } from '../../lib/routine/model';
 import { fill } from '../../lib/routine/shine';
-import { GlassCard } from '../../components/routine/Glass';
 import { useStore } from '../../state/store';
 import { C, F } from '../../theme';
 
 const crown = require('../../../assets/crown-pink.png');
-const GOLD = '#C99A2E';
-
-const PERKS = ['Your routines, saved on any device', 'Every gap and its fix', 'Picks matched to you', 'New products as we add them'];
 
 /** Moi Routine paywall: founding yearly ($25, lifetime database access, first 1,000 customers) or monthly ($6). */
 export default function Plans() {
@@ -32,7 +29,6 @@ export default function Plans() {
   const signedIn = !!account && !account.anonymous;
   // After payment: make the account profile (the tracker's sign-up screen attaches an email or phone to this account).
   const toProfile = () => (signedIn ? router.replace('/routine/profile') : router.replace({ pathname: '/sign-in', params: { mode: 'signup', next: '/routine/profile' } }));
-  const gapCount = useMemo(() => (hasInfo(s) ? analyze(s, cat).gaps.length : 0), [s, cat]);
 
   // Back from Stripe: wait for the webhook to mark the subscription, then go to the report.
   const [waiting, setWaiting] = useState(status === 'success');
@@ -66,53 +62,65 @@ export default function Plans() {
     return <Shell glass active="plans"><View style={{ gap: 12, alignItems: 'flex-start' }}><ActivityIndicator color={C.gray} /><Heading title="Finishing up" sub="Confirming your payment." /></View></Shell>;
   }
 
-  const plan = (k: RoutinePlan) => {
-    const p = ROUTINE_PLANS[k];
-    const on = pick === k;
-    const founder = k === 'routine_founder';
-    return (
-      <Pressable key={k} {...fill(on ? 'pearl-on' : 'pearl')} onPress={() => { haptic('select'); setPick(k); }} accessibilityRole="radio" accessibilityState={{ checked: on }}
-        style={({ hovered }: { hovered?: boolean }) => ({ flex: wide ? 1 : undefined, borderRadius: 24, padding: 20, gap: 10, borderWidth: 2, backgroundColor: on ? '#FBEDEB' : '#fff', borderColor: on ? '#A8576A' : hovered ? '#7E3A4C' : 'transparent' })}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Text style={{ flex: 1, fontFamily: F.semibold, fontSize: 16, color: C.ink }}>{founder ? (founding ? 'Founding Royal · yearly' : 'Royal · yearly') : 'Royal · monthly'}</Text>
-          {founder && founding ? <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: GOLD }}><Text style={{ fontFamily: F.semibold, fontSize: 11, letterSpacing: 0.6, color: '#fff' }}>♛ BEST VALUE</Text></View> : null}
-          <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: on ? '#6E7BD9' : '#D5D8DE', backgroundColor: on ? '#6E7BD9' : '#fff', alignItems: 'center', justifyContent: 'center' }}>
-            {on ? <Text style={{ color: '#fff', fontSize: 13, fontFamily: F.semibold, lineHeight: 15 }}>{'✓'}</Text> : null}
-          </View>
-        </View>
-        <Text style={{ fontFamily: F.display, fontSize: 40, lineHeight: 44, color: C.ink }}>{p.price}<Text style={{ fontFamily: F.medium, fontSize: 15, color: '#8E9298' }}>{` / ${p.per}`}</Text></Text>
-        {(founder && !founding ? ['About $2 a month'] : p.perks).map(x => <Text key={x} style={[st.sub, { fontSize: 14 }]}>{`• ${x}`}</Text>)}
-      </Pressable>
-    );
-  };
-
+  // Figma "34 · Paywall": one headline, a phone showing their own plan, one button, one price line.
   const p = ROUTINE_PLANS[pick];
+  const yearly = pick === 'routine_founder';
+  const gaps = hasInfo(s) ? analyze(s, cat).gaps : [];
+  const fit = hasInfo(s) ? analyze(s, cat).score : 0;
+  const fixed = gaps.map(g => picksFor(g, s, cat, 1)[0]?.item).filter((i): i is NonNullable<typeof i> => !!i);
+  const after = hasInfo(s) ? analyze(s, cat, fixed).score : 0;
+  const H = { fontFamily: SYS ?? F.bold, fontWeight: '700' as const, fontSize: wide ? 34 : 28, lineHeight: wide ? 40 : 34, letterSpacing: -0.8, color: '#111114', textAlign: 'center' as const };
+  const G = { dataSet: { grad: 'title' } } as any; // the steel-to-ink title gradient used on every page
+  const small = { fontFamily: SYS ?? F.medium, fontSize: 14, color: '#6C6A80', textAlign: 'center' as const };
   return (
-    <Shell glass active="plans"
-      footer={<View style={{ width: wide ? undefined : '100%', gap: 8 }}>
-        <Btn label={busy ? 'Opening checkout…' : `Continue with ${p.price} a ${p.per}`} onPress={busy ? undefined : buy} />
-        <Text style={[st.meta, { textAlign: 'center', fontSize: 12 }]}>{pick === 'routine_founder' && founding ? 'Renews yearly. Database access stays if you cancel.' : 'Renews automatically. Cancel anytime.'}</Text>
+    <Shell active="plans"
+      footer={<View style={{ width: wide ? 420 : '100%', gap: 10, alignItems: 'center' }}>
+        <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 16, color: '#111114' }}>{`✓  ${yearly && founding ? 'Lifetime database access' : 'Cancel anytime'}`}</Text>
+        <View style={{ width: '100%' }}><Btn label={busy ? 'Opening checkout…' : 'Continue'} onPress={busy ? undefined : buy} /></View>
       </View>}>
-      <GlassCard solid style={{ gap: 12, maxWidth: 600 }}>
-      <Image source={crown} style={{ width: 64, height: 64, transform: [{ rotate: '-12deg' }] }} resizeMode="contain" />
-      <Heading title="Save your routines" sub={gapCount ? `Make an account to keep your routines and see the fix for all ${gapCount} gap${gapCount === 1 ? '' : 's'}.` : 'Make an account to keep your routines, gaps and picks.'} />
-      </GlassCard>
-      {f ? (
-        <View {...fill('pearl')} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: 20, backgroundColor: '#fff', maxWidth: 600 }}>
-          <View style={{ flex: 1, gap: 6 }}>
-            <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>{founding ? `Founding Royals: ${(f.left ?? FOUNDING_CAP).toLocaleString()} of ${FOUNDING_CAP.toLocaleString()} crowns left` : 'Every founding crown has been claimed'}</Text>
-            <View style={{ height: 6, borderRadius: 3, backgroundColor: '#ECEEF2', overflow: 'hidden' }}><View style={{ height: 6, width: `${Math.max(2, (f.taken / FOUNDING_CAP) * 100)}%`, backgroundColor: GOLD }} /></View>
-            <Text style={st.meta}>{founding ? 'First 1,000 yearly members keep database access for life.' : 'Yearly includes everything except lifetime access.'}</Text>
-          </View>
+      <View style={{ alignItems: 'center', gap: 18, maxWidth: 520, alignSelf: 'center', width: '100%' }}>
+        <Pressable onPress={() => router.push({ pathname: '/sign-in', params: { mode: 'signin', next: '/routine/plans' } })} accessibilityRole="button" style={{ alignSelf: 'flex-end' }} hitSlop={8}>
+          <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 14, color: '#8E9298' }}>Restore</Text>
+        </Pressable>
+        <View style={{ alignItems: 'center' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8 }}><Text {...G} style={H}>Unlock</Text><Logo size={wide ? 38 : 32} color="#111114" /><Text {...G} style={H}>to reach</Text></View>
+          <Text {...G} style={H}>your beauty goals faster.</Text>
         </View>
-      ) : null}
-      <View style={{ flexDirection: wide ? 'row' : 'column', gap: 12, maxWidth: 600 }}>{plan('routine_founder')}{plan('routine_monthly')}</View>
-      <GlassCard solid style={{ gap: 10, maxWidth: 600 }}>
-        <Label>With an account</Label>
-        {PERKS.map(x => <Text key={x} style={[st.sub, { fontSize: 15 }]}>{`♛  ${x}`}</Text>)}
-      </GlassCard>
-      {err ? <Text style={{ fontFamily: F.semibold, fontSize: 14, color: '#A8576A' }}>{err}</Text> : null}
-      {status === 'cancel' ? <Text style={st.meta}>No charge made.</Text> : null}
+        {/* Their own plan, shown on a phone. */}
+        <View style={{ width: 236, borderRadius: 38, borderWidth: 9, borderColor: '#111114', backgroundColor: '#fff', paddingTop: 34, paddingBottom: 14, paddingHorizontal: 12, gap: 10, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 24, shadowOffset: { width: 0, height: 12 } }}>
+          <View style={{ position: 'absolute', top: 8, alignSelf: 'center', width: 70, height: 18, borderRadius: 9, backgroundColor: '#111114' }} />
+          <View style={{ alignItems: 'center', gap: 6 }}>
+            <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#111114', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>✓</Text></View>
+            <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '700', fontSize: 14, lineHeight: 18, color: '#111114', textAlign: 'center' }}>Your routine plan is ready!</Text>
+            {fit ? <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: '#F1F1F4' }}><Text style={{ fontFamily: SYS ?? F.medium, fontSize: 11, color: '#111114' }}>{after > fit ? `Fit ${fit} → ${after}` : `Fit ${fit}`}</Text></View> : null}
+          </View>
+          <View style={{ backgroundColor: '#F4F4F7', borderRadius: 14, padding: 8, gap: 6 }}>
+            <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 11, color: '#111114' }}>{gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'} to fix` : 'Your routine'}</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+              {(gaps.length ? gaps.slice(0, 4) : []).map(g => (
+                <View key={g.id} style={{ width: '47%', flexGrow: 1, flexDirection: 'row', alignItems: 'center', gap: 6, padding: 6, borderRadius: 10, backgroundColor: '#fff' }}>
+                  <Bubble category={g.fills[0]} size={22} />
+                  <Text numberOfLines={1} style={{ flex: 1, fontFamily: SYS ?? F.medium, fontSize: 10, color: '#111114' }}>{g.title}</Text>
+                </View>
+              ))}
+            </View>
+            {fit ? <View style={{ gap: 4, padding: 6, borderRadius: 10, backgroundColor: '#fff' }}>
+              <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 10, color: '#111114' }}>{`Routine fit  ${after}/100`}</Text>
+              <View style={{ height: 4, borderRadius: 2, backgroundColor: '#ECEEF2' }}><View style={{ height: 4, borderRadius: 2, width: `${after}%`, backgroundColor: '#3FA45B' }} /></View>
+            </View> : null}
+          </View>
+          <View style={{ height: 30, borderRadius: 15, backgroundColor: '#111114', alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 11, color: '#fff' }}>Let’s get started!</Text></View>
+        </View>
+        <View style={{ alignItems: 'center', gap: 6 }}>
+          <Text style={small}>{yearly ? `Just ${p.price}/year (about $2/mo)` : `Just ${p.price}/month`}</Text>
+          <Pressable onPress={() => { haptic('select'); setPick(yearly ? 'routine_monthly' : 'routine_founder'); }} accessibilityRole="button" hitSlop={8}>
+            <Text style={[small, { fontSize: 13, textDecorationLine: 'underline' }]}>{yearly ? `Prefer monthly? ${ROUTINE_PLANS.routine_monthly.price}/month` : `Switch to yearly · ${ROUTINE_PLANS.routine_founder.price}/year`}</Text>
+          </Pressable>
+        </View>
+        {f && founding && yearly ? <Text style={small}>{`${(f.left ?? FOUNDING_CAP).toLocaleString()} of ${FOUNDING_CAP.toLocaleString()} founding spots left`}</Text> : null}
+        {err ? <Text style={{ fontFamily: F.semibold, fontSize: 14, color: '#A8576A' }}>{err}</Text> : null}
+        {status === 'cancel' ? <Text style={small}>No charge made.</Text> : null}
+      </View>
     </Shell>
   );
 }

@@ -5,7 +5,7 @@ import { BLUE, Btn, ChipBtn, Heading, iconFor, Label, money, MorePicks, NeedInfo
 import { useAccess } from '../../lib/routine/access';
 import { celebrate } from '../../components/routine/Celebrate';
 import { analyze, hasMorePicks, profileOf, rankPicks, retailerLinks } from '../../lib/routine/gaps';
-import { findByKey, hasInfo, hasInput, itemKey, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
+import { allSteps, findByKey, hasInfo, hasInput, itemKey, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 import { fill } from '../../lib/routine/shine';
 
@@ -76,6 +76,14 @@ export default function Shop() {
 
   if (!hasInfo(s)) return <Shell active="shop"><NeedInfo goals={s.goals.length > 0} /></Shell>;
   if (!hasInput(s)) return <Shell active="shop"><NeedInfo goals /></Shell>;
+  // Refills: everything already in their routine, one tap from a store to buy it again.
+  const mine = allSteps(s).map(x => x.step.item).filter((i): i is Item => !!i?.addedAt);
+  const refills = mine.filter((i, n) => mine.findIndex(j => itemKey(j) === itemKey(i)) === n);
+  const buyAgain = (i: Item) => {
+    const link = retailerLinks(i)[0]; if (!link) return;
+    setRoutine(r => ({ ...r, opened: { ...(r.opened ?? {}), [itemKey(i)]: { store: link.name, at: Date.now() } } }));
+    Linking.openURL(link.url);
+  };
   return (
     <Shell active="shop" side={wide && bag.length ? bagPanel : undefined}
       footer={!wide && bag.length ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><View style={{ flex: 1 }}><Text style={T.h2}>{`${bag.length} item${bag.length === 1 ? '' : 's'} · ${money(Math.round(total(bag)))}`}</Text><Text style={T.meta}>{`+${after - score} fit`}</Text></View><Btn label="Your picks" onPress={() => router.push('/routine/checkout')} /></View> : undefined}>
@@ -93,6 +101,29 @@ export default function Shop() {
           <Pressable {...fill('chrome-key')} onPress={addAll} accessibilityRole="button" style={{ height: 34, paddingHorizontal: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#DADADA', borderWidth: 1.5, borderColor: '#161616' }}>
             <Text style={[T.label, { color: '#111114' }]}>Add all</Text>
           </Pressable>
+        </View>
+      ) : null}
+      {refills.length ? (
+        <View style={{ gap: 10 }}>
+          <Text style={T.h2}>Buy again</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingRight: 8 }}>
+            {refills.map(i => {
+              const store = retailerLinks(i)[0]?.name;
+              return (
+                <View key={itemKey(i)} style={{ width: 148, gap: 8, padding: 12, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.75)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
+                  <Bubble category={i.category} size={44} />
+                  <Text numberOfLines={2} style={[T.name, { minHeight: 38 }]}>{i.name}</Text>
+                  <Text style={T.meta}>{i.price != null ? money(i.price) : i.brand}</Text>
+                  {store ? (
+                    <Pressable {...fill('chrome-key')} onPress={() => buyAgain(i)} accessibilityRole="link" accessibilityLabel={`Buy ${i.name} again at ${store}`}
+                      style={{ height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: '#DADADA', borderWidth: 1.5, borderColor: '#161616' }}>
+                      <Text style={[T.label, { color: '#111114' }]}>{`${store} ↗`}</Text>
+                    </Pressable>
+                  ) : null}
+                </View>
+              );
+            })}
+          </ScrollView>
         </View>
       ) : null}
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
