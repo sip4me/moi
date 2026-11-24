@@ -55,8 +55,8 @@ export default function SignIn() {
 
   const title = step === 'code' ? 'Enter your code' : mode === 'signin' ? 'Welcome back' : 'Save your progress';
   const sub = step === 'code'
-    ? `We sent a 6-digit code to ${shown}.`
-    : mode === 'signin' ? 'We’ll send you a 6-digit code. No password needed.' : 'Create an account so your plan and progress follow you to any phone.';
+    ? `We sent a code to ${shown}. Use the newest email if you got more than one.`
+    : mode === 'signin' ? 'We’ll send you a code. No password needed.' : 'Create an account so your plan and progress follow you to any phone.';
 
   return (
     <Screen footer={step === 'enter' ? <>
@@ -103,13 +103,13 @@ export default function SignIn() {
         <View style={{ marginTop: 28, gap: 12 }}>
           <Field
             value={code}
-            onChangeText={t => { setCode(t.replace(/\D/g, '').slice(0, 6)); setError(null); }}
+            onChangeText={t => { setCode(t.replace(/\D/g, '').slice(0, 10)); setError(null); }}
             placeholder="••••••"
             keyboardType="number-pad"
             autoComplete="one-time-code"
-            maxLength={6}
-            style={{ fontFamily: F.semibold, fontSize: 28, letterSpacing: 12, textAlign: 'center' }}
-            onSubmitEditing={() => code.length === 6 && verify()}
+            maxLength={10}
+            style={{ fontFamily: F.semibold, fontSize: 28, letterSpacing: 8, textAlign: 'center' }}
+            onSubmitEditing={() => code.length >= 6 && verify()}
           />
           <Pressable onPress={() => { setStep('enter'); setError(null); }} hitSlop={8} style={{ alignSelf: 'center' }}>
             <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.gray2 }}>Use a different {method === 'email' ? 'email' : 'number'}</Text>
