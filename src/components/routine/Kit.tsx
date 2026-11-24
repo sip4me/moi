@@ -142,7 +142,7 @@ export function Shell({ active, children, side, footer, step, hideNav, glass }: 
             ? <View style={[st.wFooter, glass && { backgroundColor: 'transparent', borderTopColor: 'rgba(255,255,255,0.4)' }]}><View style={{ maxWidth: 808, width: '100%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 12 }}>{footer}</View></View>
             : <View style={[st.mFooter, glass && { backgroundColor: 'transparent' }]}>{footer}</View>) : null}
         </View>
-        {wide && side ? <ScrollView style={st.side} contentContainerStyle={{ padding: 24, gap: 16 }}>{side}</ScrollView> : null}
+        {wide && side ? <ScrollView style={st.side} contentContainerStyle={{ paddingHorizontal: 22, paddingVertical: 20, gap: 12 }}>{side}</ScrollView> : null}
       </View>
       <Menu open={menu} onClose={() => setMenu(false)} active={active} />
     </SafeAreaView>
@@ -233,7 +233,24 @@ export function Node({ state, check = true }: { state: 'done' | 'next' | 'empty'
   );
 }
 
-function StepRow({ s, state, last, nextFilled, onOpen }: { s: Step; state: 'done' | 'next' | 'empty' | 'skipped'; last: boolean; nextFilled: boolean; onOpen: () => void }) {
+function StepRow({ s, state, last, nextFilled, onOpen, locked, nudge = 0 }: { s: Step; state: 'done' | 'next' | 'empty' | 'skipped'; last: boolean; nextFilled: boolean; onOpen: () => void; locked?: boolean; nudge?: number }) {
+  // The step to fill floats gently and sits a little bigger; a tap on a later step gives it a nudge.
+  const bob = useRef(new Animated.Value(0)).current;
+  const shake = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (state !== 'next') { bob.setValue(0); return; }
+    const loop = Animated.loop(Animated.sequence([
+      Animated.timing(bob, { toValue: 1, duration: 1300, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      Animated.timing(bob, { toValue: 0, duration: 1300, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+    ]));
+    loop.start();
+    return () => loop.stop();
+  }, [state, bob]);
+  useEffect(() => {
+    if (!nudge || state !== 'next') return;
+    shake.setValue(0);
+    Animated.sequence([0, 1, 2, 3].map(i => Animated.timing(shake, { toValue: i % 2 ? -1 : 1, duration: 70, useNativeDriver: true })).concat([Animated.timing(shake, { toValue: 0, duration: 70, useNativeDriver: true })])).start();
+  }, [nudge]);
   const empty = !s.item;
   const appear = useRef(new Animated.Value(1)).current;
   const prev = useRef(s.item?.name);
@@ -248,8 +265,9 @@ function StepRow({ s, state, last, nextFilled, onOpen }: { s: Step; state: 'done
         {state === 'skipped' ? <View style={st.skipNode}><View style={st.skipDash} /></View> : <Node state={state} />}
         {!last ? <Rail filled={!empty || state === 'skipped'} empty={empty && !next && state !== 'skipped'} /> : null}
       </View>
-      <Pressable onPress={() => { haptic('select'); onOpen(); }} style={({ pressed }) => [{ flex: 1, paddingBottom: 12 }, pressed && { opacity: 0.85 }]}>
+      <Pressable onPress={() => { haptic('select'); onOpen(); }} accessibilityState={{ disabled: !!locked }} style={({ pressed }) => [{ flex: 1, paddingBottom: next ? 16 : 12, paddingTop: next ? 4 : 0 }, pressed && { opacity: 0.85 }, locked && { opacity: 0.55 }]}>
         {({ hovered }: PS) => (
+        <Animated.View style={next ? [st.stepFloat, { transform: [{ translateY: bob.interpolate({ inputRange: [0, 1], outputRange: [0, -4] }) }, { translateX: shake.interpolate({ inputRange: [-1, 1], outputRange: [-6, 6] }) }, { scale: 1.035 }] }] : undefined}>
         <Animated.View style={[st.stepCard, empty && !next && st.stepQuiet, next && st.stepNext, hovered && { ...HOVER_RIM, borderStyle: 'solid', backgroundColor: '#EDEEF0' }, { opacity: appear, transform: [{ scale: appear.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) }] }]}>
           {!empty ? <Image source={iconFor(s.item!.category)} style={st.stepIcon} /> : state === 'skipped' ? null : <PlusDot solid={next} />}
           <View style={{ flex: 1, gap: 3 }}>
@@ -260,6 +278,7 @@ function StepRow({ s, state, last, nextFilled, onOpen }: { s: Step; state: 'done
             </View>
             {empty && !next ? null : <Text style={st.stepSub} numberOfLines={2}>{empty ? 'Search, scan or skip' : `${s.item!.brand ? `${s.item!.brand} · ` : ''}${s.item!.name}`}</Text>}
           </View>
+        </Animated.View>
         </Animated.View>
         )}
       </Pressable>
@@ -359,6 +378,11 @@ export function GoldCheck({ size = 28 }: { size?: number }) {
 
 export function Timeline({ steps, onOpen, submitted = false, onSubmit, extra }: { steps: Step[]; onOpen: (s: Step) => void; active?: string; submitted?: boolean; onSubmit?: () => void; extra?: React.ReactNode }) {
   const nextIdx = steps.findIndex(s => !s.item && !s.skipped);
+  const [nudge, setNudge] = useState(0);
+  const [tip, setTip] = useState('');
+  const nextStep = nextIdx >= 0 ? steps[nextIdx] : undefined;
+  const tapLocked = () => { haptic('select'); setNudge(n => n + 1); setTip(`Finish ${lc(CATEGORY_LABEL[nextStep?.hint ?? ''] ?? nextStep?.label ?? 'this step')} first, or skip it.`); };
+  useEffect(() => { if (!tip) return; const t = setTimeout(() => setTip(''), 2600); return () => clearTimeout(t); }, [tip, nudge]);
   const done = steps.filter(s => s.item || s.skipped).length;
   // Each filled or skipped box moves the bar one step; submitting completes it.
   const value = submitted ? 1 : steps.length ? done / steps.length : 0;
@@ -372,8 +396,13 @@ export function Timeline({ steps, onOpen, submitted = false, onSubmit, extra }: 
       ) : null}
       <View>
         {steps.map((s, i) => (
-          <StepRow key={s.id} s={s} last={i === steps.length - 1 && !onSubmit} nextFilled={!!steps[i + 1]?.item}
-            state={s.item?.addedAt ? 'done' : s.skipped ? 'skipped' : !submitted && i === nextIdx ? 'next' : 'empty'} onOpen={() => onOpen(s)} />
+          <View key={s.id}>
+            <StepRow s={s} last={i === steps.length - 1 && !onSubmit} nextFilled={!!steps[i + 1]?.item}
+              state={s.item?.addedAt ? 'done' : s.skipped ? 'skipped' : !submitted && i === nextIdx ? 'next' : 'empty'}
+              locked={!submitted && nextIdx >= 0 && i > nextIdx && !s.item && !s.skipped} nudge={i === nextIdx ? nudge : 0}
+              onOpen={() => (!submitted && nextIdx >= 0 && i > nextIdx && !s.item && !s.skipped ? tapLocked() : onOpen(s))} />
+            {tip && i === nextIdx ? <Text accessibilityRole="alert" style={{ marginLeft: 34, marginTop: -6, marginBottom: 10, fontFamily: F.semibold, fontSize: 13, color: '#5B67C9' }}>{tip}</Text> : null}
+          </View>
         ))}
         {extra}
         {onSubmit && steps.length ? <RoutineEnd submitted={submitted} canSubmit={done > 0} onSubmit={onSubmit} /> : null}
@@ -511,20 +540,20 @@ export function PickerSheet({ step, onClose, onPick, onRemove, onRename, onSkip 
 
 // ── Gaps and products ────────────────────────────────────────────────────────
 /** Laptop side panel: everything the person entered, with edit links. The report is judged on exactly this. */
-export function InputsPanel({ s }: { s: RoutineState }) {
+export function InputsPanel({ s, compact }: { s: RoutineState; compact?: boolean }) {
   const hair = [s.hair.texture, s.hair.strands, s.hair.scalp && `${s.hair.scalp} scalp`, s.hair.treated && s.hair.treated !== 'No' && s.hair.treated, s.hair.heat && `Heat ${s.hair.heat.toLowerCase()}`].filter(Boolean).join(' · ');
   const logged = allSteps(s).filter(x => x.step.item?.addedAt).length;
   const skipped = allSteps(s).filter(x => x.step.skipped).length;
   const row = (k: string, v: string, href: string) => (
     <Pressable key={k} onPress={() => router.push(href as any)} accessibilityRole="button" accessibilityLabel={`Edit ${k}`}
-      style={({ hovered }: PS) => ({ gap: 2, paddingVertical: 10, paddingHorizontal: 12, marginHorizontal: -12, borderRadius: 12, backgroundColor: hovered ? '#F4F5F8' : 'transparent' })}>
+      style={({ hovered }: PS) => ({ gap: 1, paddingVertical: compact ? 6 : 10, paddingHorizontal: 12, marginHorizontal: -12, borderRadius: compact ? 0 : 10, borderTopWidth: compact ? 1 : 0, borderTopColor: '#F0F1F4', backgroundColor: hovered ? '#F4F5F8' : 'transparent' })}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}><Text style={[st.label, { flex: 1 }]}>{k}</Text><Text style={{ fontFamily: F.semibold, fontSize: 12, color: '#6E7BD9' }}>Edit</Text></View>
-      <Text style={{ fontFamily: F.medium, fontSize: 14, lineHeight: 20, color: v ? C.ink : C.gray }}>{v || 'Not set'}</Text>
+      <Text style={{ fontFamily: F.medium, fontSize: compact ? 13 : 14, lineHeight: compact ? 18 : 20, color: v ? C.ink : C.gray }} numberOfLines={compact ? 2 : undefined}>{v || 'Not set'}</Text>
     </Pressable>
   );
   return (
     <View style={{ gap: 4 }}>
-      <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink, marginBottom: 6 }}>Judged on</Text>
+      <Text style={compact ? [st.label, { color: C.gray2, marginBottom: 2 }] : { fontFamily: F.semibold, fontSize: 15, color: C.ink, marginBottom: 6 }}>Judged on</Text>
       {(s.areas ?? ['hair']).includes('hair') ? row('Hair goals', s.goals.join(', '), '/routine/about') : null}
       {(s.areas ?? ['hair']).includes('hair') ? row('Hair', hair, '/routine/about') : null}
       {row('Budget', s.hair.budget ?? '', '/routine/about')}
@@ -537,28 +566,34 @@ export function InputsPanel({ s }: { s: RoutineState }) {
   );
 }
 
-/** Laptop side panel on the routine builder: fit and gaps update as products are added. */
+/** Laptop side panel on the routine builder: fit, top gaps and what it's judged on, compact enough to see whole. */
 export function LivePanel({ score, gaps, onOpen }: { score: number; gaps: Gap[]; onOpen: () => void }) {
+  const top = [...gaps].sort((x, y) => y.weight - x.weight).slice(0, 4);
   return (
-    <View style={{ gap: 14 }}>
-      <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>Live check</Text>
+    <View style={{ gap: 10 }}>
+      <Text style={[st.label, { color: C.gray2 }]}>Live check</Text>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
-        <Text style={{ fontFamily: F.display, fontSize: 44, lineHeight: 48, color: C.ink }}>{score}</Text>
-        <Text style={st.meta}>routine fit</Text>
+        <Text style={{ fontFamily: F.display, fontSize: 30, lineHeight: 32, color: C.ink }}>{score}</Text>
+        <Text style={[st.meta, { fontSize: 12 }]}>routine fit</Text>
       </View>
       <ScoreBar score={score} />
-      <Text style={st.label}>{gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'}` : 'No gaps'}</Text>
-      {gaps.slice(0, 6).map(g => (
-        <View key={g.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: KIND_COLOR[g.kind].fg }} />
-          <Text style={{ flex: 1, fontFamily: F.medium, fontSize: 14, color: C.ink }} numberOfLines={1}>{g.title}</Text>
+      <Faint />
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <Text style={[st.label, { flex: 1, color: C.gray2 }]}>{gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'}` : 'No gaps'}</Text>
+        {gaps.length ? <Pressable onPress={onOpen} accessibilityRole="button" hitSlop={6}><Text style={{ fontFamily: F.semibold, fontSize: 12, color: '#5B67C9' }}>See all</Text></Pressable> : null}
+      </View>
+      {top.map(g => (
+        <View key={g.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: KIND_COLOR[g.kind].fg }} />
+          <Text style={{ flex: 1, fontFamily: F.medium, fontSize: 13, color: C.ink }} numberOfLines={1}>{g.title}</Text>
         </View>
       ))}
-      {gaps.length > 6 ? <Text style={st.meta}>{`+${gaps.length - 6} more`}</Text> : null}
-      {gaps.length ? <ChipBtn label="See my gaps" icon="search" onPress={onOpen} /> : null}
+      {gaps.length > top.length ? <Text style={[st.meta, { fontSize: 12 }]}>{`+${gaps.length - top.length} more`}</Text> : null}
     </View>
   );
 }
+/** A faint line between groups. */
+export const Faint = () => <View style={{ height: 1, backgroundColor: '#ECEEF2', marginVertical: 4 }} accessibilityElementsHidden importantForAccessibility="no" />;
 
 export function GapCard({ gap, onPress, selected, cta, price }: { gap: Gap; onPress?: () => void; selected?: boolean; cta?: string; price?: string }) {
   const c = KIND_COLOR[gap.kind];
@@ -698,7 +733,7 @@ export const st = StyleSheet.create({
   navOn: { backgroundColor: '#fff' },
   navAddon: { marginTop: 12, borderTopWidth: 1, borderTopColor: '#E3E5E8', borderTopLeftRadius: 0, borderTopRightRadius: 0, paddingTop: 12, height: 56 },
   navText: { fontFamily: F.medium, fontSize: 15, color: C.gray2 },
-  side: { width: 360, flexGrow: 0, backgroundColor: '#fff', borderLeftWidth: 1, borderLeftColor: '#EEF0F3' },
+  side: { width: 320, flexGrow: 0, backgroundColor: '#fff', borderLeftWidth: 1, borderLeftColor: '#EEF0F3' },
   mHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, height: 52 },
   topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4, minHeight: 60 },
   menuBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderColor: 'transparent', backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 3 } },
@@ -734,6 +769,7 @@ export const st = StyleSheet.create({
   nodeEmpty: { borderColor: '#B8BEC6', borderStyle: 'dashed', borderWidth: 1.5, backgroundColor: C.bg },
   nodeOn: { width: 18, height: 18, borderRadius: 9, borderWidth: 5 },
   rail: { flex: 1, width: 2, backgroundColor: '#E1E4E8', marginTop: 2, overflow: 'hidden', borderRadius: 1 },
+  stepFloat: { borderRadius: 20, shadowColor: '#5B67C9', shadowOpacity: 0.22, shadowRadius: 18, shadowOffset: { width: 0, height: 10 }, elevation: 6 },
   stepCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1.5, borderColor: 'transparent' },
   stepEmpty: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#C9CDD2', borderStyle: 'dashed' },
   stepOn: { backgroundColor: BLUE },

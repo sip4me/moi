@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
-import { BLUE, Btn, ChipBtn, Heading, InputsPanel, LivePanel, PlusDot, iconFor, Label, PickerSheet, Pill, ScoreBar, Segmented, Shell, st, Timeline, useWide } from '../../components/routine/Kit';
+import { BLUE, Btn, ChipBtn, Faint, Heading, InputsPanel, LivePanel, PlusDot, iconFor, Label, PickerSheet, Pill, ScoreBar, Segmented, Shell, st, Timeline, useWide } from '../../components/routine/Kit';
 import { icon3d } from '../../data/icons3d';
 import { analyze, buildNew, KIND_COLOR, KIND_LABEL } from '../../lib/routine/gaps';
 import { allSteps, AREAS, BEAUTY_ROUTINES, CATEGORY_LABEL, DAYS, defaultBeauty, defaultOccasion, newStepId, OCCASION_ICON, OCCASIONS, setRoutine, useCatalog, useRoutine, type RoutineState, type Step } from '../../lib/routine/model';
@@ -128,7 +128,7 @@ export default function Build() {
   const areaLabel = (a: string) => AREAS.find(x => x.key === a)?.label ?? a;
 
   return (
-    <Shell active="build" step={areas.length > 1 ? `Routine ${idx + 1} of ${areas.length}` : '2 of 3'} side={wide ? <View style={{ gap: 28 }}><LivePanel score={score} gaps={gaps} onOpen={() => router.push('/routine/gaps')} /><View style={{ height: 1, backgroundColor: '#EEF0F3' }} /><InputsPanel s={s} /></View> : undefined}
+    <Shell active="build" step={areas.length > 1 ? `Routine ${idx + 1} of ${areas.length}` : '2 of 3'} side={wide ? <View style={{ gap: 12 }}><LivePanel score={score} gaps={gaps} onOpen={() => router.push('/routine/gaps')} /><Faint /><InputsPanel compact s={s} /></View> : undefined}
       footer={<View style={{ gap: 8, width: wide ? undefined : '100%', alignItems: wide ? 'flex-end' : 'stretch' }}>{warn && !logged ? <View accessibilityRole="alert" style={{ paddingVertical: 10, paddingHorizontal: 14, borderRadius: 14, backgroundColor: '#FEF3F2', borderWidth: 1, borderColor: '#FECDCA' }}><Text style={{ fontFamily: F.semibold, fontSize: 13, color: '#B42318' }}>Add at least one product you use, or skip the steps you don’t do.</Text></View> : null}<Btn glow={allDone} label={nextArea ? `Next: ${areaLabel(nextArea).toLowerCase()} routine` : wide ? 'See my gaps' : `See my gaps · fit ${score}`} onPress={() => (nextArea ? router.push({ pathname: '/routine/build', params: { area: nextArea } }) : (s.mode === 'check' && !logged ? (setWarn(true), undefined) : router.push('/routine/gaps')))} /></View>}>
       <Heading title={`${s.mode === 'new' ? 'Your new' : 'Your'} ${area === 'hair' ? 'hair' : areaLabel(area).toLowerCase()} routine`} sub={s.mode === 'new' ? 'Steps your answers need. Add or skip each.' : 'Add what you use, in order. Skip any step.'} />
       {areas.length > 1 ? (
