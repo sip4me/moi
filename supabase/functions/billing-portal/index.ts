@@ -2,7 +2,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const STRIPE = Deno.env.get('STRIPE_SECRET_KEY');
-const SITE = Deno.env.get('SITE_URL') ?? 'https://moi-ashy.vercel.app';
+const SITE = Deno.env.get('SITE_URL') ?? 'https://usemoi.com';
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' };
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);

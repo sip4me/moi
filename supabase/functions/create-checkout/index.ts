@@ -6,7 +6,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const STRIPE = Deno.env.get('STRIPE_SECRET_KEY');
-const SITE = Deno.env.get('SITE_URL') ?? 'https://moi-ashy.vercel.app';
+const SITE = Deno.env.get('SITE_URL') ?? 'https://usemoi.com';
 const PLANS = new Set(['moi_monthly', 'moi_yearly', 'moi_yearly_offer', 'routine_monthly', 'routine_founder', 'routine_yearly']);
 const TRIAL_DAYS = 3;
 

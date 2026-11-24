@@ -43,7 +43,7 @@ export async function loadBuddyStreaks(): Promise<BuddyStreak[]> {
   return (data ?? []) as BuddyStreak[];
 }
 
-const appOrigin = () => (Platform.OS === 'web' && typeof window !== 'undefined' ? window.location.origin : 'https://moi-ashy.vercel.app');
+const appOrigin = () => (Platform.OS === 'web' && typeof window !== 'undefined' ? window.location.origin : 'https://usemoi.com');
 
 /**
  * Makes a one-time invite link and opens the person's own Messages app with it addressed to the number.
