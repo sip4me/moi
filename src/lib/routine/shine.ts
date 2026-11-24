@@ -76,6 +76,10 @@ const CSS = `
 [data-fill="soft-orb"] { filter: blur(44px) saturate(70%); }
 /* Frost: a white veil over the circles so the colour reads as a tint, not a picture. */
 [data-fill="soft-frost"] { background-color: rgba(246,247,250,0.42) !important; -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
+[data-fill="bubble"] { background-color: #EEE9F3 !important; background-image: radial-gradient(circle at 50% 62%, #F7F3FA 0%, #EAE3F0 55%, #D6CCE2 100%) !important;
+  box-shadow: inset 0 -12px 22px rgba(110,90,150,0.22), inset 0 8px 14px rgba(255,255,255,0.85), 0 14px 28px rgba(90,80,130,0.16), 0 2px 6px rgba(90,80,130,0.10); }
+[data-fill="bubble-gloss"] { background-image: radial-gradient(ellipse 46% 30% at 34% 20%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.35) 55%, rgba(255,255,255,0) 100%), radial-gradient(circle at 50% 50%, rgba(255,255,255,0) 64%, rgba(255,255,255,0.55) 70%, rgba(255,255,255,0) 74%) !important; }
+[data-fill="bubble-chip"] { background-color: rgba(255,255,255,0.86) !important; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(60,50,90,0.14); }
 [data-fill="glass-card"] { background-color: rgba(255,255,255,0.14) !important; background-image: linear-gradient(160deg, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0.16) 100%) !important;
   -webkit-backdrop-filter: blur(30px) saturate(135%); backdrop-filter: blur(30px) saturate(135%); border-color: rgba(255,255,255,0.6) !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 0 0 1px rgba(255,255,255,0.12), 0 40px 70px -30px rgba(25,40,70,0.45); }
@@ -104,4 +108,4 @@ if (Platform.OS === 'web' && typeof document !== 'undefined' && !document.getEle
 /** Props that give a Text shiny letters (web) — spread onto <Text>. */
 export const shine = (kind: 'chrome' | 'rose' | 'titanium' | 'blush') => (Platform.OS === 'web' ? ({ dataSet: { shine: kind } } as any) : {});
 /** Props that give a View a jewellery fill (web). */
-export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'lilac' | 'pearl' | 'pearl-on' | 'pearl-ask' | 'paper' | 'gold-coin' | 'glass-bg' | 'soft-bg' | 'soft-orb' | 'soft-frost' | 'glass-card' | 'glass-bar' | 'glass-panel') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});
+export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'lilac' | 'pearl' | 'pearl-on' | 'pearl-ask' | 'paper' | 'gold-coin' | 'glass-bg' | 'soft-bg' | 'soft-orb' | 'soft-frost' | 'bubble' | 'bubble-gloss' | 'bubble-chip' | 'glass-card' | 'glass-bar' | 'glass-panel') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});

@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Image, Linking, Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { QtyStepper, Btn, ChipBtn, iconFor, money, NeedInfo, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
+import { Bubble, QtyStepper, Btn, ChipBtn, iconFor, money, NeedInfo, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
 import { analyze, retailerLinks } from '../../lib/routine/gaps';
 import { allSteps, AREA_Q, AREAS, BEAUTY_ROUTINES, CATEGORY_LABEL, DAYS, findByKey, GOALS, hasInfo, HAIR_Q, itemKey, placeItems, pref, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
 import { C, F } from '../../theme';
@@ -144,31 +144,26 @@ export default function Checkout() {
           <View style={{ flex: 1 }}><H2>{`Your picks · ${count}`}</H2></View>
           <Underline label="Edit picks" onPress={() => router.push('/routine/shop')} />
         </View>
-        {bag.map(i => (
-          <View key={itemKey(i)} style={{ gap: 8, paddingVertical: 10 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <View style={{ width: 48, height: 48, borderRadius: 12, backgroundColor: '#F2F3F6', alignItems: 'center', justifyContent: 'center' }}><Image source={iconFor(i.category)} style={{ width: 38, height: 38 }} /></View>
-              <View style={{ flex: 1 }}>
-                <Text style={st.meta}>{`${i.brand} · ${CATEGORY_LABEL[i.category] ?? ''}`}</Text>
-                <Text style={{ fontFamily: F.medium, fontSize: 15, color: C.ink }} numberOfLines={2}>{i.name}</Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingTop: 6 }}>
+          {bag.map(i => (
+            <View key={itemKey(i)} style={{ flexGrow: 1, flexBasis: 150, maxWidth: wide ? 220 : undefined, alignItems: 'center', gap: 10, paddingTop: 16, paddingBottom: 14, paddingHorizontal: 12, borderRadius: 26, backgroundColor: '#fff', borderWidth: 1, borderColor: '#EEF0F3' }}>
+              <Bubble category={i.category} chip={<Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.gray2 }} numberOfLines={1}>{CATEGORY_LABEL[i.category] ?? 'Pick'}</Text>} />
+              <View style={{ alignItems: 'center', gap: 2, alignSelf: 'stretch' }}>
+                <Text style={{ fontFamily: F.semibold, fontSize: 15, lineHeight: 19, color: C.ink, textAlign: 'center' }} numberOfLines={2}>{i.name}</Text>
+                <Text style={[st.meta, { fontSize: 12, textAlign: 'center' }]} numberOfLines={1}>{i.brand}</Text>
               </View>
-              {wide ? <QtyStepper n={q(i)} onChange={n => setQ(i, n)} onRemove={() => removeItem(i)} label={i.name} /> : null}
-            </View>
-            {wide ? null : (
-              <View style={{ flexDirection: 'row', alignItems: 'center', paddingLeft: 60 }}>
-                <Text style={{ flex: 1, fontFamily: F.semibold, fontSize: 15, color: C.ink }}>{i.price != null ? money(i.price * q(i)) : 'At store'}</Text>
-                <QtyStepper n={q(i)} onChange={n => setQ(i, n)} onRemove={() => removeItem(i)} label={i.name} />
+              <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>{i.price != null ? money(i.price * q(i)) : 'At store'}</Text>
+              <QtyStepper n={q(i)} onChange={n => setQ(i, n)} onRemove={() => removeItem(i)} label={i.name} />
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 6 }}>
+                {retailerLinks(i).slice(0, 3).map(r => (
+                  <Pressable key={r.name} onPress={() => Linking.openURL(r.url)} accessibilityRole="link" style={({ hovered }: any) => ({ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, borderWidth: 1, borderColor: '#E3E5EB', backgroundColor: hovered ? '#F2F3F6' : '#fff' })}>
+                    <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.ink }}>{`${r.name} ↗`}</Text>
+                  </Pressable>
+                ))}
               </View>
-            )}
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingLeft: 60 }}>
-              {retailerLinks(i).map(r => (
-                <Pressable key={r.name} onPress={() => Linking.openURL(r.url)} accessibilityRole="link" style={({ hovered }: any) => ({ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: '#D9DCE3', backgroundColor: hovered ? '#F2F3F6' : '#fff' })}>
-                  <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.ink }}>{`${r.name} ↗`}</Text>
-                </Pressable>
-              ))}
             </View>
-          </View>
-        ))}
+          ))}
+        </View>
         {!bag.length ? <Text style={st.sub}>Nothing in your bag yet.</Text> : null}
         {!wide ? <View style={{ marginTop: 20 }}>{card}</View> : null}
         <Divider />

@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
-import { BLUE, Btn, ChipBtn, GapCard, Heading, iconFor, InputsPanel, money, st, NeedInfo, Pill, PickRow, Shell, useWide, WhereToBuy } from '../../components/routine/Kit';
+import { BLUE, Btn, ChipBtn, GapCard, Heading, iconFor, InputsPanel, money, st, NeedInfo, Pill, PickBubble, Shell, useWide, WhereToBuy } from '../../components/routine/Kit';
 import { icon3d } from '../../data/icons3d';
 import { GlassCard } from '../../components/routine/Glass';
 import { celebrate } from '../../components/routine/Celebrate';
@@ -88,8 +88,8 @@ export default function Gaps() {
               <GapCard gap={g} selected={isOpen} onPress={() => setOpen(isOpen ? undefined : g.id)} cta={p.length ? (isOpen ? 'Hide' : 'View') : undefined} price={from != null ? `from about ${money(from)}` : undefined} />
               {isOpen ? (
                 <View style={{ gap: 12, paddingLeft: wide ? 16 : 0 }}>
-                  <View style={{ gap: 8 }}>
-                    {p.map((x: any, i) => <PickRow key={x.item.id} rank={i + 1} item={x.item} fit={x.fit} gain={x.gain} badge={x.badge} why={x.why} inBag={s.bag.includes(itemKey(x.item))} onAdd={() => toggleBag(itemKey(x.item))} />)}
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+                    {p.map((x: any) => <PickBubble key={x.item.id} item={x.item} fit={x.fit} gain={x.gain} badge={x.badge} why={x.why} inBag={s.bag.includes(itemKey(x.item))} onAdd={() => toggleBag(itemKey(x.item))} />)}
                   </View>
                   {p[0] ? (where === g.id ? <WhereToBuy item={p[0].item} /> : <ChipBtn label="Where to buy" icon="store" onPress={() => setWhere(g.id)} />) : null}
                 </View>

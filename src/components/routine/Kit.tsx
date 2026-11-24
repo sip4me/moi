@@ -726,6 +726,44 @@ export function GapCard({ gap, onPress, selected, cta, price }: { gap: Gap; onPr
 /** One ranked option for a gap. The category picture is a small marker, not a product photo, so it stays thumbnail-sized (48, like the bag and checkout); the advantage reads first. */
 const TINT_INK = '#4652B5';
 
+/** The product as a glass bubble: the category icon floats inside a glossy sphere, a frosted chip sits on its lower edge. */
+export function Bubble({ category, size = 112, chip, lead }: { category: string; size?: number; chip?: React.ReactNode; lead?: boolean }) {
+  return (
+    <View style={{ width: size, height: size + 14, alignItems: 'center' }}>
+      <View {...fill('bubble')} style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: '#EEE9F3', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderWidth: lead ? 2 : 0, borderColor: '#E7C98B' }}>
+        <Image source={iconFor(category)} style={{ width: size * 0.66, height: size * 0.66 }} resizeMode="contain" />
+        <View {...fill('bubble-gloss')} pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }} />
+      </View>
+      {chip ? <View {...fill('bubble-chip')} style={{ position: 'absolute', bottom: 0, flexDirection: 'row', alignItems: 'center', gap: 4, height: 28, paddingHorizontal: 10, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.92)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.9)' }}>{chip}</View> : null}
+    </View>
+  );
+}
+
+/** A ranked option as a bubble card (shop and gap report): bubble, its advantage on the chip, name, price, Add. */
+export function PickBubble({ item, gain, badge, why, inBag, onAdd, fit }: { item: Item; gain?: number; badge?: 'best' | 'value'; why?: string; inBag?: boolean; onAdd: () => void; fit: number }) {
+  const chip = badge ? (
+    <><Ico name={badge === 'best' ? 'crown' : 'tag'} size={12} color={badge === 'best' ? PALETTE.garnet : '#1E7B45'} /><Text style={{ fontFamily: F.semibold, fontSize: 12, color: badge === 'best' ? PALETTE.garnet : '#1E7B45' }}>{badge === 'best' ? 'Best for you' : 'Best value'}</Text></>
+  ) : <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.gray2 }}>{`${fit}% match`}</Text>;
+  return (
+    <View style={{ flexGrow: 1, flexBasis: 150, maxWidth: 230, alignItems: 'center', gap: 8, paddingTop: 16, paddingBottom: 14, paddingHorizontal: 12, borderRadius: 26, backgroundColor: '#fff', borderWidth: 1, borderColor: badge === 'best' ? '#F1E2C2' : '#EEF0F3' }}>
+      <Bubble category={item.category} chip={chip} lead={badge === 'best'} />
+      <View style={{ alignItems: 'center', gap: 2, alignSelf: 'stretch' }}>
+        <Text style={{ fontFamily: F.semibold, fontSize: 15, lineHeight: 19, color: C.ink, textAlign: 'center' }} numberOfLines={2}>{item.name}</Text>
+        <Text style={[st.meta, { fontSize: 12, textAlign: 'center' }]} numberOfLines={1}>{[item.brand, why].filter(Boolean).join(' · ')}</Text>
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        {gain ? <><Ico name="up" size={11} color={BLUE} /><Text style={{ fontFamily: F.bold, fontSize: 12, color: BLUE }}>{`+${gain} fit`}</Text><Text style={st.meta}>·</Text></> : null}
+        <Text style={{ fontFamily: F.semibold, fontSize: 14, color: C.ink }}>{item.price != null ? money(item.price) : 'At store'}</Text>
+      </View>
+      <Pressable onPress={() => { haptic(); onAdd(); }} accessibilityRole="button" accessibilityLabel={inBag ? `Remove ${item.name} from bag` : `Add ${item.name} to bag`}
+        style={({ hovered }: PS) => [st.btnSm, st.tint, { alignSelf: 'stretch', height: 34, flexDirection: 'row', gap: 5 }, hovered && { backgroundColor: 'rgba(94,106,206,0.24)' }, inBag && { backgroundColor: '#E5F4EA', borderColor: '#CDEBD6' }]}>
+        <Ico name={inBag ? 'check' : 'plus'} size={13} color={inBag ? '#1E7B45' : TINT_INK} />
+        <Text style={[st.btnSmText, { color: inBag ? '#1E7B45' : TINT_INK }]}>{inBag ? 'Added' : 'Add'}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
 export function PickRow({ rank, item, fit, gain, badge, why, inBag, onAdd }: { rank: number; item: Item; fit: number; gain?: number; badge?: 'best' | 'value'; why?: string; inBag?: boolean; onAdd: () => void }) {
   const lead = badge === 'best';
   return (
