@@ -1,12 +1,23 @@
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Linking, Pressable, ScrollView, Text, View } from 'react-native';
-import { BLUE, Btn, ChipBtn, Heading, iconFor, Label, money, NeedInfo, Pill, PickBubble, Bubble, Panel, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
+import { BLUE, Btn, ChipBtn, Heading, iconFor, Label, money, NeedInfo, Pill, Bubble, Panel, ScoreBar, SYS, Shell, st, useWide } from '../../components/routine/Kit';
 import { useAccess } from '../../lib/routine/access';
 import { celebrate } from '../../components/routine/Celebrate';
 import { analyze, profileOf, rankPicks, retailerLinks } from '../../lib/routine/gaps';
 import { findByKey, hasInfo, itemKey, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
 import { C, F } from '../../theme';
+import { fill } from '../../lib/routine/shine';
+
+const T = {
+  title: { fontFamily: SYS ?? F.bold, fontWeight: '700' as const, fontSize: 26, lineHeight: 31, letterSpacing: -0.6, color: '#111114' },
+  h2: { fontFamily: SYS ?? F.semibold, fontWeight: '600' as const, fontSize: 16, lineHeight: 21, letterSpacing: -0.2, color: '#1D1D22' },
+  name: { fontFamily: SYS ?? F.semibold, fontWeight: '600' as const, fontSize: 14, lineHeight: 19, color: '#1D1D22' },
+  body: { fontFamily: SYS ?? F.regular, fontWeight: '400' as const, fontSize: 14, lineHeight: 20, color: '#6E6E78' },
+  meta: { fontFamily: SYS ?? F.medium, fontWeight: '500' as const, fontSize: 12, lineHeight: 16, color: '#8A8A93' },
+  price: { fontFamily: SYS ?? F.semibold, fontWeight: '600' as const, fontSize: 14, color: '#111114', fontVariant: ['tabular-nums' as const] },
+  label: { fontFamily: SYS ?? F.semibold, fontWeight: '600' as const, fontSize: 13 },
+};
 
 export default function Shop() {
   const s = useRoutine();
@@ -33,14 +44,14 @@ export default function Shop() {
 
   const bagPanel = (
     <View style={{ gap: 16 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}><Text style={[st.h1, { fontSize: 24, flex: 1 }]}>Your bag</Text><Text style={st.meta}>{`${bag.length} item${bag.length === 1 ? '' : 's'}`}</Text></View>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}><Text style={[T.h2, { fontSize: 18, flex: 1 }]}>Your bag</Text><Text style={T.meta}>{`${bag.length} item${bag.length === 1 ? '' : 's'}`}</Text></View>
       {bag.length === 0 ? <Text style={st.sub}>Add picks to see your new fit.</Text> : null}
       {bag.map(i => (
         <View key={itemKey(i)} style={{ gap: 8 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <View style={{ width: 52, height: 52, borderRadius: 14, backgroundColor: '#F4F5F7', alignItems: 'center', justifyContent: 'center' }}><Image source={iconFor(i.category)} style={{ width: 42, height: 42 }} /></View>
-            <View style={{ flex: 1 }}><Text style={st.meta}>{i.brand}</Text><Text style={st.cardTitle}>{i.name}</Text></View>
-            <Text style={st.price}>{money(i.price)}</Text>
+            <View style={{ flex: 1 }}><Text style={T.name}>{i.name}</Text><Text style={T.meta}>{i.brand}</Text></View>
+            <Text style={T.price}>{money(i.price)}</Text>
           </View>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingLeft: 64 }}>
             {retailerLinks(i).slice(0, 3).map(r => <Pressable key={r.name} onPress={() => Linking.openURL(r.url)} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: '#F1F3F5' }}><Text style={{ fontFamily: F.medium, fontSize: 12, color: C.gray2 }}>{`${r.name} ↗`}</Text></Pressable>)}
@@ -54,7 +65,7 @@ export default function Shop() {
             <View style={{ flexDirection: 'row' }}><Text style={[st.meta, { flex: 1, color: C.gray2 }]}>Fit with your bag</Text><Text style={{ fontFamily: F.bold, fontSize: 13, color: BLUE }}>{`${score} → ${after}`}</Text></View>
             <ScoreBar score={score} after={after} />
           </View>
-          <View style={{ flexDirection: 'row' }}><Text style={[st.cardTitle, { flex: 1 }]}>Estimated total</Text><Text style={st.price}>{`about ${money(Math.round(total(bag) * 100) / 100)}`}</Text></View>
+          <View style={{ flexDirection: 'row' }}><Text style={[T.name, { flex: 1 }]}>Estimated total</Text><Text style={T.price}>{`about ${money(Math.round(total(bag) * 100) / 100)}`}</Text></View>
           <Btn label="Review and check out" onPress={() => router.push('/routine/checkout')} />
           <Text style={[st.meta, { fontSize: 12, textAlign: 'center' }]}>Prices are estimates. You buy from the store.</Text>
         </>
@@ -65,34 +76,63 @@ export default function Shop() {
   if (!hasInfo(s)) return <Shell active="shop"><NeedInfo goals={s.goals.length > 0} /></Shell>;
   return (
     <Shell active="shop" side={wide && bag.length ? bagPanel : undefined}
-      footer={!wide && bag.length ? <Pressable onPress={() => {}} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><View style={{ flex: 1 }}><Text style={st.cardTitle}>{`${bag.length} in bag · about ${money(Math.round(total(bag)))}`}</Text><Text style={st.meta}>{`Routine fit ${score} → ${after}`}</Text></View></Pressable> : undefined}>
-      <Heading title="Shop your gaps" sub="Only products that fill a gap. Biggest fit gain first." />
+      footer={!wide && bag.length ? <Pressable onPress={() => {}} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><View style={{ flex: 1 }}><Text style={T.h2}>{`${bag.length} in bag · about ${money(Math.round(total(bag)))}`}</Text><Text style={T.meta}>{`Routine fit ${score} → ${after}`}</Text></View></Pressable> : undefined}>
+      {/* One type scale on this page (system sans): title 26, section 16, body 14, meta 12. Compact rows so more fits. */}
+      <View style={{ gap: 6 }}>
+        <Text {...({ dataSet: { grad: 'title' } } as any)} style={T.title}>Shop your gaps</Text>
+        <Text style={T.body}>Fixes ranked by how much they raise your fit.</Text>
+      </View>
       {bundle.length > 1 ? (
-        <View style={{ flexDirection: wide ? 'row' : 'column', alignItems: wide ? 'center' : 'stretch', gap: 16, padding: 20, borderRadius: 24, backgroundColor: '#EEF1FD' }}>
-          <View style={{ flexDirection: 'row' }}>{bundle.slice(0, 4).map((i, n) => <View key={n} style={{ marginLeft: n ? -12 : 0, height: 56 }}><Bubble category={i.category} size={56} /></View>)}</View>
-          <View style={{ flex: wide ? 1 : undefined, gap: 4 }}>
-            <Text style={{ fontFamily: F.semibold, fontSize: 18, color: C.ink }}>{`Fill ${bundle.length} gaps for about ${money(Math.round(total(bundle)))}`}</Text>
-            <Text style={st.sub}>{`Top picks together · fit ${score} → ${bundleAfter}`}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.75)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
+          <View style={{ flexDirection: 'row' }}>{bundle.slice(0, 3).map((i, n) => <View key={n} style={{ marginLeft: n ? -10 : 0 }}><Bubble category={i.category} size={36} /></View>)}</View>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={T.h2}>{`All ${bundle.length} fixes · about ${money(Math.round(total(bundle)))}`}</Text>
+            <Text style={T.meta}>{`Fit ${score} → ${bundleAfter}`}</Text>
           </View>
-          <Btn label="Add all to bag" onPress={addAll} />
+          <Pressable {...fill('chrome-key')} onPress={addAll} accessibilityRole="button" style={{ height: 34, paddingHorizontal: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#DADADA', borderWidth: 1.5, borderColor: '#161616' }}>
+            <Text style={[T.label, { color: '#111114' }]}>Add all</Text>
+          </Pressable>
         </View>
       ) : null}
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         <Pill label="Fits my budget" on={budgetOnly} onPress={() => setBudgetOnly(v => !v)} />
         <Pill label="Under $15" on={under15} onPress={() => setUnder15(v => !v)} />
       </View>
-      {rows.length === 0 ? <Text style={st.sub}>{gaps.length ? 'No matches. Turn a filter off.' : 'No gaps to fill.'}</Text> : null}
-      {rows.map(({ g, picks }) => (
-        <Panel key={g.id} style={{ gap: 14, maxWidth: 720 }}>
-          <View style={{ gap: 4 }}><Text style={{ fontFamily: F.semibold, fontSize: 18, lineHeight: 23, color: C.ink }}>{g.title}</Text><Text style={[st.sub, { fontSize: 13, lineHeight: 19 }]}>{g.why}</Text></View>
-          {/* A ranked list, not a carousel: options side by side in one column are easier to compare. */}
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, maxWidth: 720 }}>
-            {picks.map(p => <PickBubble key={p.item.id} item={p.item} fit={p.fit} gain={p.gain} badge={p.badge} why={p.why} inBag={s.bag.includes(itemKey(p.item))} onAdd={() => toggle(itemKey(p.item))} />)}
-          </View>
-        </Panel>
-      ))}
+      {rows.length === 0 ? <Text style={T.body}>{gaps.length ? 'No matches. Turn a filter off.' : 'No gaps to fill.'}</Text> : null}
+      <View style={{ gap: 12, maxWidth: 720 }}>
+        {rows.map(({ g, picks }) => (
+          <Panel key={g.id} style={{ gap: 8, padding: 14 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
+              <Text style={[T.h2, { flex: 1 }]}>{g.title}</Text>
+              <Text style={T.meta}>{`${picks.length} pick${picks.length === 1 ? '' : 's'}`}</Text>
+            </View>
+            <Text style={[T.meta, { color: '#6E6E78' }]}>{g.why}</Text>
+            <View style={{ marginTop: 2 }}>
+              {picks.map((p, n) => {
+                const inBag = s.bag.includes(itemKey(p.item));
+                return (
+                  <View key={p.item.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderTopWidth: n ? 0.5 : 0, borderTopColor: 'rgba(20,20,40,0.10)' }}>
+                    <Bubble category={p.item.category} size={40} />
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <Text style={T.name}>{p.item.name}</Text>
+                      <Text style={T.meta}>{[p.badge === 'best' ? 'Best for you' : p.badge === 'value' ? 'Best value' : null, p.gain ? `+${p.gain} fit` : `${p.fit}% match`, p.why].filter(Boolean).join(' · ')}</Text>
+                    </View>
+                    <View style={{ alignItems: 'flex-end', gap: 6 }}>
+                      <Text style={T.price}>{p.item.price != null ? money(p.item.price) : 'At store'}</Text>
+                      <Pressable {...(inBag ? {} : fill('chrome-key'))} onPress={() => toggle(itemKey(p.item))} accessibilityRole="button" accessibilityLabel={inBag ? `Remove ${p.item.name} from bag` : `Add ${p.item.name} to bag`}
+                        style={{ height: 28, paddingHorizontal: 12, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: inBag ? '#E5F4EA' : '#DADADA', borderWidth: 1.5, borderColor: inBag ? '#CDEBD6' : '#161616' }}>
+                        <Text style={[T.label, { color: inBag ? '#1E7B45' : '#111114' }]}>{inBag ? 'Added' : 'Add'}</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          </Panel>
+        ))}
+      </View>
       {!wide && bag.length ? <View style={{ backgroundColor: '#fff', borderRadius: 24, padding: 20 }}>{bagPanel}</View> : null}
-      <Label>{`Product data: Moi, Open Beauty Facts contributors (ODbL), California Safe Cosmetics Program (CC-BY)`}</Label>
+      <Text style={[T.meta, { fontSize: 11 }]}>{`Product data: Moi, Open Beauty Facts contributors (ODbL), California Safe Cosmetics Program (CC-BY)`}</Text>
     </Shell>
   );
 }

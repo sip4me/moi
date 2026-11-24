@@ -727,7 +727,9 @@ export function Bubble({ category, size = 84, chip }: { category: string; size?:
         <View {...web('ball-edge')} pointerEvents="none" style={{ position: 'absolute', left: '8%', top: '10%', width: '105%', height: '105%', borderRadius: size }} />
         <View {...web('ball-bounce')} pointerEvents="none" style={{ position: 'absolute', left: '20%', bottom: '3%', width: '60%', height: '22%', borderRadius: size }} />
         <View {...web('ball-soft')} pointerEvents="none" style={{ position: 'absolute', left: '13%', top: '3%', width: '74%', height: '42%', borderRadius: size }} />
-        <View {...web('ball-glint')} pointerEvents="none" style={{ position: 'absolute', left: '22%', top: '15%', width: '21%', height: '10%', borderRadius: size }} />
+        {/* The glare: a long streak that hugs the rim from the left round to the top, not a blob. */}
+        <View {...web('ball-arc')} pointerEvents="none" style={{ position: 'absolute', left: '5%', top: '5%', width: '90%', height: '90%', borderRadius: size }} />
+        <View {...web('ball-glint')} pointerEvents="none" style={{ position: 'absolute', left: '26%', top: '11%', width: '30%', height: '4.5%', borderRadius: size }} />
       </View>
       {chip ? <View {...fill('bubble-chip')} style={{ position: 'absolute', bottom: 0, flexDirection: 'row', alignItems: 'center', gap: 5, height: 30, paddingHorizontal: 12, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.9)', borderWidth: HAIR, borderColor: 'rgba(20,20,40,0.08)' }}>{chip}</View> : null}
     </View>

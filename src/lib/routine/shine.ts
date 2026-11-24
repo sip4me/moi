@@ -130,7 +130,9 @@ const CSS = `
 [data-fill="ball-edge"] { background-image: radial-gradient(closest-side, rgba(10,20,40,0) 0%, rgba(10,20,40,0) 52%, rgba(10,20,40,0.55) 100%); filter: blur(1.5px); }
 [data-fill="ball-bounce"] { background-image: radial-gradient(closest-side, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 100%); filter: blur(2px); }
 [data-fill="ball-soft"] { background-image: radial-gradient(ellipse 50% 50% at 50% 30%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.45) 45%, rgba(255,255,255,0) 100%); filter: blur(1px); }
-[data-fill="ball-glint"] { background-color: rgba(255,255,255,0.95); filter: blur(0.6px); transform: rotate(-18deg); }
+[data-fill="ball-glint"] { background-color: rgba(255,255,255,0.95); filter: blur(0.7px); transform: rotate(-24deg); }
+[data-fill="ball-arc"] { background-image: radial-gradient(closest-side, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 76%, rgba(255,255,255,0.95) 87%, rgba(255,255,255,0.8) 93%, rgba(255,255,255,0) 100%);
+  -webkit-mask-image: linear-gradient(135deg, #000 0%, #000 30%, rgba(0,0,0,0.4) 44%, transparent 56%); mask-image: linear-gradient(135deg, #000 0%, #000 30%, rgba(0,0,0,0.4) 44%, transparent 56%); filter: blur(0.6px); }
 [data-fill="ball-shadow"] { background-image: radial-gradient(closest-side, rgba(20,20,40,0.32) 0%, rgba(20,20,40,0) 100%); filter: blur(3px); }
 /* Headline text with a gradient that answers the page: steel blue into ink, like the reference titles. */
 [data-grad="title"] { background-image: linear-gradient(180deg, #4B6A8F 0%, #2A3550 55%, #14161E 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
@@ -163,4 +165,4 @@ if (Platform.OS === 'web' && typeof document !== 'undefined' && !document.getEle
 /** Props that give a Text shiny letters (web) — spread onto <Text>. */
 export const shine = (kind: 'chrome' | 'rose' | 'titanium' | 'blush') => (Platform.OS === 'web' ? ({ dataSet: { shine: kind } } as any) : {});
 /** Props that give a View a jewellery fill (web). */
-export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'lilac' | 'pearl' | 'pearl-on' | 'pearl-ask' | 'paper' | 'gold-coin' | 'glass-bg' | 'soft-bg' | 'soft-orb' | 'soft-frost' | 'silver-card' | 'chrome-track' | 'chrome-cell' | 'chrome-key' | 'chrome-key-on' | 'metal' | 'metal-well' | 'metal-card' | 'frost-panel' | 'ball' | 'ball-tint' | 'ball-edge' | 'ball-soft' | 'ball-glint' | 'ball-scene' | 'ball-bounce' | 'ball-shadow' | 'bubble' | 'bubble-lens' | 'bubble-gloss' | 'bubble-chip' | 'glass-card' | 'glass-bar' | 'glass-panel') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});
+export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'lilac' | 'pearl' | 'pearl-on' | 'pearl-ask' | 'paper' | 'gold-coin' | 'glass-bg' | 'soft-bg' | 'soft-orb' | 'soft-frost' | 'silver-card' | 'chrome-track' | 'chrome-cell' | 'chrome-key' | 'chrome-key-on' | 'metal' | 'metal-well' | 'metal-card' | 'frost-panel' | 'ball' | 'ball-tint' | 'ball-edge' | 'ball-soft' | 'ball-glint' | 'ball-scene' | 'ball-bounce' | 'ball-arc' | 'ball-shadow' | 'bubble' | 'bubble-lens' | 'bubble-gloss' | 'bubble-chip' | 'glass-card' | 'glass-bar' | 'glass-panel') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});
