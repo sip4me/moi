@@ -73,7 +73,7 @@ export default function Welcome() {
     setRoutine(r => ({ ...r, welcomed: true, ...(fresh ? { goals: [], hair: {}, areas: [], prefs: {}, started: false } : {}) }));
     router.push('/routine/about'); // push, so the browser's Back returns here
   };
-  // "Copy a look": describe it or add a photo, then sign up and the routine starts from it.
+  // "Upload inspiration": describe a look or add a photo, then sign up and the routine starts from it.
   const [look, setLook] = useState('');
   const [photo, setPhoto] = useState<string | null>(null);
   const { account } = useStore();
@@ -153,7 +153,7 @@ export default function Welcome() {
             {/* Lovable-style prompt: describe a look or add a photo, then go. */}
             <Animated.View style={[{ gap: 10 }, rise(arrow)]}>
               <View ref={dropRef} {...fill('glass-bar')} style={{ borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.75)', backgroundColor: 'rgba(255,255,255,0.72)', padding: 12, gap: 10 }}>
-                <TextInput value={look} onChangeText={setLook} placeholder="Describe a look you love, or add a photo" placeholderTextColor="#8A8DA0" multiline
+                <TextInput value={look} onChangeText={setLook} placeholder="Describe a look you love, or upload inspiration" placeholderTextColor="#8A8DA0" multiline
                   accessibilityLabel="Describe a look you love" onSubmitEditing={start} blurOnSubmit
                   style={{ minHeight: 52, fontFamily: F.medium, fontSize: 16, lineHeight: 22, color: C.ink, paddingHorizontal: 4, paddingTop: 2, ...({ outlineStyle: 'none' } as object) }} />
                 {photo ? (
@@ -166,10 +166,10 @@ export default function Welcome() {
                   </View>
                 ) : null}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <Pressable onPress={addPhoto} accessibilityRole="button" accessibilityLabel={photo ? 'Change photo' : 'Upload an image of a look'}
+                  <Pressable onPress={addPhoto} accessibilityRole="button" accessibilityLabel={photo ? 'Change inspiration' : 'Upload inspiration'}
                     style={({ hovered }: any) => ({ flexDirection: 'row', alignItems: 'center', gap: 8, height: 40, paddingHorizontal: 14, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(20,20,40,0.12)', backgroundColor: hovered ? '#F4F4F7' : '#fff' })}>
                     <Svg width={18} height={18} viewBox="0 0 24 24"><Path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5zM4 16l4.5-4.5 3.5 3.5 2.5-2.5L20 18M15.5 8.5h.01" stroke="#2A2F45" strokeWidth={1.7} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
-                    <Text style={{ fontFamily: F.semibold, fontSize: 13, color: '#2A2F45' }}>{photo ? 'Change image' : 'Upload image'}</Text>
+                    <Text style={{ fontFamily: F.semibold, fontSize: 13, color: '#2A2F45' }}>{photo ? 'Change inspiration' : 'Upload inspiration'}</Text>
                   </Pressable>
                   <View style={{ flex: 1 }} />
                   <Pressable {...fill('chrome-key')} onPress={start} accessibilityRole="button" accessibilityLabel="Build my routine from this look" disabled={!look.trim() && !photo}
