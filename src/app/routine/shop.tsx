@@ -8,6 +8,7 @@ import { analyze, hasMorePicks, profileOf, rankPicks, retailerLinks } from '../.
 import { allSteps, findByKey, hasInfo, hasInput, itemKey, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 import { fill } from '../../lib/routine/shine';
+import { lookNote } from '../../lib/routine/looks';
 
 const T = {
   title: { fontFamily: SYS ?? F.bold, fontWeight: '700' as const, fontSize: 26, lineHeight: 31, letterSpacing: -0.6, color: '#111114' },
@@ -26,22 +27,21 @@ export default function Shop() {
   const access = useAccess();
   // Paywall: shopping the picks needs a plan.
   useEffect(() => { if (hasInfo(s) && !access.ok && !access.loading) router.replace('/routine/plans'); }, [access.ok, access.loading]);
-  const [budgetOnly, setBudgetOnly] = useState(true);
-  const [under15, setUnder15] = useState(false);
   const { score, gaps } = useMemo(() => analyze(s, cat), [s, cat]);
   const bag = s.bag.map(k => findByKey(cat, k)).filter((i): i is Item => !!i);
   const after = useMemo(() => analyze(s, cat, bag).score, [s, cat, bag.length]);
   const max = profileOf(s).budgetMax;
   // Ranked by advantage: how much each pick actually raises this routine's fit, then match, then price.
   // The top pick is "Best for you"; a cheaper one within 2 points of it is "Best value".
-  const keep = (i: Item) => (!budgetOnly || (i.price ?? 0) <= max || max > 999) && (!under15 || (i.price ?? 0) <= 15);
+  const keep = () => true;
   const rows = useMemo(() => gaps.map(g => ({ g, picks: rankPicks(g, s, cat, score, keep) })
-  ).filter(r => r.picks.length), [gaps, s, cat, budgetOnly, under15, max, score]);
-  const bundle = rows.map(r => r.picks[0].item).filter(i => i.price != null);
-  const bundleAfter = useMemo(() => analyze(s, cat, bundle).score, [s, cat, bundle.length]);
+  ).filter(r => r.picks.length), [gaps, s, cat, score]);
+  // Swipe shelves: the best picks across every gap that fit their budget, and the ones under $15.
+  const pool = rows.flatMap(r => r.picks.map(p => ({ ...p, gap: r.g }))).filter((p, n, a) => a.findIndex(q => q.item.id === p.item.id) === n).sort((a, b) => b.gain - a.gain);
+  const inBudget = max > 999 ? [] : pool.filter(p => p.item.price != null && p.item.price <= max);
+  const under15 = pool.filter(p => p.item.price != null && p.item.price <= 15);
   const total = (items: Item[]) => items.reduce((a, i) => a + (i.price ?? 0), 0);
   const toggle = (k: string) => { if (!s.bag.includes(k)) celebrate('Added to bag'); setRoutine(r => ({ ...r, bag: r.bag.includes(k) ? r.bag.filter(x => x !== k) : [...r.bag, k] })); };
-  const addAll = () => { celebrate(`${bundle.length} added · fit ${bundleAfter}`, true); setRoutine(r => ({ ...r, bag: Array.from(new Set([...r.bag, ...bundle.map(itemKey)])) })); };
 
   const bagPanel = (
     <View style={{ gap: 16 }}>
@@ -83,6 +83,7 @@ export default function Shop() {
     const link = retailerLinks(i)[0]; if (!link) return;
     setRoutine(r => ({ ...r, opened: { ...(r.opened ?? {}), [itemKey(i)]: { store: link.name, at: Date.now() } } }));
     Linking.openURL(link.url);
+    router.push({ pathname: '/routine/handoff', params: { k: itemKey(i), store: link.name, url: link.url } });
   };
   return (
     <Shell active="shop" side={wide && bag.length ? bagPanel : undefined}
@@ -91,18 +92,6 @@ export default function Shop() {
       <View style={{ gap: 6 }}>
         <Text {...({ dataSet: { grad: 'title' } } as any)} style={T.title}>Shop your gaps</Text>
       </View>
-      {bundle.length > 1 ? (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.75)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
-          <View style={{ flexDirection: 'row' }}>{bundle.slice(0, 3).map((i, n) => <View key={n} style={{ marginLeft: n ? -10 : 0 }}><Bubble category={i.category} item={i} size={36} /></View>)}</View>
-          <View style={{ flex: 1, gap: 2 }}>
-            <Text style={T.h2}>{`All ${bundle.length} · ${money(Math.round(total(bundle)))}`}</Text>
-            <Text style={T.meta}>{`+${bundleAfter - score} fit`}</Text>
-          </View>
-          <Pressable {...fill('chrome-key')} onPress={addAll} accessibilityRole="button" style={{ height: 34, paddingHorizontal: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#DADADA', borderWidth: 1.5, borderColor: '#161616' }}>
-            <Text style={[T.label, { color: '#111114' }]}>Add all</Text>
-          </Pressable>
-        </View>
-      ) : null}
       {refills.length ? (
         <View style={{ gap: 10 }}>
           <Text style={T.h2}>Buy again</Text>
@@ -126,11 +115,31 @@ export default function Shop() {
           </ScrollView>
         </View>
       ) : null}
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-        <Pill label="In budget" on={budgetOnly} onPress={() => setBudgetOnly(v => !v)} />
-        <Pill label="Under $15" on={under15} onPress={() => setUnder15(v => !v)} />
-      </View>
-      {rows.length === 0 ? <Text style={T.body}>{gaps.length ? 'No matches. Turn a filter off.' : 'No gaps to fill.'}</Text> : null}
+      {[{ title: `In your budget${max < 999 ? ` · up to ${money(max)}` : ''}`, list: inBudget }, { title: 'Under $15', list: max > 15 ? under15 : [] }].filter(x => x.list.length).map(shelf => (
+        <View key={shelf.title} style={{ gap: 10 }}>
+          <Text style={T.h2}>{shelf.title}</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingRight: 8 }}>
+            {shelf.list.map(p => {
+              const on = s.bag.includes(itemKey(p.item));
+              return (
+                <View key={p.item.id} style={{ width: 168, gap: 8, padding: 12, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.75)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
+                  <Bubble category={p.item.category} item={p.item} size={44} />
+                  <Text numberOfLines={2} style={[T.name, { minHeight: 38 }]}>{p.item.name}</Text>
+                  <Text numberOfLines={3} style={[T.meta, { minHeight: 48 }]}>{lookNote(p.item, s, p.gap.title)}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Text style={T.price}>{money(p.item.price)}</Text>
+                    <Pressable {...(on ? {} : fill('chrome-key'))} onPress={() => toggle(itemKey(p.item))} accessibilityRole="button" accessibilityLabel={on ? `Remove ${p.item.name} from bag` : `Add ${p.item.name} to bag`}
+                      style={{ height: 28, paddingHorizontal: 12, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? '#E5F4EA' : '#DADADA', borderWidth: 1.5, borderColor: on ? '#CDEBD6' : '#161616' }}>
+                      <Text style={[T.label, { color: on ? '#1E7B45' : '#111114' }]}>{on ? 'Added' : 'Add'}</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              );
+            })}
+          </ScrollView>
+        </View>
+      ))}
+      {rows.length === 0 ? <Text style={T.body}>No gaps to fill.</Text> : null}
       <View style={{ gap: 12, maxWidth: 720 }}>
         {rows.map(({ g, picks }) => (
           <Panel key={g.id} style={{ gap: 8, padding: 14 }}>
@@ -144,6 +153,7 @@ export default function Shop() {
                     <View style={{ flex: 1, gap: 2 }}>
                       <Text style={T.name}>{p.item.name}</Text>
                       <Text style={T.meta}>{[p.badge === 'best' ? 'Best' : p.badge === 'value' ? 'Best value' : null, p.gain ? `+${p.gain} fit` : null].filter(Boolean).join(' · ')}</Text>
+                      {lookNote(p.item, s) ? <Text style={[T.meta, { color: '#4A4858' }]}>{lookNote(p.item, s)}</Text> : null}
                     </View>
                     <View style={{ alignItems: 'flex-end', gap: 6 }}>
                       <Text style={T.price}>{p.item.price != null ? money(p.item.price) : 'At store'}</Text>

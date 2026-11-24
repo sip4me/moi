@@ -13,6 +13,8 @@ export type Item = {
   price?: number | null;
   /** Barcode (UPC/EAN), so store links land on this exact product. */
   code?: string | null;
+  /** Amazon's product ID, when we know it: lets a link drop the product straight into the Amazon cart. */
+  asin?: string | null;
   hairTypes?: string[];
   /** Ingredient label, when we have one. Used to match the tracker plan's look-for and avoid groups. */
   ingredients?: string;

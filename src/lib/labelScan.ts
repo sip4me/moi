@@ -74,6 +74,24 @@ export async function readText(uri: string, onProgress?: (p: number) => void): P
   }
 }
 
+/** A line of printed text and where it sits in the photo. */
+export type TextLine = { text: string; x0: number; x1: number; y0: number; y1: number; conf: number };
+
+/** Reads the printed text line by line, with positions, so text from different products can be told apart. */
+export async function readLines(uri: string, onProgress?: (p: number) => void): Promise<TextLine[]> {
+  const { createWorker } = await import('tesseract.js');
+  const worker = await createWorker('eng', 1, {
+    workerPath: '/ocr/worker.min.js', corePath: '/ocr', langPath: '/ocr', gzip: true,
+    logger: (m: { status: string; progress: number }) => { if (m.status === 'recognizing text') onProgress?.(m.progress); },
+  });
+  try {
+    const { data } = await worker.recognize(uri, {}, { blocks: true });
+    return (data.blocks ?? []).flatMap(b => b.paragraphs.flatMap(p => p.lines.map(l => ({ text: l.text.trim(), x0: l.bbox.x0, x1: l.bbox.x1, y0: l.bbox.y0, y1: l.bbox.y1, conf: l.confidence }))));
+  } finally {
+    await worker.terminate();
+  }
+}
+
 const START = /\b(ingredients?|ingr[ée]dients?|inci|composition|contains)\b\s*[:.\-]?/i;
 const STOP = /\b(directions?|how to use|warnings?|caution|precautions?|for external use|made in|distributed by|manufactured|keep out of reach|net (wt|vol)|best before)\b/i;
 

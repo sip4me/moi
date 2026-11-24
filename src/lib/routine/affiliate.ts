@@ -32,11 +32,23 @@ const wrap = (store: string, url: string) => {
 
 export type StoreLink = { name: string; url: string; exact: boolean; tagged: boolean };
 
+/**
+ * Amazon's Add to Cart form: puts every product (by ASIN) straight into the shopper's Amazon cart, credited
+ * to Moi's tag. Amazon still shows its cart, where the shopper taps "Proceed to checkout" themselves.
+ * Null when any product has no known ASIN.
+ */
+export function amazonCart(items: Item[]): string | null {
+  if (!items.length || items.some(i => !i.asin)) return null;
+  const parts = items.map((i, n) => `ASIN.${n + 1}=${encodeURIComponent(i.asin!)}&Quantity.${n + 1}=1`).join('&');
+  return `https://www.amazon.com/gp/aws/cart/add.html?${AMAZON_TAG ? `AssociateTag=${encodeURIComponent(AMAZON_TAG)}&` : ''}${parts}`;
+}
+
 export function storeLinks(i: Item & { code?: string | null }): StoreLink[] {
   const code = (i.code ?? '').replace(/\D/g, '');
   const exact = code.length >= 8;
   const q = encodeURIComponent(exact ? code : `${i.brand} ${i.name}`.trim());
-  const amazon = `https://www.amazon.com/s?k=${q}${AMAZON_TAG ? `&tag=${encodeURIComponent(AMAZON_TAG)}` : ''}`;
+  // Known ASIN: straight into the Amazon cart. Otherwise an exact barcode search.
+  const amazon = amazonCart([i]) ?? `https://www.amazon.com/s?k=${q}${AMAZON_TAG ? `&tag=${encodeURIComponent(AMAZON_TAG)}` : ''}`;
   const raw: [string, string][] = [
     ['Amazon', amazon],
     ['Ulta Beauty', `https://www.ulta.com/search?search=${encodeURIComponent(`${i.brand} ${i.name}`.trim())}`],

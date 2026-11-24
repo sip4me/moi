@@ -5,7 +5,8 @@ import Svg, { Path } from 'react-native-svg';
 import { celebrate } from '../../components/routine/Celebrate';
 import { ChromeButton, ChromeKey, LabelValue, SILVER, SilverCard } from '../../components/routine/Chrome';
 import { Bubble, money, NeedInfo, ScoreBar, Shell, SYS, useWide } from '../../components/routine/Kit';
-import { HAS_AFFILIATE, storeLinks } from '../../lib/routine/affiliate';
+import { amazonCart, HAS_AFFILIATE, storeLinks } from '../../lib/routine/affiliate';
+import { lookNote } from '../../lib/routine/looks';
 import { analyze } from '../../lib/routine/gaps';
 import { AREA_Q, AREAS, findByKey, GOALS, hasInfo, HAIR_Q, itemKey, placeItems, pref, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
 import { fill } from '../../lib/routine/shine';
@@ -28,6 +29,7 @@ export default function Picks() {
   const { score } = useMemo(() => analyze(s, cat), [s, cat]);
   const after = useMemo(() => analyze(s, cat, bag).score, [s, cat, bag.length]);
 
+  const cartAll = bag.length > 1 ? amazonCart(bag) : null;
   if (!hasInfo(s)) return <Shell active="shop"><NeedInfo goals={s.goals.length > 0} /></Shell>;
 
   const area = (s.areas ?? ['hair'])[0] ?? 'hair';
@@ -40,6 +42,8 @@ export default function Picks() {
   const open = (i: Item, store: string, url: string) => {
     setRoutine(r => ({ ...r, opened: { ...(r.opened ?? {}), [itemKey(i)]: { store, at: Date.now() } } }));
     Linking.openURL(url);
+    // Moi's tab waits on the handoff page until they confirm the order.
+    router.push({ pathname: '/routine/handoff', params: { k: itemKey(i), store, url } });
   };
   const remove = (i: Item) => setRoutine(r => {
     const k = itemKey(i); const { [k]: _, ...opened } = r.opened ?? {};
@@ -72,6 +76,12 @@ export default function Picks() {
       </View>
 
       <View style={{ maxWidth: 600, gap: 18 }}>
+        {/* Every pick has an Amazon ID: one key drops them all into the Amazon cart, ready for checkout. */}
+        {cartAll ? (
+          <ChromeKey onPress={() => { bag.forEach(i => setRoutine(r => ({ ...r, opened: { ...(r.opened ?? {}), [itemKey(i)]: { store: 'Amazon', at: Date.now() } } }))); Linking.openURL(cartAll); router.push({ pathname: '/routine/handoff', params: { k: bag.map(itemKey).join(','), store: 'Amazon', url: cartAll } }); }} a11y="Add all to Amazon cart" style={{ minHeight: 52 }}>
+            <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 16, color: SILVER.ink }}>{`Add ${bag.length} to Amazon cart ↗`}</Text>
+          </ChromeKey>
+        ) : null}
         {bag.map(i => {
           const links = storeLinks(i);
           const main = links[0];
@@ -83,6 +93,7 @@ export default function Picks() {
                 <View style={{ flex: 1, gap: 2 }}>
                   <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 16, lineHeight: 21, color: SILVER.ink }}>{i.name}</Text>
                   <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 13, color: SILVER.label }}>{i.price != null ? `about ${money(i.price)}` : i.brand}</Text>
+                  {lookNote(i, s) ? <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 13, lineHeight: 18, color: '#4A4858' }}>{lookNote(i, s)}</Text> : null}
                 </View>
                 <Pressable onPress={() => remove(i)} accessibilityRole="button" accessibilityLabel={`Remove ${i.name}`} hitSlop={8}
                   style={({ hovered }: any) => ({ width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: hovered ? '#FDE4E1' : 'transparent' })}>

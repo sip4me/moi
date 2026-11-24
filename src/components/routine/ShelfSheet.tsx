@@ -12,7 +12,7 @@ export function ShelfSheet({ open, area, onClose }: { open: boolean; area: Area;
   const [phase, setPhase] = useState<'idle' | 'reading' | 'done'>('idle');
   const [note, setNote] = useState('');
   const [pct, setPct] = useState(0);
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<(Item & { unsure?: boolean })[]>([]);
   const [off, setOff] = useState<Set<string>>(new Set());
   const label = AREAS.find(a => a.key === area)?.label.toLowerCase() ?? 'routine';
 
@@ -24,8 +24,10 @@ export function ShelfSheet({ open, area, onClose }: { open: boolean; area: Area;
     const found = await shelfFromPhoto(uri, area, (stage, p) => {
       setNote(stage === 'barcodes' ? 'Reading barcodes' : stage === 'labels' ? 'Reading labels' : 'Matching products');
       setPct(stage === 'barcodes' ? 0.05 + p * 0.1 : stage === 'labels' ? 0.15 + p * 0.45 : 0.6 + p * 0.4);
-    }, list => { setItems(list); haptic('select'); }).catch(() => [] as Item[]);
+    }, list => { setItems(list); haptic('select'); }).catch(() => [] as (Item & { unsure?: boolean })[]);
     setPct(1);
+    // Guesses start unticked, so only products we're sure of are added without a look.
+    setOff(new Set(found.filter(i => i.unsure).map(i => i.id!)));
     setItems(found); setPhase('done'); haptic(found.length ? 'success' : 'select');
   };
   const add = () => {
@@ -73,7 +75,7 @@ export function ShelfSheet({ open, area, onClose }: { open: boolean; area: Area;
             </View>
           ) : (
             <>
-              <Text style={st.sub}>{items.length ? `Found ${items.length}. Untick anything that isn’t yours.` : 'We couldn’t recognise products in that photo. Try closer, with labels or barcodes facing the camera.'}</Text>
+              <Text style={st.sub}>{items.length ? `Found ${items.length}. Best guesses are unticked: tick them if they’re yours.` : 'We couldn’t recognise products in that photo. Try closer, with labels or barcodes facing the camera.'}</Text>
               <ScrollView style={{ maxHeight: 380 }} contentContainerStyle={{ gap: 8 }}>
                 {items.map(i => {
                   const on = !off.has(i.id!);
@@ -82,7 +84,7 @@ export function ShelfSheet({ open, area, onClose }: { open: boolean; area: Area;
                       style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 10, borderRadius: 16, borderWidth: 1.5, borderColor: on ? '#6E7BD9' : '#E3E5EB', backgroundColor: on ? '#F5F6FD' : '#fff' }}>
                       <Image source={iconFor(i.category)} style={{ width: 40, height: 40 }} />
                       <View style={{ flex: 1 }}>
-                        <Text style={st.meta}>{`${CATEGORY_LABEL[i.category] ?? ''}${i.brand ? ` · ${i.brand}` : ''}`}</Text>
+                        <Text style={st.meta}>{`${CATEGORY_LABEL[i.category] ?? ''}${i.brand ? ` · ${i.brand}` : ''}${i.unsure ? ' · Best guess' : ''}`}</Text>
                         <Text style={{ fontFamily: F.medium, fontSize: 15, color: C.ink }} numberOfLines={2}>{i.name}</Text>
                       </View>
                       <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: on ? '#6E7BD9' : '#D5D8DE', backgroundColor: on ? '#6E7BD9' : '#fff', alignItems: 'center', justifyContent: 'center' }}>

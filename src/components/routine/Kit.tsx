@@ -14,6 +14,7 @@ import { allSteps, AREA_OF, CATEGORY_ICON, CATEGORY_LABEL, classify, DAYS, isHyd
 import { C, F } from '../../theme';
 import { fill, PALETTE, shine } from '../../lib/routine/shine';
 import { shadeOf } from '../../lib/routine/shade';
+import { lookNote } from '../../lib/routine/looks';
 import { useStore } from '../../state/store';
 
 export const BLUE = PALETTE.cobalt;
@@ -862,14 +863,19 @@ export function PicksFocus({ gap, picks, inBag, onToggle, more }: { gap: Gap; pi
   const best = picks[0];
   if (!best) return null;
   const added = inBag(best.item);
-  const line = [best.item.name, best.item.price != null ? money(best.item.price) : null, best.gain ? `+${best.gain} fit` : null].filter(Boolean).join(' · ');
+  const s = useRoutine();
+  const line = [best.item.name, best.item.price != null ? money(best.item.price) : null].filter(Boolean).join(' · ');
+  const note = lookNote(best.item, s);
   return (
     <View style={{ alignItems: 'center', gap: 14, paddingVertical: 22, paddingHorizontal: 18, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.72)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
       <View style={{ flexDirection: 'row' }}>
         {picks.slice(0, 3).map((p, n) => <View key={p.item.id} style={{ marginLeft: n ? -18 : 0, zIndex: 3 - n }}><Bubble category={p.item.category} item={p.item} size={64} /></View>)}
       </View>
       <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.bold, fontWeight: '700', fontSize: 24, lineHeight: 29, letterSpacing: -0.5, color: '#1D1D22', textAlign: 'center' }}>{`Picks for your ${gap.title.toLowerCase()}`}</Text>
-      <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 15, lineHeight: 21, color: '#4A4858', textAlign: 'center' }}>{`Best for you: ${line}`}</Text>
+      <View style={{ alignItems: 'center', gap: 4 }}>
+        <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 15, lineHeight: 21, color: '#1D1D22', textAlign: 'center' }}>{line}</Text>
+        {note ? <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 14, lineHeight: 20, color: '#4A4858', textAlign: 'center' }}>{note}</Text> : null}
+      </View>
       <View style={{ width: '100%', maxWidth: 320 }}>
         <Btn label={added ? 'Added to bag' : 'Add the best pick'} onPress={() => onToggle(best.item)} />
       </View>
