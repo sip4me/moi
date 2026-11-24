@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { ActivityIndicator, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { celebrate } from './Celebrate';
 import { haptic } from '../../lib/haptics';
 import { shelfFromPhoto, takeProductPhoto } from '../../lib/routine/capture';
 import { AREAS, CATEGORY_LABEL, placeItems, setRoutine, type Area, type Item } from '../../lib/routine/model';
@@ -10,6 +11,7 @@ import { Btn, ChipBtn, iconFor, st } from './Kit';
 export function ShelfSheet({ open, area, onClose }: { open: boolean; area: Area; onClose: () => void }) {
   const [phase, setPhase] = useState<'idle' | 'reading' | 'done'>('idle');
   const [note, setNote] = useState('');
+  const [pct, setPct] = useState(0);
   const [items, setItems] = useState<Item[]>([]);
   const [off, setOff] = useState<Set<string>>(new Set());
   const label = AREAS.find(a => a.key === area)?.label.toLowerCase() ?? 'routine';
@@ -17,16 +19,20 @@ export function ShelfSheet({ open, area, onClose }: { open: boolean; area: Area;
   const snap = async (fromLibrary: boolean) => {
     const uri = await takeProductPhoto(fromLibrary);
     if (!uri) return;
-    setPhase('reading'); setItems([]); setOff(new Set());
-    const found = await shelfFromPhoto(uri, area, (stage, p) =>
-      setNote(stage === 'barcodes' ? 'Reading barcodes…' : stage === 'labels' ? `Reading labels… ${Math.round(p * 100)}%` : 'Matching products…'),
-    ).catch(() => [] as Item[]);
+    setPhase('reading'); setItems([]); setOff(new Set()); setPct(0);
+    // One bar across the three stages: barcodes 0–15%, labels 15–60%, matching 60–100%.
+    const found = await shelfFromPhoto(uri, area, (stage, p) => {
+      setNote(stage === 'barcodes' ? 'Reading barcodes' : stage === 'labels' ? 'Reading labels' : 'Matching products');
+      setPct(stage === 'barcodes' ? 0.05 + p * 0.1 : stage === 'labels' ? 0.15 + p * 0.45 : 0.6 + p * 0.4);
+    }, list => { setItems(list); haptic('select'); }).catch(() => [] as Item[]);
+    setPct(1);
     setItems(found); setPhase('done'); haptic(found.length ? 'success' : 'select');
   };
   const add = () => {
     const pick = items.filter(i => !off.has(i.id!));
     setRoutine(r => placeItems(r, pick));
     close();
+    if (pick.length) celebrate(`${pick.length} added from your shelf`, pick.length > 2);
   };
   const close = () => { setPhase('idle'); setItems([]); setNote(''); onClose(); };
   const chosen = items.filter(i => !off.has(i.id!)).length;
@@ -49,9 +55,21 @@ export function ShelfSheet({ open, area, onClose }: { open: boolean; area: Area;
               <Text style={[st.meta, { fontSize: 12 }]}>Read on your device. The photo isn’t uploaded.</Text>
             </>
           ) : phase === 'reading' ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 16 }}>
-              <ActivityIndicator color={C.ink} />
-              <Text style={st.sub}>{note || 'Reading your shelf…'}</Text>
+            <View style={{ gap: 12, paddingVertical: 8 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={[st.sub, { flex: 1 }]}>{note || 'Reading your shelf'}</Text>
+                <Text style={[st.meta, { fontFamily: F.semibold }]}>{items.length ? `${items.length} found` : `${Math.round(pct * 100)}%`}</Text>
+              </View>
+              <Bar value={pct} />
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                {['Barcodes', 'Labels', 'Matching'].map((l, k) => {
+                  const on = pct >= [0, 0.15, 0.6][k];
+                  return <Text key={l} style={[st.meta, { fontSize: 12, color: on ? '#5B67C9' : '#A9ADBD', fontFamily: on ? F.semibold : F.regular }]}>{`${k ? '· ' : ''}${l}`}</Text>;
+                })}
+              </View>
+              <ScrollView style={{ maxHeight: 300 }} contentContainerStyle={{ gap: 8 }}>
+                {items.map(i => <FoundRow key={i.id} i={i} />)}
+              </ScrollView>
             </View>
           ) : (
             <>
@@ -83,5 +101,31 @@ export function ShelfSheet({ open, area, onClose }: { open: boolean; area: Area;
         </Pressable>
       </Pressable>
     </Modal>
+  );
+}
+
+function Bar({ value }: { value: number }) {
+  const v = useRef(new Animated.Value(0)).current;
+  useEffect(() => { Animated.timing(v, { toValue: value, duration: 400, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start(); }, [value]);
+  return (
+    <View style={{ height: 6, borderRadius: 3, backgroundColor: '#ECEEF4', overflow: 'hidden' }}>
+      <Animated.View style={{ height: 6, borderRadius: 3, backgroundColor: '#6E7BD9', width: v.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }} />
+    </View>
+  );
+}
+
+/** A product the moment it's recognised: slides in with a check. */
+function FoundRow({ i }: { i: Item }) {
+  const a = useRef(new Animated.Value(0)).current;
+  useEffect(() => { Animated.spring(a, { toValue: 1, friction: 6, tension: 120, useNativeDriver: true }).start(); }, []);
+  return (
+    <Animated.View style={{ opacity: a, transform: [{ translateY: a.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }], flexDirection: 'row', alignItems: 'center', gap: 12, padding: 10, borderRadius: 16, backgroundColor: '#F5F6FD' }}>
+      <Image source={iconFor(i.category)} style={{ width: 36, height: 36 }} />
+      <View style={{ flex: 1 }}>
+        <Text style={st.meta}>{`${CATEGORY_LABEL[i.category] ?? ''}${i.brand ? ` · ${i.brand}` : ''}`}</Text>
+        <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.ink }} numberOfLines={1}>{i.name}</Text>
+      </View>
+      <Text style={{ color: '#5B67C9', fontFamily: F.semibold }}>✓</Text>
+    </Animated.View>
   );
 }

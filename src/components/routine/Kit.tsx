@@ -4,7 +4,7 @@ import Svg, { Path } from 'react-native-svg';
 import { ActivityIndicator, Animated, Platform, Easing, Image, Linking, Modal, Pressable, ScrollView, type ScrollViewInstance, StyleSheet, Text, TextInput, useWindowDimensions, View, type ViewStyle } from 'react-native';
 import { useScrollCue } from '../ScrollCue';
 import { GlassBackdrop } from './Glass';
-import { CelebrateLayer } from './Celebrate';
+import { CelebrateLayer, useToasting } from './Celebrate';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { icon3d } from '../../data/icons3d';
 import { haptic } from '../../lib/haptics';
@@ -111,14 +111,15 @@ function Menu({ open, onClose, active }: { open: boolean; onClose: () => void; a
 export function Shell({ active, children, side, footer, step, hideNav, glass }: { active?: string; children: React.ReactNode; side?: React.ReactNode; footer?: React.ReactNode; step?: string; hideNav?: boolean; glass?: boolean }) {
   const wide = useWide();
   const r = useRoutine();
+  const toasting = useToasting();
   const [menu, setMenu] = useState(false);
   const openMenu = () => { setMenu(true); if (!r.menuSeen) setRoutine(x => ({ ...x, menuSeen: true })); };
   const top = (
     <View style={[st.topBar, wide && { paddingHorizontal: 32, paddingTop: 24 }]}>
       {hideNav ? <View style={{ height: 44 }} /> : <MenuButton onPress={openMenu} hint={isHydrated() && !r.menuSeen} />}
       <View style={{ flex: 1 }} />
-      {r.bag.length ? <BagPill n={r.bag.length} /> : null}
-      {step ? <Text style={[st.meta, r.bag.length ? { marginLeft: 12 } : null]}>{step}</Text> : null}
+      {r.bag.length ? <BagPill n={r.bag.reduce((t, k) => t + Math.max(1, r.qty?.[k] ?? 1), 0)} /> : null}
+      {step && !toasting ? <Text style={[st.meta, r.bag.length ? { marginLeft: 12 } : null]}>{step}</Text> : null}
     </View>
   );
   const scrollRef = useRef<ScrollViewInstance>(null);
@@ -209,14 +210,21 @@ export function Btn({ label, onPress, kind = 'primary', style, disabled, glow }:
   );
 }
 
-export function Segmented({ options, value, onChange }: { options: string[]; value: string; onChange: (v: string) => void }) {
+/** `progress`: each tab's own steps done / total, drawn as a thin bar under its label. */
+export function Segmented({ options, value, onChange, progress }: { options: string[]; value: string; onChange: (v: string) => void; progress?: Record<string, { done: number; total: number }> }) {
   return (
     <View style={st.seg}>
-      {options.map(o => (
-        <Pressable key={o} onPress={() => { haptic('select'); onChange(o); }} style={({ hovered }: PS) => [st.segItem, o === value && st.segOn, hovered && { ...HOVER_RIM, backgroundColor: o === value ? '#F1F2F4' : '#E2E4E8' }]}>
-          <Text style={[st.segText, o === value && { color: C.ink, fontFamily: F.semibold }]}>{o}</Text>
-        </Pressable>
-      ))}
+      {options.map(o => {
+        const pr = progress?.[o];
+        const full = !!pr && pr.total > 0 && pr.done >= pr.total;
+        return (
+          <Pressable key={o} onPress={() => { haptic('select'); onChange(o); }} accessibilityLabel={pr ? `${o}, ${pr.done} of ${pr.total} steps` : o}
+            style={({ hovered }: PS) => [st.segItem, o === value && st.segOn, hovered && { ...HOVER_RIM, backgroundColor: o === value ? '#F1F2F4' : '#E2E4E8' }]}>
+            <Text style={[st.segText, o === value && { color: C.ink, fontFamily: F.semibold }]}>{full ? `${o} ✓` : o}</Text>
+            {pr && pr.total ? <TabBar value={pr.done / pr.total} full={full} /> : null}
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
@@ -313,6 +321,7 @@ function StepRow({ s, state, last, nextFilled, onOpen, locked, nudge = 0 }: { s:
 const ICON_PATHS: Record<string, string> = {
   check: 'M5 12.5l4.5 4.5L19 7.5',
   trash: 'M4 7h16M9 7V4.8h6V7M6.5 7l1 12.2h9l1-12.2M10 11v5.5M14 11v5.5',
+  minus: 'M6 12h12',
   back: 'M19 12H5M11 6l-6 6 6 6',
   search: 'M10.5 17a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM20 20l-4.8-4.8',
   retry: 'M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6',
@@ -328,6 +337,28 @@ export function Ico({ name, size = 18, color = C.ink }: { name: keyof typeof ICO
 }
 
 /** A small action button. `iconOnly` shows just the icon (the label stays as the accessible name and hover tooltip). */
+/** Cart line controls: a red trash to remove, and − count + for how many. */
+export function QtyStepper({ n, onChange, onRemove, label }: { n: number; onChange: (n: number) => void; onRemove: () => void; label: string }) {
+  const round = (name: string, on: () => void, a11y: string, disabled?: boolean, red?: boolean) => (
+    <Pressable onPress={() => { if (disabled) return; haptic('select'); on(); }} accessibilityRole="button" accessibilityLabel={a11y} accessibilityState={{ disabled }} hitSlop={6}
+      style={({ hovered, pressed }: PS) => ({ width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center',
+        backgroundColor: red ? (hovered ? '#FDE4E1' : '#FEF0EE') : hovered ? '#F1F2F4' : '#fff', borderWidth: 1, borderColor: red ? '#F7C6BF' : '#D9DCE3',
+        opacity: disabled ? 0.35 : pressed ? 0.8 : 1 })}>
+      <Ico name={name} size={16} color={red ? '#D92D20' : C.ink} />
+    </Pressable>
+  );
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+      {round('trash', onRemove, `Remove ${label}`, false, true)}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, padding: 2, borderRadius: 20, backgroundColor: '#F4F5F8' }}>
+        {round('minus', () => onChange(n - 1), `One fewer ${label}`, n <= 1)}
+        <Text style={{ minWidth: 22, textAlign: 'center', fontFamily: F.semibold, fontSize: 15, color: C.ink, fontVariant: ['tabular-nums'] }} accessibilityLabel={`Quantity ${n}`}>{n}</Text>
+        {round('plus', () => onChange(n + 1), `One more ${label}`, n >= 9)}
+      </View>
+    </View>
+  );
+}
+
 export function ChipBtn({ label, onPress, tone = 'default', icon, iconOnly }: { label: string; onPress: () => void; tone?: 'default' | 'danger' | 'dark'; icon?: React.ReactNode | string; iconOnly?: boolean }) {
   const dark = tone === 'dark';
   const ink = tone === 'danger' ? '#B42318' : dark ? '#3B2A0B' : C.ink;
@@ -353,6 +384,16 @@ export function PlusDot({ solid, size = 32 }: { solid?: boolean; size?: number }
 }
 
 /** Progress fill that glides to its new width; full and gold-tinted once the routine is submitted. */
+function TabBar({ value, full }: { value: number; full: boolean }) {
+  const v = useRef(new Animated.Value(value)).current;
+  useEffect(() => { Animated.timing(v, { toValue: value, duration: 520, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start(); }, [value]);
+  return (
+    <View style={{ alignSelf: 'stretch', marginHorizontal: 10, marginTop: 4, height: 3, borderRadius: 2, backgroundColor: 'rgba(110,123,217,0.15)', overflow: 'hidden' }}>
+      <Animated.View style={{ height: 3, borderRadius: 2, backgroundColor: full ? GOLD : BLUE, width: v.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }} />
+    </View>
+  );
+}
+
 function ProgressBar({ value, submitted }: { value: number; submitted: boolean }) {
   const v = useRef(new Animated.Value(value)).current;
   useEffect(() => { Animated.timing(v, { toValue: value, duration: 520, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start(); }, [value]);
@@ -579,7 +620,7 @@ export function InputsPanel({ s, compact }: { s: RoutineState; compact?: boolean
       {(s.areas ?? ['hair']).includes('hair') ? row('Hair goals', s.goals.join(', '), '/routine/about') : null}
       {(s.areas ?? ['hair']).includes('hair') ? row('Hair', hair, '/routine/about') : null}
       {row('Budget', s.hair.budget ?? '', '/routine/about')}
-      {row('Routine', `${logged} product${logged === 1 ? '' : 's'}${skipped ? ` · ${skipped} skipped` : ''} · wash ${s.washDays.map(d => DAYS[d]).join(', ') || 'days not set'}`, '/routine/build')}
+      {row('Routine', `${logged} product${logged === 1 ? '' : 's'}${skipped ? ` · ${skipped} skipped` : ''}${(s.areas ?? ['hair']).includes('hair') ? ` · wash ${s.washDays.map(d => DAYS[d]).join(', ') || 'days not set'}` : ''}`, '/routine/build')}
       {s.occasions.length ? row('Occasions', s.occasions.join(', '), '/routine/build') : null}
       {(s.areas ?? []).includes('skin') ? row('Skin', [...(s.prefs?.skin_type ?? []), ...(s.prefs?.skin_concerns ?? [])].join(' · '), '/routine/about') : null}
       {(s.areas ?? []).includes('makeup') ? row('Makeup', [s.prefs?.mk_look?.[0], s.prefs?.mk_tone?.[0], s.prefs?.mk_undertone?.[0], s.prefs?.mk_finish?.[0], s.prefs?.mk_coverage?.[0] && `${s.prefs.mk_coverage[0]} coverage`].filter(Boolean).join(' · '), '/routine/about') : null}
@@ -589,8 +630,15 @@ export function InputsPanel({ s, compact }: { s: RoutineState; compact?: boolean
 }
 
 /** Laptop side panel on the routine builder: fit, top gaps and what it's judged on, compact enough to see whole. */
-export function LivePanel({ score, gaps, onOpen }: { score: number; gaps: Gap[]; onOpen: () => void }) {
+export function LivePanel({ score, gaps, onOpen, empty }: { score: number; gaps: Gap[]; onOpen: () => void; empty?: boolean }) {
   const top = [...gaps].sort((x, y) => y.weight - x.weight).slice(0, 4);
+  if (empty) return (
+    <View style={{ gap: 10 }}>
+      <Text style={[st.label, { color: C.gray2 }]}>Live check</Text>
+      <Text style={[st.meta, { fontSize: 13 }]}>Add your first product to see your fit.</Text>
+      <ScoreBar score={0} />
+    </View>
+  );
   return (
     <View style={{ gap: 10 }}>
       <Text style={[st.label, { color: C.gray2 }]}>Live check</Text>
@@ -610,6 +658,36 @@ export function LivePanel({ score, gaps, onOpen }: { score: number; gaps: Gap[];
         </View>
       ))}
       {gaps.length > top.length ? <Text style={[st.meta, { fontSize: 12 }]}>{`+${gaps.length - top.length} more`}</Text> : null}
+    </View>
+  );
+}
+/** Phone version of the live check: one slim card pinned above the main button, so it's always in view. */
+export function LiveStrip({ score, gaps, empty }: { score: number; gaps: Gap[]; empty?: boolean }) {
+  const top = [...gaps].sort((x, y) => y.weight - x.weight).slice(0, 2);
+  if (empty) return (
+    <View style={{ alignSelf: 'stretch', paddingVertical: 10, paddingHorizontal: 14, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ECEEF2', flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+      <Text style={[st.label, { color: C.gray2, fontSize: 11 }]}>Live check</Text>
+      <Text style={[st.meta, { fontSize: 12, flex: 1 }]} numberOfLines={1}>Add your first product to see your fit</Text>
+    </View>
+  );
+  return (
+    <View style={{ alignSelf: 'stretch', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ECEEF2', gap: 6 }} accessibilityLabel={`Live check: routine fit ${score}, ${gaps.length} gaps`}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Text style={[st.label, { color: C.gray2, fontSize: 11 }]}>Live check</Text>
+        <Text style={{ fontFamily: F.display, fontSize: 20, lineHeight: 22, color: C.ink }}>{score}</Text>
+        <View style={{ flex: 1 }}><ScoreBar score={score} /></View>
+      </View>
+      <Faint />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <Text style={[st.label, { color: C.gray2, fontSize: 11 }]}>{gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'}` : 'No gaps'}</Text>
+        {top.map(g => (
+          <View key={g.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flexShrink: 1 }}>
+            <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: KIND_COLOR[g.kind].fg }} />
+            <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.ink, flexShrink: 1 }} numberOfLines={1}>{g.title}</Text>
+          </View>
+        ))}
+        {gaps.length > top.length ? <Text style={[st.meta, { fontSize: 12 }]}>{`+${gaps.length - top.length}`}</Text> : null}
+      </View>
     </View>
   );
 }

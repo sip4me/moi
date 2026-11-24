@@ -26,7 +26,7 @@ export default function Shop() {
   const bundleAfter = useMemo(() => analyze(s, cat, bundle).score, [s, cat, bundle.length]);
   const total = (items: Item[]) => items.reduce((a, i) => a + (i.price ?? 0), 0);
   const toggle = (k: string) => { if (!s.bag.includes(k)) celebrate('Added to bag'); setRoutine(r => ({ ...r, bag: r.bag.includes(k) ? r.bag.filter(x => x !== k) : [...r.bag, k] })); };
-  const addAll = () => { celebrate(`${bundle.length} picks added · fit ${bundleAfter}`, true); setRoutine(r => ({ ...r, bag: Array.from(new Set([...r.bag, ...bundle.map(itemKey)])) })); };
+  const addAll = () => { celebrate(`${bundle.length} added · fit ${bundleAfter}`, true); setRoutine(r => ({ ...r, bag: Array.from(new Set([...r.bag, ...bundle.map(itemKey)])) })); };
 
   const bagPanel = (
     <View style={{ gap: 16 }}>

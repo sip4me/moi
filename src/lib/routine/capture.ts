@@ -82,11 +82,11 @@ export async function ingredientsFromPhoto(uri: string, item: Item, onProgress?:
  * printed brand and product names for anything whose barcode isn't showing, and matches both against the
  * product database. Everything happens on the device; the photo isn't uploaded.
  */
-export async function shelfFromPhoto(uri: string, area: Area, onProgress?: (stage: 'barcodes' | 'labels' | 'matching', p: number) => void): Promise<Item[]> {
+export async function shelfFromPhoto(uri: string, area: Area, onProgress?: (stage: 'barcodes' | 'labels' | 'matching', p: number) => void, onFound?: (items: Item[]) => void): Promise<Item[]> {
   const { readBarcodes, readText } = await import('../labelScan');
   const sb = supabase();
   const found = new Map<string, Item>();
-  const keep = (i: Item) => { if (i.id && !found.has(i.id) && (areaOf(i.category) === area)) found.set(i.id, i); };
+  const keep = (i: Item) => { if (i.id && !found.has(i.id) && (areaOf(i.category) === area)) { found.set(i.id, i); onFound?.([...found.values()]); } };
 
   onProgress?.('barcodes', 0);
   const codes = await readBarcodes(uri).catch(() => [] as string[]);

@@ -33,6 +33,7 @@ export type RoutineState = {
   occasions: string[];
   occ: Record<string, Step[]>;
   bag: string[]; // item keys: p:<id> / t:<id>
+  qty?: Record<string, number>; // how many of each bag item (default 1)
   built: boolean; // a "new" routine has been generated
   welcomed?: boolean; // has seen the Moi welcome screen
   menuSeen?: boolean; // has opened the menu once (stops the tap hint)

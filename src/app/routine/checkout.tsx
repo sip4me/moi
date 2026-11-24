@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Image, Linking, Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { Btn, ChipBtn, iconFor, money, NeedInfo, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
+import { QtyStepper, Btn, ChipBtn, iconFor, money, NeedInfo, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
 import { analyze, retailerLinks } from '../../lib/routine/gaps';
 import { allSteps, AREA_Q, AREAS, BEAUTY_ROUTINES, CATEGORY_LABEL, DAYS, findByKey, GOALS, hasInfo, HAIR_Q, itemKey, placeItems, pref, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
 import { C, F } from '../../theme';
@@ -40,8 +40,12 @@ export default function Checkout() {
   const bag = s.bag.map(k => findByKey(cat, k)).filter((i): i is Item => !!i);
   const { score } = useMemo(() => analyze(s, cat), [s, cat]);
   const after = useMemo(() => analyze(s, cat, bag).score, [s, cat, bag.length]);
+  const q = (i: Item) => Math.max(1, s.qty?.[itemKey(i)] ?? 1);
+  const setQ = (i: Item, n: number) => setRoutine(r => ({ ...r, qty: { ...(r.qty ?? {}), [itemKey(i)]: Math.min(9, Math.max(1, n)) } }));
+  const removeItem = (i: Item) => setRoutine(r => { const k = itemKey(i); const { [k]: _, ...rest } = r.qty ?? {}; return { ...r, bag: r.bag.filter(x => x !== k), qty: rest }; });
+  const count = bag.reduce((a, i) => a + q(i), 0);
   const priced = bag.filter(i => i.price != null);
-  const total = Math.round(priced.reduce((a, i) => a + (i.price ?? 0), 0) * 100) / 100;
+  const total = Math.round(priced.reduce((a, i) => a + (i.price ?? 0) * q(i), 0) * 100) / 100;
 
   if (!hasInfo(s)) return <Shell active="shop"><NeedInfo goals={s.goals.length > 0} /></Shell>;
 
@@ -58,7 +62,7 @@ export default function Checkout() {
     : AREA_Q.filter(q => q.area === area).map(q => ({ label: q.label.replace(/ · .*/, ''), value: pref(s, q.key).join(', ') })).filter(r => r.value);
 
   const confirm = () => {
-    setRoutine(r => ({ ...placeItems(r, bag), bag: [] }));
+    setRoutine(r => ({ ...placeItems(r, bag), bag: [], qty: {} }));
     if (how === 'buy') bag.forEach((i, n) => setTimeout(() => Linking.openURL(retailerLinks(i)[0].url), n * 400));
     router.replace({ pathname: '/routine/done', params: { from: String(score), to: String(after), n: String(bag.length), buy: how } });
   };
@@ -94,8 +98,8 @@ export default function Checkout() {
       <View style={{ gap: 12 }}>
         {bag.map(i => (
           <View key={itemKey(i)} style={{ flexDirection: 'row', gap: 12 }}>
-            <Text style={{ flex: 1, fontFamily: F.regular, fontSize: 15, color: C.ink, textDecorationLine: 'underline' }} numberOfLines={1}>{CATEGORY_LABEL[i.category] ?? i.name}</Text>
-            <Text style={{ fontFamily: F.regular, fontSize: 15, color: C.ink }}>{i.price != null ? money(i.price) : 'At store'}</Text>
+            <Text style={{ flex: 1, fontFamily: F.regular, fontSize: 15, color: C.ink, textDecorationLine: 'underline' }} numberOfLines={1}>{`${CATEGORY_LABEL[i.category] ?? i.name}${q(i) > 1 ? ` × ${q(i)}` : ''}`}</Text>
+            <Text style={{ fontFamily: F.regular, fontSize: 15, color: C.ink }}>{i.price != null ? money(i.price * q(i)) : 'At store'}</Text>
           </View>
         ))}
         {!bag.length ? <Text style={st.sub}>Your bag is empty.</Text> : null}
@@ -137,7 +141,7 @@ export default function Checkout() {
         <Divider />
 
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{ flex: 1 }}><H2>{`Your picks · ${bag.length}`}</H2></View>
+          <View style={{ flex: 1 }}><H2>{`Your picks · ${count}`}</H2></View>
           <Underline label="Edit picks" onPress={() => router.push('/routine/shop')} />
         </View>
         {bag.map(i => (
@@ -148,8 +152,14 @@ export default function Checkout() {
                 <Text style={st.meta}>{`${i.brand} · ${CATEGORY_LABEL[i.category] ?? ''}`}</Text>
                 <Text style={{ fontFamily: F.medium, fontSize: 15, color: C.ink }} numberOfLines={2}>{i.name}</Text>
               </View>
-              <ChipBtn label="Remove" tone="danger" icon="trash" iconOnly onPress={() => setRoutine(r => ({ ...r, bag: r.bag.filter(k => k !== itemKey(i)) }))} />
+              {wide ? <QtyStepper n={q(i)} onChange={n => setQ(i, n)} onRemove={() => removeItem(i)} label={i.name} /> : null}
             </View>
+            {wide ? null : (
+              <View style={{ flexDirection: 'row', alignItems: 'center', paddingLeft: 60 }}>
+                <Text style={{ flex: 1, fontFamily: F.semibold, fontSize: 15, color: C.ink }}>{i.price != null ? money(i.price * q(i)) : 'At store'}</Text>
+                <QtyStepper n={q(i)} onChange={n => setQ(i, n)} onRemove={() => removeItem(i)} label={i.name} />
+              </View>
+            )}
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingLeft: 60 }}>
               {retailerLinks(i).map(r => (
                 <Pressable key={r.name} onPress={() => Linking.openURL(r.url)} accessibilityRole="link" style={({ hovered }: any) => ({ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: '#D9DCE3', backgroundColor: hovered ? '#F2F3F6' : '#fff' })}>
