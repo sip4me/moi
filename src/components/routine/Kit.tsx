@@ -607,68 +607,6 @@ export function InputsPanel({ s, compact }: { s: RoutineState; compact?: boolean
 }
 
 /** Laptop side panel on the routine builder: fit, top gaps and what it's judged on, compact enough to see whole. */
-export function LivePanel({ score, gaps, onOpen, empty }: { score: number; gaps: Gap[]; onOpen: () => void; empty?: boolean }) {
-  const top = [...gaps].sort((x, y) => y.weight - x.weight).slice(0, 4);
-  if (empty) return (
-    <View style={{ gap: 10 }}>
-      <Text style={st.label}>Live check</Text>
-      <Text style={[st.meta, { fontSize: 13 }]}>Add your first product to see your fit.</Text>
-      <ScoreBar score={0} />
-    </View>
-  );
-  return (
-    <View style={{ gap: 10 }}>
-      <Text style={st.label}>Live check</Text>
-      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
-        <Text style={{ fontFamily: F.display, fontSize: 30, lineHeight: 32, color: C.ink }}>{score}</Text>
-        <Text style={[st.meta, { fontSize: 12 }]}>routine fit</Text>
-      </View>
-      <ScoreBar score={score} />
-      <Faint />
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <Text style={[st.label, { flex: 1 }]}>{gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'}` : 'No gaps'}</Text>
-      </View>
-      {top.map(g => (
-        <View key={g.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: KIND_COLOR[g.kind].fg }} />
-          <Text style={{ flex: 1, fontFamily: F.medium, fontSize: 13, color: C.ink }} numberOfLines={1}>{g.title}</Text>
-        </View>
-      ))}
-      {gaps.length > top.length ? <Text style={[st.meta, { fontSize: 12 }]}>{`+${gaps.length - top.length} more`}</Text> : null}
-    </View>
-  );
-}
-/** Phone version of the live check: one slim card pinned above the main button, so it's always in view. */
-export function LiveStrip({ score, gaps, empty }: { score: number; gaps: Gap[]; empty?: boolean }) {
-  const top = [...gaps].sort((x, y) => y.weight - x.weight).slice(0, 2);
-  if (empty) return (
-    <View style={{ alignSelf: 'stretch', paddingVertical: 10, paddingHorizontal: 14, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ECEEF2', flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-      <Text style={st.label}>Live check</Text>
-      <Text style={[st.meta, { fontSize: 12, flex: 1 }]} numberOfLines={1}>Add your first product to see your fit</Text>
-    </View>
-  );
-  return (
-    <View style={{ alignSelf: 'stretch', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ECEEF2', gap: 6 }} accessibilityLabel={`Live check: routine fit ${score}, ${gaps.length} gaps`}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-        <Text style={st.label}>Live check</Text>
-        <Text style={{ fontFamily: F.display, fontSize: 20, lineHeight: 22, color: C.ink }}>{score}</Text>
-        <View style={{ flex: 1 }}><ScoreBar score={score} /></View>
-      </View>
-      <Faint />
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <Text style={st.label}>{gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'}` : 'No gaps'}</Text>
-        {top.map(g => (
-          <View key={g.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flexShrink: 1 }}>
-            <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: KIND_COLOR[g.kind].fg }} />
-            <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.ink, flexShrink: 1 }} numberOfLines={1}>{g.title}</Text>
-          </View>
-        ))}
-        {gaps.length > top.length ? <Text style={[st.meta, { fontSize: 12 }]}>{`+${gaps.length - top.length}`}</Text> : null}
-      </View>
-    </View>
-  );
-}
-/** A faint line between groups. */
 export const Faint = () => <View style={{ height: 1, backgroundColor: '#ECEEF2', marginVertical: 4 }} accessibilityElementsHidden importantForAccessibility="no" />;
 
 export function GapCard({ gap, onPress, selected, cta, price }: { gap: Gap; onPress?: () => void; selected?: boolean; cta?: string; price?: string }) {

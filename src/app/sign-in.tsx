@@ -21,7 +21,8 @@ export default function SignIn() {
   const next = params.next ?? '/';
   const { syncNow } = useStore();
 
-  const [method, setMethod] = useState<Method>('email');
+  // Email codes only: they're free (custom SMTP free tier). Text codes cost money per message, so Phone is off for now.
+  const method = 'email' as Method;
   const [value, setValue] = useState('');
   const [keep, setKeep] = useState(true);
   const [step, setStep] = useState<'enter' | 'code'>('enter');
@@ -76,7 +77,6 @@ export default function SignIn() {
 
       {step === 'enter' ? (
         <View style={{ marginTop: 28, gap: 14 }}>
-          <Segmented value={method} onChange={m => { setMethod(m); setValue(''); setError(null); }} />
           <Field
             key={method}
             value={value}
@@ -119,22 +119,6 @@ export default function SignIn() {
 
       {error ? <Text accessibilityRole="alert" style={{ fontFamily: F.medium, fontSize: 14, color: C.red, marginTop: 14, paddingHorizontal: 4 }}>{error}</Text> : null}
     </Screen>
-  );
-}
-
-function Segmented({ value, onChange }: { value: Method; onChange: (m: Method) => void }) {
-  return (
-    <View style={{ flexDirection: 'row', backgroundColor: C.option, borderRadius: 999, padding: 4 }}>
-      {(['email', 'phone'] as const).map(m => {
-        const on = value === m;
-        return (
-          <Pressable key={m} onPress={() => onChange(m)} accessibilityRole="tab" accessibilityState={{ selected: on }}
-            style={{ flex: 1, height: 40, borderRadius: 999, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? '#fff' : 'transparent', shadowColor: '#000', shadowOpacity: on ? 0.08 : 0, shadowRadius: 6, shadowOffset: { width: 0, height: 2 } }}>
-            <Text style={{ fontFamily: on ? F.semibold : F.medium, fontSize: 15, color: on ? C.ink : C.gray2 }}>{m === 'email' ? 'Email' : 'Phone'}</Text>
-          </Pressable>
-        );
-      })}
-    </View>
   );
 }
 

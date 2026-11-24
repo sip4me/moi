@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { celebrate } from '../../components/routine/Celebrate';
 import { Image, Pressable, Text, View } from 'react-native';
-import { BLUE, Btn, ChipBtn, Faint, Heading, InputsPanel, LivePanel, LiveStrip, Panel, PlusDot, iconFor, Label, PickerSheet, Pill, ScoreBar, Segmented, Shell, st, Timeline, useWide } from '../../components/routine/Kit';
+import { BLUE, Btn, ChipBtn, Heading, InputsPanel, Panel, PlusDot, iconFor, Label, PickerSheet, Pill, ScoreBar, Segmented, Shell, st, Timeline, useWide } from '../../components/routine/Kit';
 import { icon3d } from '../../data/icons3d';
 import { ShelfSheet } from '../../components/routine/ShelfSheet';
 import { fill } from '../../lib/routine/shine';
@@ -137,14 +137,13 @@ export default function Build() {
   const shownSteps = area === 'hair' ? (tab === 'Wash day' ? s.wash : tab === 'Everyday' ? s.every : s.occasions.flatMap(o => s.occ[o] ?? [])) : (rkey ? s.beauty?.[rkey] ?? [] : []);
   const allDone = shownSteps.length > 0 && shownSteps.every(x => x.item?.addedAt || x.skipped);
   const logged = allSteps(s).some(x => x.step.item?.addedAt);
-  const loggedHere = allSteps(s).some(x => x.step.item && areaOf(x.step.item.category) === area) || s.mode === 'new';
   const idx = Math.max(0, areas.indexOf(area as any));
   const nextArea = areas[idx + 1];
   const areaLabel = (a: string) => AREAS.find(x => x.key === a)?.label ?? a;
 
   return (
-    <Shell active="build" step={areas.length > 1 ? `Routine ${idx + 1} of ${areas.length}` : '2 of 3'} side={wide ? <View style={{ gap: 12 }}><LivePanel empty={!loggedHere} score={score} gaps={gaps} onOpen={() => router.push('/routine/gaps')} /><Faint /><InputsPanel compact s={s} /></View> : undefined}
-      footer={<View style={{ gap: 8, width: wide ? undefined : '100%', alignItems: wide ? 'flex-end' : 'stretch' }}>{wide ? null : <LiveStrip empty={!loggedHere} score={score} gaps={gaps} />}{warn && !logged ? <View accessibilityRole="alert" style={{ paddingVertical: 10, paddingHorizontal: 14, borderRadius: 14, backgroundColor: '#FEF3F2', borderWidth: 1, borderColor: '#FECDCA' }}><Text style={{ fontFamily: F.semibold, fontSize: 13, color: '#B42318' }}>Add at least one product you use, or skip the steps you don’t do.</Text></View> : null}<Btn glow={allDone} label={nextArea ? `Next: ${areaLabel(nextArea).toLowerCase()} routine` : 'Optimize my routine'} onPress={() => (nextArea ? router.push({ pathname: '/routine/build', params: { area: nextArea } }) : (s.mode === 'check' && !logged ? (setWarn(true), undefined) : router.push('/routine/gaps')))} /></View>}>
+    <Shell active="build" step={areas.length > 1 ? `Routine ${idx + 1} of ${areas.length}` : '2 of 3'} side={wide ? <View style={{ gap: 12 }}><InputsPanel compact s={s} /></View> : undefined}
+      footer={<View style={{ gap: 8, width: wide ? undefined : '100%', alignItems: wide ? 'flex-end' : 'stretch' }}>{warn && !logged ? <View accessibilityRole="alert" style={{ paddingVertical: 10, paddingHorizontal: 14, borderRadius: 14, backgroundColor: '#FEF3F2', borderWidth: 1, borderColor: '#FECDCA' }}><Text style={{ fontFamily: F.semibold, fontSize: 13, color: '#B42318' }}>Add at least one product you use, or skip the steps you don’t do.</Text></View> : null}<Btn glow={allDone} label={nextArea ? `Next: ${areaLabel(nextArea).toLowerCase()} routine` : 'Optimize my routine'} onPress={() => (nextArea ? router.push({ pathname: '/routine/build', params: { area: nextArea } }) : (s.mode === 'check' && !logged ? (setWarn(true), undefined) : router.push('/routine/gaps')))} /></View>}>
       <Heading title={`${s.mode === 'new' ? 'Your new' : 'Your'} ${area === 'hair' ? 'hair' : areaLabel(area).toLowerCase()} routine`} sub={s.mode === 'new' ? 'Steps your answers need. Add or skip each.' : 'Add what you use, in order. Skip any step.'} />
       {areas.length > 1 ? (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>

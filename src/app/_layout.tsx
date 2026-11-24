@@ -97,7 +97,8 @@ export default function RootLayout() {
           <Stack.Screen name="glamour" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
           <Stack.Screen name="reminders" options={{ presentation: 'modal' }} />
         </Stack>
-        <MoiNotifications />
+        {/* No in-app banners on the website: people joining on the web shouldn't be greeted or nudged. */}
+        {Platform.OS !== 'web' ? <MoiNotifications /> : null}
         </Frame>
       </StoreProvider>
     </SafeAreaProvider>

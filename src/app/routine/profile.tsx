@@ -49,8 +49,8 @@ export default function RoutineProfile() {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, maxWidth: 640 }}>
         <View>
           <Image source={require('../../../assets/avatar.png')} resizeMode="contain" style={{ width: 76, height: 79 }} accessibilityLabel="Your profile picture" />
-          {/* Crown sits on the head the way it sits on the "o" in the Moi logo: head-wide, tipped 14° left, base on top. */}
-          {a.ok ? <Image source={crown} resizeMode="contain" style={{ position: 'absolute', top: -3, left: 23, width: 29, height: 29.5, transform: [{ rotate: '-14deg' }] }} /> : null}
+          {/* Crown perches on the head the way it sits on the "o" in the Moi logo: off to the top-left, tipped well over. */}
+          {a.ok ? <Image source={crown} resizeMode="contain" style={{ position: 'absolute', top: -1, left: 17, width: 27, height: 27.4, transform: [{ rotate: '-26deg' }] }} /> : null}
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: F.bold, fontSize: 26, color: C.ink }}>{name && name !== 'Your name' ? name : 'Your royal profile'}</Text>
@@ -64,7 +64,7 @@ export default function RoutineProfile() {
       {!signedIn ? (
         <View style={{ marginTop: 24, padding: 18, borderRadius: 24, backgroundColor: C.goldSoft, borderWidth: 1, borderColor: '#F1DDAA', gap: 12, maxWidth: 640 }}>
           <Text style={{ fontFamily: F.semibold, fontSize: 17, color: C.ink }}>Save your crown</Text>
-          <Text style={{ fontFamily: F.regular, fontSize: 14, lineHeight: 20, color: '#7A6A4A' }}>Add your email or phone so your plan, routine and founding spot follow you to any device.</Text>
+          <Text style={{ fontFamily: F.regular, fontSize: 14, lineHeight: 20, color: '#7A6A4A' }}>Add your email so your plan, routine and founding spot follow you to any device.</Text>
           <Btn label="Create my account" onPress={() => router.push({ pathname: '/sign-in', params: { mode: 'signup', next: '/routine/profile' } })} style={{ alignSelf: wide ? 'flex-start' : 'stretch' }} />
         </View>
       ) : null}

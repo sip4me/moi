@@ -18,8 +18,8 @@ let n = 0;
 for (const f of walk(path.join(__dirname, '..', 'dist'))) {
   let h = fs.readFileSync(f, 'utf8');
   if (h.includes('rel="manifest"')) continue;
-  h = h.replace('</head>', TAGS + '</head>').replace(/<title>[^<]*<\/title>/, '<title>Moi — your hair analyst</title>');
-  if (!h.includes('<title>')) h = h.replace('</head>', '<title>Moi — your hair analyst</title></head>');
+  h = h.replace('</head>', TAGS + '</head>').replace(/<title>[^<]*<\/title>/, '<title>Moi · The right beauty routine</title>');
+  if (!h.includes('<title>')) h = h.replace('</head>', '<title>Moi · The right beauty routine</title></head>');
   h = h.replace('content="width=device-width, initial-scale=1, shrink-to-fit=no"', 'content="width=device-width, initial-scale=1, viewport-fit=cover"');
   fs.writeFileSync(f, h); n++;
 }

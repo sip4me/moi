@@ -103,7 +103,7 @@ export default function Settings() {
 
   const signedIn = account && !account.anonymous;
   const who = account?.email ?? account?.phone ?? '';
-  const version = Constants.expoConfig?.version ?? '4.9.0';
+  const version = Constants.expoConfig?.version ?? '4.10.0';
   const hairProfile = [answers.texture, answers.length, answers.porosity && `${answers.porosity} porosity`].filter(Boolean).join(' · ');
 
   const open = (url: string) => (url ? openLink(url) : setSheet('soon'));
@@ -203,7 +203,7 @@ export default function Settings() {
         body="Your account, plan, check-ins, life changes and reminder settings will be erased from our servers and this device. This can’t be undone." />
       <Sheet open={sheet === 'signout'} busy={busy} onClose={close} onConfirm={confirmSignOut}
         title="Sign out?" confirm="Sign out"
-        body="Your plan stays saved to your account. Sign back in any time with your email or phone." />
+        body="Your plan stays saved to your account. Sign back in any time with your email." />
       <Sheet open={sheet === 'subscription'} onClose={close} confirm="Got it" title={subMsg.title} body={subMsg.body} />
       <Sheet open={sheet === 'health'} onClose={close} confirm="Got it" title="Health disclaimer" body={HEALTH_FULL.join('\n\n')} />
       <Sheet open={sheet === 'soon'} onClose={close} confirm="Got it"
