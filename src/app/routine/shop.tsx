@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Linking, Pressable, ScrollView, Text, View } from 'react-native';
-import { BLUE, Btn, ChipBtn, Heading, iconFor, Label, money, NeedInfo, Pill, ProductCard, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
+import { BLUE, Btn, ChipBtn, Heading, iconFor, Label, money, NeedInfo, Pill, PickRow, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
 import { useAccess } from '../../lib/routine/access';
 import { celebrate } from '../../components/routine/Celebrate';
 import { analyze, picksFor, profileOf, retailerLinks } from '../../lib/routine/gaps';
@@ -21,7 +21,18 @@ export default function Shop() {
   const bag = s.bag.map(k => findByKey(cat, k)).filter((i): i is Item => !!i);
   const after = useMemo(() => analyze(s, cat, bag).score, [s, cat, bag.length]);
   const max = profileOf(s).budgetMax;
-  const rows = gaps.map(g => ({ g, picks: picksFor(g, s, cat, 6).filter(p => (!budgetOnly || (p.item.price ?? 0) <= max || max > 999) && (!under15 || (p.item.price ?? 0) <= 15)).slice(0, 3) })).filter(r => r.picks.length);
+  // Ranked by advantage: how much each pick actually raises this routine's fit, then match, then price.
+  // The top pick is "Best for you"; a cheaper one within 2 points of it is "Best value".
+  const rows = useMemo(() => gaps.map(g => {
+    const ps = picksFor(g, s, cat, 6)
+      .filter(p => (!budgetOnly || (p.item.price ?? 0) <= max || max > 999) && (!under15 || (p.item.price ?? 0) <= 15))
+      .map(p => ({ ...p, gain: Math.max(0, analyze(s, cat, [p.item]).score - score) }))
+      .sort((a, b) => b.gain - a.gain || b.fit - a.fit || (a.item.price ?? 999) - (b.item.price ?? 999))
+      .slice(0, 3);
+    const top = ps[0];
+    const value = top ? ps.slice(1).filter(p => p.item.price != null && top.item.price != null && p.item.price < top.item.price && p.gain >= top.gain - 2).sort((a, b) => (a.item.price ?? 0) - (b.item.price ?? 0))[0] : undefined;
+    return { g, picks: ps.map((p, i) => ({ ...p, badge: i === 0 ? 'best' as const : p === value ? 'value' as const : undefined })) };
+  }).filter(r => r.picks.length), [gaps, s, cat, budgetOnly, under15, max, score]);
   const bundle = rows.map(r => r.picks[0].item).filter(i => i.price != null);
   const bundleAfter = useMemo(() => analyze(s, cat, bundle).score, [s, cat, bundle.length]);
   const total = (items: Item[]) => items.reduce((a, i) => a + (i.price ?? 0), 0);
@@ -63,7 +74,7 @@ export default function Shop() {
   return (
     <Shell active="shop" side={wide && bag.length ? bagPanel : undefined}
       footer={!wide && bag.length ? <Pressable onPress={() => {}} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><View style={{ flex: 1 }}><Text style={st.cardTitle}>{`${bag.length} in bag · about ${money(Math.round(total(bag)))}`}</Text><Text style={st.meta}>{`Routine fit ${score} → ${after}`}</Text></View></Pressable> : undefined}>
-      <Heading title="Shop your gaps" sub="Only products that fill a gap, ranked for you and your budget." />
+      <Heading title="Shop your gaps" sub="Only products that fill a gap. Biggest fit gain first." />
       {bundle.length > 1 ? (
         <View style={{ flexDirection: wide ? 'row' : 'column', alignItems: wide ? 'center' : 'stretch', gap: 16, padding: 20, borderRadius: 24, backgroundColor: '#EEF1FD' }}>
           <View style={{ flexDirection: 'row' }}>{bundle.slice(0, 4).map((i, n) => <View key={n} style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: '#fff', borderWidth: 3, borderColor: '#fff', marginLeft: n ? -14 : 0, alignItems: 'center', justifyContent: 'center' }}><Image source={iconFor(i.category)} style={{ width: 40, height: 40 }} /></View>)}</View>
@@ -82,13 +93,10 @@ export default function Shop() {
       {rows.map(({ g, picks }) => (
         <View key={g.id} style={{ gap: 16 }}>
           <View style={{ gap: 4 }}><Text style={{ fontFamily: F.semibold, fontSize: 20, color: C.ink }}>{g.title}</Text><Text style={st.meta}>{g.why}</Text></View>
-          {wide ? (
-            <View style={{ flexDirection: 'row', gap: 20 }}>{picks.map((p, i) => <ProductCard key={p.item.id} item={p.item} fit={p.fit} why={p.why} best={i === 0} inBag={s.bag.includes(itemKey(p.item))} onAdd={() => toggle(itemKey(p.item))} />)}{picks.length < 3 ? Array.from({ length: 3 - picks.length }).map((_, i) => <View key={i} style={{ flex: 1 }} />) : null}</View>
-          ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}>
-              {picks.map((p, i) => <ProductCard key={p.item.id} width={168} item={p.item} fit={p.fit} why={p.why} best={i === 0} inBag={s.bag.includes(itemKey(p.item))} onAdd={() => toggle(itemKey(p.item))} />)}
-            </ScrollView>
-          )}
+          {/* A ranked list, not a carousel: options side by side in one column are easier to compare. */}
+          <View style={{ gap: 8, maxWidth: 720 }}>
+            {picks.map((p, i) => <PickRow key={p.item.id} rank={i + 1} item={p.item} fit={p.fit} gain={p.gain} badge={p.badge} why={p.why} inBag={s.bag.includes(itemKey(p.item))} onAdd={() => toggle(itemKey(p.item))} />)}
+          </View>
         </View>
       ))}
       {!wide && bag.length ? <View style={{ backgroundColor: '#fff', borderRadius: 24, padding: 20 }}>{bagPanel}</View> : null}

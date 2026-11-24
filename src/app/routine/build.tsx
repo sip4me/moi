@@ -153,10 +153,10 @@ export default function Build() {
       ) : null}
       {area === 'hair' ? <View style={{ maxWidth: 420 }}><Segmented progress={{ 'Wash day': prog(s.wash), Everyday: prog(s.every), Occasions: prog(s.occasions.flatMap(o => s.occ[o] ?? [])) }} options={['Wash day', 'Everyday', 'Occasions']} value={tab} onChange={setTab} /></View> : null}
       {/* Faster than adding one by one: photograph the shelf. */}
-      <Pressable {...fill('pearl')} onPress={() => setShelf(true)} accessibilityRole="button" style={({ hovered }: any) => ({ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 20, backgroundColor: '#fff', borderWidth: 1.5, borderColor: hovered ? '#C9CEF0' : 'transparent', maxWidth: 640 })}>
-        <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#EEF0FB', alignItems: 'center', justifyContent: 'center' }}><Image source={icon3d('mirror')} style={{ width: 34, height: 34 }} /></View>
+      <Pressable onPress={() => setShelf(true)} accessibilityRole="button" style={({ hovered }: any) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8, paddingHorizontal: 10, borderRadius: 16, backgroundColor: hovered ? 'rgba(94,106,206,0.08)' : 'transparent', borderWidth: 1, borderColor: '#E3E5EE', borderStyle: 'dashed', maxWidth: 640 })}>
+        <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: '#EEF0FB', alignItems: 'center', justifyContent: 'center' }}><Image source={icon3d('mirror')} style={{ width: 24, height: 24 }} /></View>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>Snap your shelf</Text>
+          <Text style={{ fontFamily: F.semibold, fontSize: 14, color: '#4652B5' }}>Snap your shelf</Text>
           <Text style={st.meta}>One photo adds everything we recognise.</Text>
         </View>
         <Text style={{ fontFamily: F.semibold, fontSize: 18, color: '#8E92A8' }}>›</Text>

@@ -322,6 +322,11 @@ const ICON_PATHS: Record<string, string> = {
   check: 'M5 12.5l4.5 4.5L19 7.5',
   trash: 'M4 7h16M9 7V4.8h6V7M6.5 7l1 12.2h9l1-12.2M10 11v5.5M14 11v5.5',
   minus: 'M6 12h12',
+  up: 'M12 19V5M6 11l6-6 6 6',
+  tag: 'M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.3 8.3-8.7 8.7zM8 8h.01',
+  crown: 'M4 17h16M5 17 3.5 8l5 4L12 6l3.5 6 5-4L19 17',
+  bell: 'M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5h4',
+  card: 'M3.5 6.5h17v11h-17zM3.5 10h17',
   back: 'M19 12H5M11 6l-6 6 6 6',
   search: 'M10.5 17a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM20 20l-4.8-4.8',
   retry: 'M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6',
@@ -706,17 +711,69 @@ export function GapCard({ gap, onPress, selected, cta, price }: { gap: Gap; onPr
         </View>
       </View>
       <Text style={st.why}>{gap.why}</Text>
-      {cta ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><View style={st.btnSm}><Text style={st.btnSmText}>{cta}</Text></View>{price ? <Text style={st.meta}>{price}</Text> : null}</View> : null}
+      {cta ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        {/* Same frosted pill as every other button; tapping the card toggles it. */}
+        <View style={[st.btnSm, st.tint, { flexDirection: 'row', gap: 6, paddingHorizontal: 16 }]}>
+          <Text style={[st.btnSmText, { color: TINT_INK }]}>{cta}</Text>
+          <Svg width={14} height={14} viewBox="0 0 24 24"><Path d={cta.startsWith('Hide') ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6'} stroke={TINT_INK} strokeWidth={2.4} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
+        </View>
+        {price ? <Text style={st.meta}>{price}</Text> : null}
+      </View> : null}
     </Pressable>
   );
 }
 
-export function ProductCard({ item, fit, best, inBag, onAdd, width, why }: { item: Item; fit: number; best?: boolean; inBag?: boolean; onAdd: () => void; width?: number; why?: string }) {
+/** One ranked option for a gap. The category picture is a small marker, not a product photo, so it stays thumbnail-sized (48, like the bag and checkout); the advantage reads first. */
+const TINT_INK = '#4652B5';
+
+export function PickRow({ rank, item, fit, gain, badge, why, inBag, onAdd }: { rank: number; item: Item; fit: number; gain?: number; badge?: 'best' | 'value'; why?: string; inBag?: boolean; onAdd: () => void }) {
+  const lead = badge === 'best';
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 18, backgroundColor: '#fff', borderWidth: 1.5, borderColor: lead ? '#E7C98B' : '#EEF0F3' }}>
+      <Text style={{ width: 16, textAlign: 'center', fontFamily: F.semibold, fontSize: 13, color: C.gray2 }} accessibilityLabel={`Rank ${rank}`}>{rank}</Text>
+      <View style={{ width: 48, height: 48, borderRadius: 12, backgroundColor: lead ? '#FFF8E8' : '#F4F5F7', alignItems: 'center', justifyContent: 'center' }}><Image source={iconFor(item.category)} style={{ width: 38, height: 38 }} /></View>
+      <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
+          {badge ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: badge === 'best' ? PALETTE.garnet : '#1E7B45' }}>
+              <Ico name={badge === 'best' ? 'crown' : 'tag'} size={11} color="#fff" />
+              <Text style={{ fontFamily: F.semibold, fontSize: 11, color: '#fff' }}>{badge === 'best' ? 'Best for you' : 'Best value'}</Text>
+            </View>
+          ) : null}
+          {gain ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }} accessibilityLabel={`Raises your fit by ${gain}`}>
+              <Ico name="up" size={11} color={BLUE} /><Text style={{ fontFamily: F.bold, fontSize: 12, color: BLUE }}>{`+${gain} fit`}</Text>
+            </View>
+          ) : <Text style={[st.meta, { fontSize: 12 }]}>{`${fit}% match`}</Text>}
+        </View>
+        <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }} numberOfLines={2}>{item.name}</Text>
+        <Text style={[st.meta, { fontSize: 12 }]} numberOfLines={1}>{[item.brand, why].filter(Boolean).join(' · ')}</Text>
+      </View>
+      <View style={{ alignItems: 'flex-end', gap: 6 }}>
+        <Text style={{ fontFamily: F.semibold, fontSize: 14, color: C.ink }}>{item.price != null ? money(item.price) : 'At store'}</Text>
+        <Pressable onPress={() => { haptic(); onAdd(); }} accessibilityRole="button" accessibilityLabel={inBag ? `Remove ${item.name} from bag` : `Add ${item.name} to bag`}
+          style={({ hovered }: PS) => [st.btnSm, st.tint, { height: 32, paddingHorizontal: 12, flexDirection: 'row', gap: 4 }, hovered && { backgroundColor: 'rgba(94,106,206,0.24)' }, inBag && { backgroundColor: '#E5F4EA', borderColor: '#CDEBD6' }]}>
+          <Ico name={inBag ? 'check' : 'plus'} size={13} color={inBag ? '#1E7B45' : TINT_INK} />
+          <Text style={[st.btnSmText, { color: inBag ? '#1E7B45' : TINT_INK }]}>{inBag ? 'Added' : 'Add'}</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+export function ProductCard({ item, fit, best, inBag, onAdd, width, why, gain, badge }: { item: Item; fit: number; best?: boolean; inBag?: boolean; onAdd: () => void; width?: number; why?: string; gain?: number; badge?: 'best' | 'value' }) {
+  const tag = badge === 'best' || best ? 'Best for you' : badge === 'value' ? 'Best value' : `${fit}% match`;
   return (
     <View style={[{ gap: 12 }, width ? { width } : { flex: 1, minWidth: 0 }]}>
-      <View style={[st.tile, best && { backgroundColor: '#FFF8E8' }]}>
+      <View style={[st.tile, (badge === 'best' || best) && { backgroundColor: '#FFF8E8' }, badge === 'value' && { backgroundColor: '#EEF7F0' }]}>
         <Image source={iconFor(item.category)} style={{ width: '68%', height: '68%' }} resizeMode="contain" />
-        <View style={[st.fit, best && { backgroundColor: PALETTE.garnet }]}><Text style={[st.fitText, best && { color: '#fff' }]}>{best ? `Best for you · ${fit}%` : `${fit}% match`}</Text></View>
+        <View style={[st.fit, (badge === 'best' || best) && { backgroundColor: PALETTE.garnet }, badge === 'value' && { backgroundColor: '#1E7B45' }, { flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
+          {badge ? <Ico name={badge === 'value' ? 'tag' : 'crown'} size={12} color="#fff" /> : null}
+          <Text style={[st.fitText, badge && { color: '#fff' }]}>{tag}</Text>
+        </View>
+        {gain ? <View style={{ position: 'absolute', top: 10, right: 10, flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999, backgroundColor: '#fff' }} accessibilityLabel={`Raises your fit by ${gain}`}>
+          <Ico name="up" size={11} color={BLUE} /><Text style={{ fontFamily: F.bold, fontSize: 12, color: BLUE }}>{`+${gain} fit`}</Text>
+        </View> : null}
       </View>
       <View style={{ gap: 3, paddingHorizontal: 4 }}>
         <Text style={st.meta} numberOfLines={1}>{item.brand || CATEGORY_LABEL[item.category]}</Text>
@@ -726,7 +783,7 @@ export function ProductCard({ item, fit, best, inBag, onAdd, width, why }: { ite
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 4 }}>
         <Text style={st.price}>{item.price ? `about ${money(item.price)}` : ''}</Text>
         <View style={{ flex: 1 }} />
-        <Pressable {...(inBag ? {} : fill('garnet'))} onPress={() => { haptic(); onAdd(); }} style={({ hovered }: PS) => [st.btnSm, inBag && { backgroundColor: '#E5F4EA' }, hovered && { ...HOVER_RIM, backgroundColor: inBag ? '#CFEBD8' : PALETTE.garnetDeep }]}><Text style={[st.btnSmText, inBag && { color: '#1E7B45' }]}>{inBag ? 'In bag ✓' : 'Add'}</Text></Pressable>
+        <Pressable {...(inBag ? {} : fill('garnet'))} onPress={() => { haptic(); onAdd(); }} style={({ hovered }: PS) => [st.btnSm, inBag && { backgroundColor: '#E5F4EA' }, hovered && { ...HOVER_RIM, backgroundColor: inBag ? '#CFEBD8' : PALETTE.garnetDeep }]}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><Ico name={inBag ? 'check' : 'bag'} size={14} color={inBag ? '#1E7B45' : '#fff'} /><Text style={[st.btnSmText, inBag && { color: '#1E7B45' }]}>{inBag ? 'In bag' : 'Add'}</Text></View></Pressable>
       </View>
     </View>
   );
@@ -832,7 +889,7 @@ export const st = StyleSheet.create({
   navOn: { backgroundColor: '#fff' },
   navAddon: { marginTop: 12, borderTopWidth: 1, borderTopColor: '#E3E5E8', borderTopLeftRadius: 0, borderTopRightRadius: 0, paddingTop: 12, height: 56 },
   navText: { fontFamily: F.medium, fontSize: 15, color: C.gray2 },
-  side: { width: 320, flexGrow: 0, backgroundColor: '#fff', borderLeftWidth: 1, borderLeftColor: '#EEF0F3' },
+  side: { width: 300, flexGrow: 0, backgroundColor: 'transparent', borderLeftWidth: 1, borderLeftColor: '#ECEEF2', opacity: 0.92 },
   mHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, height: 52 },
   topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4, minHeight: 60 },
   menuBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderColor: 'transparent', backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 3 } },
@@ -860,6 +917,8 @@ export const st = StyleSheet.create({
   chipBtnText: { fontFamily: F.semibold, fontSize: 14, color: C.ink },
   btnSm: { height: 36, borderRadius: 18, backgroundColor: PALETTE.garnet, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, alignSelf: 'flex-start', borderWidth: 1.5, borderColor: PALETTE.garnet },
   btnSmText: { fontFamily: F.semibold, fontSize: 13, color: '#fff' },
+  // Secondary actions inside a list: a see-through darker lavender, quieter than the page's main button.
+  tint: { backgroundColor: 'rgba(94,106,206,0.16)', borderColor: 'rgba(94,106,206,0.34)' },
   seg: { flexDirection: 'row', backgroundColor: '#EEF0F3', borderRadius: 999, padding: 4 },
   segItem: { flex: 1, height: 40, borderRadius: 999, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18, borderWidth: 1.5, borderColor: 'transparent' },
   segOn: { backgroundColor: '#fff', shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 } },
