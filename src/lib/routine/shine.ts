@@ -40,15 +40,15 @@ const CSS = `
 [data-fill="cobalt-dot"] { background-image: radial-gradient(circle at 34% 30%, #8FA4F0 0%, #4058D8 55%, #2B3FC8 100%) !important; }
 /* Main buttons and selected chips: soft luxury pill (reference step 6). White-to-lavender face, inner lavender glow,
    a white halo ring with a faint lavender line, and a soft lavender shadow underneath. Dark ink text. */
-[data-fill="garnet"], [data-fill="lilac"] { position: relative; background-color: #F4F5FC !important; background-image: linear-gradient(180deg, #FFFFFF 0%, #EDEFFB 100%) !important; border-color: rgba(255,255,255,0.95) !important;
-  box-shadow: inset 0 0 0 1px rgba(180,190,240,0.45), inset 0 2px 1px #FFFFFF, inset 0 -8px 14px rgba(150,165,235,0.2), 0 0 0 4px rgba(255,255,255,0.85), 0 0 0 5px rgba(170,180,235,0.4), 0 16px 28px -10px rgba(110,120,220,0.5), 0 4px 8px rgba(60,70,120,0.07);
-  transition: box-shadow .2s ease, transform .15s ease, background-image .2s ease; }
-[data-fill="garnet"]:hover, [data-fill="lilac"]:hover { background-image: linear-gradient(180deg, #F7F8FE 0%, #E3E7FA 100%) !important;
-  box-shadow: inset 0 0 0 1px rgba(160,172,240,0.6), inset 0 2px 1px #FFFFFF, inset 0 -8px 14px rgba(140,155,235,0.28), 0 0 0 4px rgba(255,255,255,0.9), 0 0 0 5px rgba(150,162,235,0.6), 0 12px 22px -10px rgba(110,120,220,0.6), 0 3px 6px rgba(60,70,120,0.08); }
-[data-fill="garnet"]:active, [data-fill="lilac"]:active { transform: translateY(1px); }
-[data-fill="garnet"] div, [data-fill="lilac"] div { color: #2A2F45 !important; text-shadow: none !important; }
-[data-fill="garnet"] svg [stroke]:not([stroke="none"]), [data-fill="lilac"] svg [stroke]:not([stroke="none"]) { stroke: #2A2F45 !important; }
-[data-fill="garnet"] svg [data-chev] { stroke: #8E92A8 !important; }
+/* Main and round buttons: the checkout's chrome key, set in a thin silver track ring. */
+[data-fill="garnet"], [data-fill="lilac"] { position: relative; background-color: #DADADA !important; background-image: linear-gradient(180deg, #E6E6E6 0%, #D2D2D2 100%) !important; border: 1.5px solid #161616 !important;
+  box-shadow: inset 0 0 0 2px #FAFAFA, inset 0 0 0 3.5px #9C9C9C, inset 0 0 0 5px #ECECEC, inset 5px 5px 8px rgba(255,255,255,0.85), inset -4px -5px 8px rgba(0,0,0,0.15), 0 0 0 5px #EDEDED, 0 0 0 6px #DEDEDE, 0 16px 26px -12px rgba(0,0,0,0.42), 0 2px 3px rgba(0,0,0,0.12);
+  transition: box-shadow .15s ease, transform .15s ease, background-image .15s ease; }
+[data-fill="garnet"]:hover, [data-fill="lilac"]:hover { background-image: linear-gradient(180deg, #ECECEC 0%, #D8D8D8 100%) !important; }
+[data-fill="garnet"]:active, [data-fill="lilac"]:active { transform: translateY(1px); background-image: linear-gradient(180deg, #D4D4D4 0%, #E2E2E2 100%) !important; box-shadow: inset 0 0 0 2px #F2F2F2, inset 0 0 0 3.5px #8E8E8E, inset 0 0 0 5px #E4E4E4, inset 0 4px 8px rgba(0,0,0,0.18), 0 0 0 5px #EDEDED, 0 0 0 6px #DEDEDE, 0 4px 8px -4px rgba(0,0,0,0.3); }
+[data-fill="garnet"] div, [data-fill="lilac"] div { color: #111114 !important; text-shadow: none !important; }
+[data-fill="garnet"] svg [stroke]:not([stroke="none"]), [data-fill="lilac"] svg [stroke]:not([stroke="none"]) { stroke: #111114 !important; }
+[data-fill="garnet"] svg [data-chev] { stroke: #111114 !important; }
 /* Secondary buttons, unselected chips, menu button: raised white pill (reference step 4). */
 [data-fill="pearl"] { background-image: linear-gradient(180deg, #FFFFFF 0%, #EEF0F6 100%) !important; border-color: rgba(255,255,255,0.95) !important; box-shadow: inset 0 0 0 1.5px #FFFFFF, 0 14px 24px -12px rgba(40,50,90,0.32), 0 3px 6px rgba(40,50,90,0.06); transition: box-shadow .2s ease, background-image .2s ease; }
 [data-fill="pearl"]:hover { background-image: linear-gradient(180deg, #F6F7FA 0%, #E6E9F1 100%) !important; box-shadow: inset 0 0 0 1.5px #FFFFFF, 0 10px 18px -10px rgba(40,50,90,0.36), 0 2px 4px rgba(40,50,90,0.08); }
@@ -78,7 +78,7 @@ const CSS = `
 [data-fill="soft-frost"] { background-color: rgba(244,244,248,0.5) !important; -webkit-backdrop-filter: blur(40px) saturate(80%); backdrop-filter: blur(40px) saturate(80%); }
 [data-fill="bubble"] { position: relative; background-color: #E9E3F0 !important;
   background-image: radial-gradient(circle at 50% 38%, #FBF9FD 0%, #EFE9F5 42%, #DCD2E6 78%, #C7BBD6 100%) !important;
-  box-shadow: inset 0 -16px 26px rgba(48,36,78,0.26), inset 0 10px 18px rgba(255,255,255,0.7), inset 0 0 0 1px rgba(255,255,255,0.55), 0 26px 34px -16px rgba(48,36,78,0.5), 0 4px 10px rgba(48,36,78,0.12); }
+  box-shadow: inset 0 -16px 26px rgba(48,36,78,0.26), inset 0 10px 18px rgba(255,255,255,0.7), inset 0 0 0 0.5px rgba(255,255,255,0.6), 0 26px 34px -16px rgba(48,36,78,0.5), 0 4px 10px rgba(48,36,78,0.12); }
 /* A tinted interior per kind of product, deep enough that the glass highlight reads. */
 [data-fill="bubble"][data-tone="lilac"] { background-image: radial-gradient(circle at 50% 40%, #F4F2F9 0%, #D9D3EA 45%, #A79DC9 82%, #8277AC 100%) !important; }
 [data-fill="bubble"][data-tone="silver"] { background-image: radial-gradient(circle at 50% 40%, #F6F6F8 0%, #DCDCE3 45%, #A9A9B7 82%, #85859A 100%) !important; }
@@ -93,8 +93,8 @@ const CSS = `
     radial-gradient(ellipse 58% 20% at 50% 95%, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0) 70%),
     radial-gradient(circle at 76% 70%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 6%),
     radial-gradient(circle, rgba(30,20,60,0) 60%, rgba(30,20,60,0.16) 84%, rgba(30,20,60,0.34) 100%) !important;
-  box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.65), inset 0 2px 1px rgba(255,255,255,0.8), inset 0 -2px 3px rgba(255,255,255,0.5); }
-[data-fill="bubble-chip"] { background-color: rgba(255,255,255,0.86) !important; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(60,50,90,0.14); }
+  box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.9), inset 0 1px 0.5px rgba(255,255,255,0.75), inset 0 -2px 3px rgba(255,255,255,0.4); }
+[data-fill="bubble-chip"] { background-color: rgba(255,255,255,0.82) !important; -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%); box-shadow: 0 6px 16px rgba(40,36,70,0.16), inset 0 0.5px 0 rgba(255,255,255,0.9); }
 /* Frosted metal, grey and lilac: a chrome bezel, a frosted silver face, pressed-in when tapped. */
 [data-fill="metal"] { border: 1.5px solid transparent !important;
   background: linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(236,236,242,0.94) 100%) padding-box, linear-gradient(150deg, #FFFFFF 0%, #BDBBCB 26%, #F5F5F8 48%, #9D9AAF 72%, #ECEBF1 100%) border-box !important;
@@ -130,8 +130,8 @@ const CSS = `
 /* Ready to go: the main button's lavender halo breathes. */
 [data-glow="1"] { animation: moi-glow 1.8s ease-in-out infinite; }
 @keyframes moi-glow {
-  0%, 100% { box-shadow: inset 0 0 0 1px rgba(180,190,240,0.45), inset 0 2px 1px #FFFFFF, 0 0 0 4px rgba(255,255,255,0.85), 0 0 0 5px rgba(170,180,235,0.45), 0 16px 28px -10px rgba(110,120,220,0.5); }
-  50% { box-shadow: inset 0 0 0 1px rgba(160,172,240,0.7), inset 0 2px 1px #FFFFFF, 0 0 0 5px rgba(255,255,255,0.95), 0 0 0 7px rgba(130,145,240,0.75), 0 0 34px 6px rgba(130,145,240,0.55), 0 16px 28px -10px rgba(110,120,220,0.6); }
+  0%, 100% { box-shadow: inset 0 0 0 2px #FAFAFA, inset 0 0 0 3.5px #9C9C9C, inset 0 0 0 5px #ECECEC, inset 5px 5px 8px rgba(255,255,255,0.85), inset -4px -5px 8px rgba(0,0,0,0.15), 0 0 0 5px #EDEDED, 0 0 0 6px #DEDEDE, 0 16px 26px -12px rgba(0,0,0,0.42); }
+  50% { box-shadow: inset 0 0 0 2px #FFFFFF, inset 0 0 0 3.5px #A8A8A8, inset 0 0 0 5px #F2F2F2, inset 5px 5px 8px rgba(255,255,255,0.95), inset -4px -5px 8px rgba(0,0,0,0.12), 0 0 0 5px #F4F4F4, 0 0 0 7px #CFCFCF, 0 0 30px 6px rgba(255,255,255,0.85), 0 16px 26px -12px rgba(0,0,0,0.42); }
 }
 @media (prefers-reduced-motion: reduce) {
   [data-glow="1"] { animation: none; } [data-shine], [data-fill="cateye"]::after { animation: none !important; } }

@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
-import { BLUE, Btn, ChipBtn, GapCard, Heading, iconFor, InputsPanel, money, st, NeedInfo, Pill, PickBubble, Shell, useWide, WhereToBuy } from '../../components/routine/Kit';
+import { BLUE, Btn, ChipBtn, GapBall, GapCard, Heading, SYS, iconFor, InputsPanel, money, st, NeedInfo, Pill, PickBubble, Shell, useWide, WhereToBuy } from '../../components/routine/Kit';
 import { icon3d } from '../../data/icons3d';
 import { GlassCard } from '../../components/routine/Glass';
 import { celebrate } from '../../components/routine/Celebrate';
@@ -71,34 +71,38 @@ export default function Gaps() {
   return (
     <Shell active="gaps" step="3 of 3" side={wide ? <InputsPanel s={s} /> : undefined}
       footer={gaps.length ? <Btn label="Shop the fixes" onPress={() => router.push('/routine/shop')} /> : <Btn kind="secondary" label="Edit routine" onPress={() => router.push('/routine/build')} />}>
-      <Heading title={gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'} ${goals}` : 'No gaps. Nice routine.'}
-        sub={`Routine fit ${score} of 100.`} />
+      {/* Big, bold system sans with tight tracking, as in the glass-ball reference. */}
+      <View style={{ gap: 6 }}>
+        <Text style={{ fontFamily: SYS ?? F.bold, fontWeight: '700', fontSize: wide ? 40 : 34, lineHeight: wide ? 44 : 38, letterSpacing: -1, color: '#111114' }}>{gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'} ${goals}` : 'No gaps. Nice routine.'}</Text>
+        <Text style={{ fontFamily: SYS ?? F.regular, fontWeight: '400', fontSize: 16, color: '#6E6E78' }}>{`Routine fit ${score} of 100. Tap a gap to see its picks.`}</Text>
+      </View>
       {kinds.length > 2 ? <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{kinds.map(f => <Pill key={f.key} label={f.label} on={filter === f.key} onPress={() => setFilter(f.key)} />)}</View> : null}
-      <View style={{ gap: 12, maxWidth: 720 }}>
-        {groups.map(grp => (
-          <View key={grp.key} style={{ gap: 12 }}>
-            {groups.length > 1 ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 8 }}><Image source={icon3d(grp.icon)} style={{ width: 28, height: 28 }} /><Text style={{ fontFamily: F.semibold, fontSize: 17, color: C.ink, flex: 1 }}>{grp.label}</Text><Text style={{ fontFamily: F.medium, fontSize: 13, color: C.gray }}>{`${grp.gaps.length} gap${grp.gaps.length === 1 ? '' : 's'}`}</Text></View> : null}
-            {grp.gaps.map(g => {
-          const p = open === g.id ? rankPicks(g, s, cat, score) : picksFor(g, s, cat, 3);
-          const priced = p.filter(x => x.item.price != null);
-          const from = priced.length ? Math.min(...priced.map(x => x.item.price!)) : null;
-          const isOpen = open === g.id;
+      <View style={{ gap: 18, maxWidth: 720 }}>
+        {groups.map(grp => {
+          const sel = grp.gaps.find(g => g.id === open);
+          const p = sel ? rankPicks(sel, s, cat, score) : [];
           return (
-            <View key={g.id} style={{ gap: 12 }}>
-              <GapCard gap={g} selected={isOpen} onPress={() => setOpen(isOpen ? undefined : g.id)} cta={p.length ? (isOpen ? 'Hide' : 'View') : undefined} price={from != null ? `from about ${money(from)}` : undefined} />
-              {isOpen ? (
-                <View style={{ gap: 12, paddingLeft: wide ? 16 : 0 }}>
+            <View key={grp.key} style={{ gap: 14 }}>
+              {groups.length > 1 ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 4 }}><Image source={icon3d(grp.icon)} style={{ width: 26, height: 26 }} /><Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 18, color: '#1D1D22', flex: 1 }}>{grp.label}</Text><Text style={{ fontFamily: SYS ?? F.medium, fontSize: 13, color: '#8A8A93' }}>{`${grp.gaps.length} gap${grp.gaps.length === 1 ? '' : 's'}`}</Text></View> : null}
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 14 }}>
+                {grp.gaps.map(g => {
+                  const pr = picksFor(g, s, cat, 3).filter(x => x.item.price != null);
+                  const from = pr.length ? Math.min(...pr.map(x => x.item.price!)) : null;
+                  return <GapBall key={g.id} gap={g} selected={open === g.id} onPress={() => setOpen(open === g.id ? undefined : g.id)} price={from != null ? `from ${money(from)}` : undefined} />;
+                })}
+              </View>
+              {sel && p.length ? (
+                <View style={{ gap: 12, padding: 16, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.7)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
+                  <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 17, letterSpacing: -0.3, color: '#1D1D22' }}>{`Picks for ${sel.title.toLowerCase()}`}</Text>
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
                     {p.map((x: any) => <PickBubble key={x.item.id} item={x.item} fit={x.fit} gain={x.gain} badge={x.badge} why={x.why} inBag={s.bag.includes(itemKey(x.item))} onAdd={() => toggleBag(itemKey(x.item))} />)}
                   </View>
-                  {p[0] ? (where === g.id ? <WhereToBuy item={p[0].item} /> : <ChipBtn label="Where to buy" icon="store" onPress={() => setWhere(g.id)} />) : null}
+                  {where === sel.id ? <WhereToBuy item={p[0].item} /> : <ChipBtn label="Where to buy" icon="store" onPress={() => setWhere(sel.id)} />}
                 </View>
               ) : null}
             </View>
           );
-            })}
-          </View>
-        ))}
+        })}
       </View>
     </Shell>
   );
