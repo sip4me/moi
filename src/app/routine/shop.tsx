@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Linking, Pressable, ScrollView, Text, View } from 'react-native';
-import { BLUE, Btn, ChipBtn, Heading, iconFor, Label, money, NeedInfo, Pill, PickBubble, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
+import { BLUE, Btn, ChipBtn, Heading, iconFor, Label, money, NeedInfo, Pill, PickBubble, Bubble, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
 import { useAccess } from '../../lib/routine/access';
 import { celebrate } from '../../components/routine/Celebrate';
 import { analyze, profileOf, rankPicks, retailerLinks } from '../../lib/routine/gaps';
@@ -69,7 +69,7 @@ export default function Shop() {
       <Heading title="Shop your gaps" sub="Only products that fill a gap. Biggest fit gain first." />
       {bundle.length > 1 ? (
         <View style={{ flexDirection: wide ? 'row' : 'column', alignItems: wide ? 'center' : 'stretch', gap: 16, padding: 20, borderRadius: 24, backgroundColor: '#EEF1FD' }}>
-          <View style={{ flexDirection: 'row' }}>{bundle.slice(0, 4).map((i, n) => <View key={n} style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: '#fff', borderWidth: 3, borderColor: '#fff', marginLeft: n ? -14 : 0, alignItems: 'center', justifyContent: 'center' }}><Image source={iconFor(i.category)} style={{ width: 40, height: 40 }} /></View>)}</View>
+          <View style={{ flexDirection: 'row' }}>{bundle.slice(0, 4).map((i, n) => <View key={n} style={{ marginLeft: n ? -12 : 0, height: 56 }}><Bubble category={i.category} size={56} /></View>)}</View>
           <View style={{ flex: wide ? 1 : undefined, gap: 4 }}>
             <Text style={{ fontFamily: F.semibold, fontSize: 18, color: C.ink }}>{`Fill ${bundle.length} gaps for about ${money(Math.round(total(bundle)))}`}</Text>
             <Text style={st.sub}>{`Top picks together · fit ${score} → ${bundleAfter}`}</Text>

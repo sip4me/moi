@@ -409,41 +409,6 @@ function ProgressBar({ value, submitted }: { value: number; submitted: boolean }
   );
 }
 
-/** The end of the line: a Submit button, which becomes a gold check once the routine is submitted. */
-function RoutineEnd({ submitted, canSubmit, onSubmit }: { submitted: boolean; canSubmit: boolean; onSubmit: () => void }) {
-  const pop = useRef(new Animated.Value(submitted ? 1 : 0)).current;
-  useEffect(() => { Animated.spring(pop, { toValue: submitted ? 1 : 0, friction: 4, tension: 140, useNativeDriver: true }).start(); }, [submitted]);
-  return (
-    <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center', paddingTop: 4 }}>
-      <View style={{ width: 20, alignItems: 'center' }}>
-        {submitted ? (
-          <Animated.View style={{ transform: [{ scale: pop }] }}><GoldCheck size={30} /></Animated.View>
-        ) : <View style={[st.node, st.nodeEmpty]} />}
-      </View>
-      {submitted ? (
-        <Animated.View style={{ flex: 1, opacity: pop }}>
-          <Text style={[st.cardTitle, { color: '#8C6D35' }]}>Routine saved</Text>
-          <Text style={st.meta}>Tap a step to edit.</Text>
-        </Animated.View>
-      ) : (
-        <View style={{ flex: 1, gap: 6 }}>
-          <ChipBtn label="Submit routine" tone="dark" onPress={canSubmit ? onSubmit : () => {}} />
-          {!canSubmit ? <Text style={st.meta}>Add or skip a step first.</Text> : null}
-        </View>
-      )}
-    </View>
-  );
-}
-
-/** Moi's gold check: a gold coin with a white tick. */
-export function GoldCheck({ size = 28 }: { size?: number }) {
-  return (
-    <View {...fill('champagne-coin')} style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: GOLD, borderWidth: 2, borderColor: '#EFE0B8', shadowColor: '#8A6A1F', shadowOpacity: 0.35, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } }}>
-      <Svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24"><Path d="m5 12.5 4.5 4.5L19 7.5" stroke="#fff" strokeWidth={3.4} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
-    </View>
-  );
-}
-
 export function Timeline({ steps, onOpen, submitted = false, onSubmit, extra }: { steps: Step[]; onOpen: (s: Step) => void; active?: string; submitted?: boolean; onSubmit?: () => void; extra?: React.ReactNode }) {
   const nextIdx = steps.findIndex(s => !s.item && !s.skipped);
   const [nudge, setNudge] = useState(0);
@@ -453,19 +418,22 @@ export function Timeline({ steps, onOpen, submitted = false, onSubmit, extra }: 
   useEffect(() => { if (!tip) return; const t = setTimeout(() => setTip(''), 2600); return () => clearTimeout(t); }, [tip, nudge]);
   const done = steps.filter(s => s.item || s.skipped).length;
   // Each filled or skipped box moves the bar one step; submitting completes it.
-  const value = submitted ? 1 : steps.length ? done / steps.length : 0;
+  const complete = submitted || (steps.length > 0 && done >= steps.length);
+  const value = complete ? 1 : steps.length ? done / steps.length : 0;
+  const was = useRef(complete);
+  useEffect(() => { if (complete && !was.current) onSubmit?.(); was.current = complete; }, [complete]);
   return (
     <View style={{ gap: 12 }}>
       {steps.length ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <ProgressBar value={value} submitted={submitted} />
-          <Text style={[st.meta, submitted && { color: '#8C6D35', fontFamily: F.semibold }]}>{submitted ? 'Complete' : `${done}/${steps.length}`}</Text>
+          <ProgressBar value={value} submitted={complete} />
+          <Text style={[st.meta, complete && { color: '#8C6D35', fontFamily: F.semibold }]}>{complete ? 'Complete' : `${done}/${steps.length}`}</Text>
         </View>
       ) : null}
       <View>
         {steps.map((s, i) => (
           <View key={s.id}>
-            <StepRow s={s} last={i === steps.length - 1 && !onSubmit} nextFilled={!!steps[i + 1]?.item}
+            <StepRow s={s} last={i === steps.length - 1} nextFilled={!!steps[i + 1]?.item}
               state={s.item?.addedAt ? 'done' : s.skipped ? 'skipped' : !submitted && i === nextIdx ? 'next' : 'empty'}
               locked={!submitted && nextIdx >= 0 && i > nextIdx && !s.item && !s.skipped} nudge={i === nextIdx ? nudge : 0}
               onOpen={() => (!submitted && nextIdx >= 0 && i > nextIdx && !s.item && !s.skipped ? tapLocked() : onOpen(s))} />
@@ -473,7 +441,7 @@ export function Timeline({ steps, onOpen, submitted = false, onSubmit, extra }: 
           </View>
         ))}
         {extra}
-        {onSubmit && steps.length ? <RoutineEnd submitted={submitted} canSubmit={done > 0} onSubmit={onSubmit} /> : null}
+        {/* No submit step: a routine is complete when every step is filled or skipped. */}
       </View>
     </View>
   );
@@ -726,12 +694,15 @@ export function GapCard({ gap, onPress, selected, cta, price }: { gap: Gap; onPr
 /** One ranked option for a gap. The category picture is a small marker, not a product photo, so it stays thumbnail-sized (48, like the bag and checkout); the advantage reads first. */
 const TINT_INK = '#4652B5';
 
+const TONES: Record<string, string> = { cleanser: 'sage', exfoliant: 'sage', toner: 'sky', serum: 'sky', spf: 'peach', sun: 'peach', moisturizer: 'lilac', mask: 'lilac', foundation: 'peach', concealer: 'peach', powder: 'rose', blush: 'rose', lips: 'rose', mascara: 'sky', shampoo: 'sky', conditioner: 'lilac', leave_in: 'sage', styler: 'rose', oil: 'peach', body_wash: 'sky', body_lotion: 'lilac', body_scrub: 'sage', deodorant: 'sky' };
+const toneOf = (c: string) => TONES[c] ?? ['lilac', 'sage', 'peach', 'rose', 'sky'][[...c].reduce((a, ch) => a + ch.charCodeAt(0), 0) % 5];
+
 /** The product as a glass bubble: the category icon floats inside a glossy sphere, a frosted chip sits on its lower edge. */
 export function Bubble({ category, size = 112, chip, lead }: { category: string; size?: number; chip?: React.ReactNode; lead?: boolean }) {
   return (
     <View style={{ width: size, height: size + 14, alignItems: 'center' }}>
-      <View {...fill('bubble')} style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: '#EEE9F3', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderWidth: lead ? 2 : 0, borderColor: '#E7C98B' }}>
-        <Image source={iconFor(category)} style={{ width: size * 0.66, height: size * 0.66 }} resizeMode="contain" />
+      <View {...(Platform.OS === 'web' ? ({ dataSet: { fill: 'bubble', tone: toneOf(category) } } as any) : {})} style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: '#EEE9F3', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <Image source={iconFor(category)} style={{ width: size * 0.8, height: size * 0.8, marginTop: size * 0.06 }} resizeMode="contain" />
         <View {...fill('bubble-gloss')} pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }} />
       </View>
       {chip ? <View {...fill('bubble-chip')} style={{ position: 'absolute', bottom: 0, flexDirection: 'row', alignItems: 'center', gap: 4, height: 28, paddingHorizontal: 10, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.92)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.9)' }}>{chip}</View> : null}
@@ -745,7 +716,7 @@ export function PickBubble({ item, gain, badge, why, inBag, onAdd, fit }: { item
     <><Ico name={badge === 'best' ? 'crown' : 'tag'} size={12} color={badge === 'best' ? PALETTE.garnet : '#1E7B45'} /><Text style={{ fontFamily: F.semibold, fontSize: 12, color: badge === 'best' ? PALETTE.garnet : '#1E7B45' }}>{badge === 'best' ? 'Best for you' : 'Best value'}</Text></>
   ) : <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.gray2 }}>{`${fit}% match`}</Text>;
   return (
-    <View style={{ flexGrow: 1, flexBasis: 150, maxWidth: 230, alignItems: 'center', gap: 8, paddingTop: 16, paddingBottom: 14, paddingHorizontal: 12, borderRadius: 26, backgroundColor: '#fff', borderWidth: 1, borderColor: badge === 'best' ? '#F1E2C2' : '#EEF0F3' }}>
+    <View style={{ flexGrow: 1, flexBasis: 150, maxWidth: 230, alignItems: 'center', gap: 8, paddingTop: 16, paddingBottom: 14, paddingHorizontal: 12, borderRadius: 26, backgroundColor: '#fff', borderWidth: 1, borderColor: '#EEF0F3' }}>
       <Bubble category={item.category} chip={chip} lead={badge === 'best'} />
       <View style={{ alignItems: 'center', gap: 2, alignSelf: 'stretch' }}>
         <Text style={{ fontFamily: F.semibold, fontSize: 15, lineHeight: 19, color: C.ink, textAlign: 'center' }} numberOfLines={2}>{item.name}</Text>
