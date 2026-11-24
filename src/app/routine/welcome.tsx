@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Image, Pressable, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { Animated, Easing, Image, Platform, Pressable, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMembers } from '../../lib/routine/access';
@@ -77,6 +77,21 @@ export default function Welcome() {
   const [look, setLook] = useState('');
   const [photo, setPhoto] = useState<string | null>(null);
   const { account } = useStore();
+  // On a computer, a photo can also be dropped onto the prompt box.
+  const dropRef = useRef<View>(null);
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const el = dropRef.current as unknown as HTMLElement | null;
+    if (!el?.addEventListener) return;
+    const over = (e: DragEvent) => e.preventDefault();
+    const drop = (e: DragEvent) => {
+      e.preventDefault();
+      const f = e.dataTransfer?.files?.[0];
+      if (f && f.type.startsWith('image/')) { haptic('select'); setPhoto(URL.createObjectURL(f)); }
+    };
+    el.addEventListener('dragover', over); el.addEventListener('drop', drop);
+    return () => { el.removeEventListener('dragover', over); el.removeEventListener('drop', drop); };
+  }, []);
   const addPhoto = async () => { const uri = await takeProductPhoto(true); if (uri) { haptic('select'); setPhoto(uri); } };
   const start = () => {
     if (!look.trim() && !photo) return;
@@ -137,16 +152,26 @@ export default function Welcome() {
             </View>
             {/* Lovable-style prompt: describe a look or add a photo, then go. */}
             <Animated.View style={[{ gap: 10 }, rise(arrow)]}>
-              <View {...fill('glass-bar')} style={{ borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.75)', backgroundColor: 'rgba(255,255,255,0.72)', padding: 12, gap: 10 }}>
+              <View ref={dropRef} {...fill('glass-bar')} style={{ borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.75)', backgroundColor: 'rgba(255,255,255,0.72)', padding: 12, gap: 10 }}>
                 <TextInput value={look} onChangeText={setLook} placeholder="Describe a look you love, or add a photo" placeholderTextColor="#8A8DA0" multiline
                   accessibilityLabel="Describe a look you love" onSubmitEditing={start} blurOnSubmit
                   style={{ minHeight: 52, fontFamily: F.medium, fontSize: 16, lineHeight: 22, color: C.ink, paddingHorizontal: 4, paddingTop: 2, ...({ outlineStyle: 'none' } as object) }} />
+                {photo ? (
+                  <View style={{ alignSelf: 'flex-start' }}>
+                    <Image source={{ uri: photo }} style={{ width: 72, height: 72, borderRadius: 14 }} accessibilityLabel="Your look photo" />
+                    <Pressable onPress={() => setPhoto(null)} accessibilityRole="button" accessibilityLabel="Remove photo" hitSlop={8}
+                      style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: '#111114', alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ color: '#fff', fontSize: 12, lineHeight: 14 }}>✕</Text>
+                    </Pressable>
+                  </View>
+                ) : null}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <Pressable onPress={addPhoto} accessibilityRole="button" accessibilityLabel={photo ? 'Change photo' : 'Add a photo of a look'}
-                    style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(20,20,40,0.12)', backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                    {photo ? <Image source={{ uri: photo }} style={{ width: 40, height: 40 }} /> : <Svg width={18} height={18} viewBox="0 0 24 24"><Path d="M12 5v14M5 12h14" stroke="#2A2F45" strokeWidth={1.8} strokeLinecap="round" /></Svg>}
+                  <Pressable onPress={addPhoto} accessibilityRole="button" accessibilityLabel={photo ? 'Change photo' : 'Upload an image of a look'}
+                    style={({ hovered }: any) => ({ flexDirection: 'row', alignItems: 'center', gap: 8, height: 40, paddingHorizontal: 14, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(20,20,40,0.12)', backgroundColor: hovered ? '#F4F4F7' : '#fff' })}>
+                    <Svg width={18} height={18} viewBox="0 0 24 24"><Path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5zM4 16l4.5-4.5 3.5 3.5 2.5-2.5L20 18M15.5 8.5h.01" stroke="#2A2F45" strokeWidth={1.7} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
+                    <Text style={{ fontFamily: F.semibold, fontSize: 13, color: '#2A2F45' }}>{photo ? 'Change image' : 'Upload image'}</Text>
                   </Pressable>
-                  <Text style={{ flex: 1, fontFamily: F.medium, fontSize: 13, color: '#6B6F84' }}>{photo ? 'Photo added' : 'Copy a look'}</Text>
+                  <View style={{ flex: 1 }} />
                   <Pressable {...fill('chrome-key')} onPress={start} accessibilityRole="button" accessibilityLabel="Build my routine from this look" disabled={!look.trim() && !photo}
                     style={{ width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: '#DADADA', borderWidth: 1.5, borderColor: '#161616', opacity: look.trim() || photo ? 1 : 0.45 }}>
                     <Svg width={18} height={18} viewBox="0 0 24 24"><Path d="M12 19V5M6 11l6-6 6 6" stroke="#111114" strokeWidth={2.1} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
