@@ -7,11 +7,13 @@ import { Linking, Platform } from 'react-native';
 import { ensureUser, supabase } from '../supabase';
 import { setRoutine, useRoutine } from './model';
 
-export type RoutinePlan = 'routine_founder' | 'routine_monthly';
+export type RoutinePlan = 'routine_founder' | 'routine_monthly' | 'routine_standard';
 export const FOUNDING_CAP = 1000;
 export const ROUTINE_PLANS: Record<RoutinePlan, { label: string; price: string; per: string; perks: string[] }> = {
   routine_founder: { label: 'Founding yearly', price: '$24', per: 'year', perks: ['Lifetime access to the product database', '$2 a month'] },
   routine_monthly: { label: 'Monthly', price: '$4', per: 'month', perks: ['Cancel anytime'] },
+  // The regular price, once someone's 3-day launch offer has ended.
+  routine_standard: { label: 'Monthly', price: '$10', per: 'month', perks: ['Unlimited searches', 'Cancel anytime'] },
 };
 
 // ── Access ────────────────────────────────────────────────────────────────────
@@ -101,3 +103,26 @@ export function useMembers() {
   }, []);
   return n;
 }
+
+// ── Launch offer ──────────────────────────────────────────────────────────────
+/** Each person's offer runs 3 days from the first time they see the paywall; then the price is $10 a month. */
+export const OFFER_MS = 3 * 24 * 60 * 60 * 1000;
+const OFFER_KEY = 'moi-offer-start';
+export function useOffer() {
+  const [start, setStart] = useState<number | null>(null);
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    AsyncStorage.getItem(OFFER_KEY).then(v => {
+      const t = Number(v);
+      if (t > 0) setStart(t); else { const n = Date.now(); AsyncStorage.setItem(OFFER_KEY, String(n)); setStart(n); }
+    }).catch(() => setStart(Date.now()));
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const left = start == null ? OFFER_MS : Math.max(0, start + OFFER_MS - now);
+  return { loading: start == null, open: left > 0, left };
+}
+export const countdown = (ms: number) => {
+  const s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  return d ? `${d}d ${h}h ${m}m` : `${h}h ${String(m).padStart(2, '0')}m ${String(sec).padStart(2, '0')}s`;
+};

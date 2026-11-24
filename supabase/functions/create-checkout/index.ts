@@ -1,13 +1,14 @@
 // Starts a Stripe Checkout for Moi's subscription: 3-day free trial, then the chosen plan.
 // Prices are looked up by lookup key, so no IDs live in code: moi_monthly, moi_yearly, moi_yearly_offer (tracker);
 // routine_monthly ($4/month), routine_founder ($24/year, founding offer with lifetime database access) and
-// routine_yearly ($24/year, once the 1,000 founding spots are gone) for Moi Routine. Routine plans have no trial.
+// routine_yearly ($24/year, once the 1,000 founding spots are gone) and routine_standard ($10/month, the regular
+// price after the 3-day launch offer) for Moi Routine. Routine plans have no trial.
 // Without STRIPE_SECRET_KEY it answers { configured: false } and the app keeps its test-build behaviour.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const STRIPE = Deno.env.get('STRIPE_SECRET_KEY');
 const SITE = Deno.env.get('SITE_URL') ?? 'https://usemoi.com';
-const PLANS = new Set(['moi_monthly', 'moi_yearly', 'moi_yearly_offer', 'routine_monthly', 'routine_founder', 'routine_yearly']);
+const PLANS = new Set(['moi_monthly', 'moi_yearly', 'moi_yearly_offer', 'routine_monthly', 'routine_founder', 'routine_yearly', 'routine_standard']);
 const TRIAL_DAYS = 3;
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' };

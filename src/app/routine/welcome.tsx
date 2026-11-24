@@ -133,15 +133,12 @@ export default function Welcome() {
       {orb(cw * 0.66, Math.min(cx + cw * 0.62, W - cw * 0.66 * 0.62), cy + ch * 0.24, 'o2', '#C996A8', '#5E9468', -8, 10)}
       {orb(cw * 0.46, cx - cw * 0.04, cy + ch * 0.74, 'o3', '#F4A38C', '#E06B4F', 8, -6)}
       <SafeAreaView style={{ flex: 1, zIndex: 2 }}>
-        {members != null ? (
-          <Animated.View {...fill('glass-bar')} style={[{ position: 'absolute', top: 14, right: 16, zIndex: 3, flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8, paddingLeft: 8, paddingRight: 14, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.45)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.65)' }, rise(arrow)]} accessibilityLabel={`${members} people building routines`}>
-            <Image source={COIN_CROWN} style={{ width: 30, height: 30 }} resizeMode="contain" />
-            <View>
-              <Text style={{ fontFamily: F.display, fontSize: 22, lineHeight: 24, color: C.ink, fontVariant: ['tabular-nums'] }}>{shown.toLocaleString()}</Text>
-              <Text style={{ fontFamily: F.medium, fontSize: 11, color: '#4A4F63', letterSpacing: 0.2 }}>building routines</Text>
-            </View>
-          </Animated.View>
-        ) : null}
+        {/* Get started: straight to sign-up, then the questions. */}
+        <Pressable {...fill('chrome-key')} onPress={() => { haptic(); session.started = true; setRoutine(r => ({ ...r, welcomed: true })); if (account && !account.anonymous) router.push('/routine/about'); else router.push({ pathname: '/sign-in', params: { mode: 'signup', next: '/routine/about' } }); }}
+          accessibilityRole="button" accessibilityLabel="Get started"
+          style={{ position: 'absolute', top: 14, right: 16, zIndex: 3, height: 42, paddingHorizontal: 20, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: '#DADADA', borderWidth: 1.5, borderColor: '#161616' }}>
+          <Text style={{ fontFamily: F.semibold, fontSize: 15, color: '#111114' }}>Get started</Text>
+        </Pressable>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <Animated.View {...fill('glass-card')} style={[{ width: cw, height: ch, borderRadius: 28, borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)', backgroundColor: 'rgba(255,255,255,0.28)', padding: 16, justifyContent: 'space-between' }, rise(logo)]}>
             <View />
@@ -187,6 +184,15 @@ export default function Welcome() {
             </Animated.View>
           </Animated.View>
         </View>
+        {/* The live count, as a long quiet bar at the bottom. */}
+        {members != null ? (
+          <View {...fill('glass-bar')} style={{ alignSelf: 'center', width: Math.min(360, W - 40), flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 8, paddingHorizontal: 14, marginBottom: 10, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.55)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.7)' }}>
+            <Image source={COIN_CROWN} style={{ width: 18, height: 18 }} resizeMode="contain" />
+            <Text style={{ fontFamily: F.medium, fontSize: 12, color: '#2A2F45' }}>
+              <Text style={{ fontFamily: F.semibold, fontVariant: ['tabular-nums'] }}>{shown.toLocaleString()}</Text>{' people building routines right now'}
+            </Text>
+          </View>
+        ) : null}
         <Text style={{ textAlign: 'center', paddingBottom: 18, fontFamily: F.medium, fontSize: 12, letterSpacing: 0.4, color: 'rgba(255,255,255,0.82)' }}>© 2026 Moi</Text>
       </SafeAreaView>
     </View>

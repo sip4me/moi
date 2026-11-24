@@ -7,7 +7,7 @@ import { openPortal } from '../../lib/billing';
 import { Btn, Bubble, Heading, Shell, SYS, useWide } from '../../components/routine/Kit';
 import { Logo } from '../../components/ui';
 import { haptic } from '../../lib/haptics';
-import { checkoutRoutine, FOUNDING_CAP, refreshAccess, ROUTINE_PLANS, useAccess, useFounding, type RoutinePlan } from '../../lib/routine/access';
+import { checkoutRoutine, countdown, FOUNDING_CAP, refreshAccess, ROUTINE_PLANS, useAccess, useFounding, useOffer, type RoutinePlan } from '../../lib/routine/access';
 import { analyze, gapArea, picksFor } from '../../lib/routine/gaps';
 import { shouldLine } from '../../lib/routine/looks';
 import { hasInfo, useCatalog, useRoutine } from '../../lib/routine/model';
@@ -30,6 +30,7 @@ export default function Plans() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [justPaid, setJustPaid] = useState(false);
+  const offer = useOffer();
   // The crown pops in on the celebration.
   const pop = useRef(new Animated.Value(0)).current;
   useEffect(() => { if (a.ok) Animated.spring(pop, { toValue: 1, friction: 4, tension: 60, useNativeDriver: true }).start(); }, [a.ok, pop]);
@@ -53,7 +54,7 @@ export default function Plans() {
   const buy = async () => {
     setBusy(true); setErr('');
     try {
-      const r = await checkoutRoutine(pick);
+      const r = await checkoutRoutine(offer.open ? pick : 'routine_standard');
       if (r === 'test') { haptic('success'); setJustPaid(true); }
     } catch { setErr('Checkout couldn’t open. Check your connection and try again.'); }
     setBusy(false);
@@ -102,8 +103,12 @@ export default function Plans() {
   }
 
   // Figma "34 · Paywall": one headline, a phone showing their own plan, one button, one price line.
-  const p = ROUTINE_PLANS[pick];
-  const yearly = pick === 'routine_founder';
+  // Launch offer: 3 days from their first look at this page. After it ends, the plan is $10 a month.
+  const offerOn = offer.open;
+  const plan: RoutinePlan = offerOn ? pick : 'routine_standard';
+  const p = ROUTINE_PLANS[plan];
+  const yearly = plan === 'routine_founder';
+  const off = yearly ? 80 : 60; // $24/yr vs $120/yr, $4/mo vs $10/mo
   // Same gaps the report shows: only ones with something to buy (clashes carry advice).
   const gaps = hasInfo(s) ? analyze(s, cat).gaps.filter(g => g.kind === 'clash' || picksFor(g, s, cat, 1).length > 0) : [];
   const fit = hasInfo(s) ? analyze(s, cat).score : 0;
@@ -113,13 +118,22 @@ export default function Plans() {
   return (
     <Shell active="plans"
       footer={<View style={{ width: wide ? 420 : '100%', gap: 10, alignItems: 'center' }}>
-        <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 16, color: '#111114' }}>{`✓  ${yearly && founding ? 'Lifetime database access' : 'Cancel anytime'}`}</Text>
+        <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 16, color: '#111114' }}>{`✓  ${!offerOn ? 'Unlimited searches · Cancel anytime' : yearly && founding ? 'Lifetime database access' : 'Cancel anytime'}`}</Text>
         <View style={{ width: '100%' }}><Btn label={busy ? 'Opening checkout…' : 'Continue'} onPress={busy ? undefined : buy} /></View>
       </View>}>
       <View style={{ alignItems: 'center', gap: 18, maxWidth: 520, alignSelf: 'center', width: '100%' }}>
         <Pressable onPress={() => router.push({ pathname: '/sign-in', params: { mode: 'signin', next: '/routine/plans' } })} accessibilityRole="button" style={{ alignSelf: 'flex-end' }} hitSlop={8}>
           <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 14, color: '#8E9298' }}>Restore</Text>
         </Pressable>
+        {offerOn && !offer.loading ? (
+          <View style={{ alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 18, backgroundColor: '#111114' }}>
+            <View style={{ paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, backgroundColor: '#F0A6BE' }}><Text style={{ fontFamily: SYS ?? F.bold, fontWeight: '800', fontSize: 16, color: '#111114' }}>{`${off}% OFF`}</Text></View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '700', fontSize: 15, color: '#fff' }}>{`Ends in ${countdown(offer.left)}`}</Text>
+              <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>Then $10/month with unlimited searches.</Text>
+            </View>
+          </View>
+        ) : null}
         {/* Their goal first, like Cal AI's "You should lose…". */}
         {should ? (
           <View style={{ alignSelf: 'stretch', alignItems: 'center', gap: 6, paddingVertical: 14, paddingHorizontal: 16, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.75)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
@@ -156,12 +170,19 @@ export default function Plans() {
           <View style={{ height: 30, borderRadius: 15, backgroundColor: '#111114', alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 11, color: '#fff' }}>Let’s get started!</Text></View>
         </View>
         <View style={{ alignItems: 'center', gap: 6 }}>
-          <Text style={small}>{yearly ? `Just ${p.price}/year ($2/mo)` : `Just ${p.price}/month`}</Text>
-          <Pressable onPress={() => { haptic('select'); setPick(yearly ? 'routine_monthly' : 'routine_founder'); }} accessibilityRole="button" hitSlop={8}>
-            <Text style={[small, { fontSize: 13, textDecorationLine: 'underline' }]}>{yearly ? `Prefer monthly? ${ROUTINE_PLANS.routine_monthly.price}/month` : `Switch to yearly · ${ROUTINE_PLANS.routine_founder.price}/year`}</Text>
-          </Pressable>
+          {offerOn ? (
+            <>
+              <Text style={[small, { color: '#111114' }]}>
+                <Text style={{ textDecorationLine: 'line-through', color: '#8E9298' }}>{yearly ? '$120/year' : '$10/month'}</Text>
+                {yearly ? `  Just ${p.price}/year ($2/mo)` : `  Just ${p.price}/month`}
+              </Text>
+              <Pressable onPress={() => { haptic('select'); setPick(yearly ? 'routine_monthly' : 'routine_founder'); }} accessibilityRole="button" hitSlop={8}>
+                <Text style={[small, { fontSize: 13, textDecorationLine: 'underline' }]}>{yearly ? `Prefer monthly? ${ROUTINE_PLANS.routine_monthly.price}/month` : `Switch to yearly · ${ROUTINE_PLANS.routine_founder.price}/year`}</Text>
+              </Pressable>
+            </>
+          ) : <Text style={small}>{`${p.price}/month · Unlimited searches`}</Text>}
         </View>
-        {f && founding && yearly ? <Text style={small}>{`${(f.left ?? FOUNDING_CAP).toLocaleString()} of ${FOUNDING_CAP.toLocaleString()} founding spots left`}</Text> : null}
+        {f && founding && yearly && offerOn ? <Text style={small}>{`${(f.left ?? FOUNDING_CAP).toLocaleString()} of ${FOUNDING_CAP.toLocaleString()} founding spots left`}</Text> : null}
         {err ? <Text style={{ fontFamily: F.semibold, fontSize: 14, color: '#A8576A' }}>{err}</Text> : null}
         {status === 'cancel' ? <Text style={small}>No charge made.</Text> : null}
       </View>
