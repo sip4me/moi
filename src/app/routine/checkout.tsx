@@ -87,7 +87,7 @@ export default function Checkout() {
 
       <View style={{ maxWidth: 600, gap: 22 }}>
         {bag.map(i => (
-          <StepperCard key={itemKey(i)} name={i.name} sub={`${i.brand}${CATEGORY_LABEL[i.category] ? ` · ${CATEGORY_LABEL[i.category]}` : ''}`}
+          <StepperCard key={itemKey(i)} name={i.name} sub={i.price != null ? `${money(i.price)} each${CATEGORY_LABEL[i.category] ? ` · ${CATEGORY_LABEL[i.category]}` : ''}` : CATEGORY_LABEL[i.category]}
             price={i.price != null ? money(i.price * q(i)) : 'At store'} n={q(i)} onChange={n => setQ(i, n)} onRemove={() => removeItem(i)} footer={stores(i)} />
         ))}
         {!bag.length ? <SilverCard><Text style={{ fontFamily: F.medium, fontSize: 16, color: SILVER.label }}>Nothing in your bag yet.</Text></SilverCard> : null}

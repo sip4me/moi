@@ -743,7 +743,7 @@ export function GapBall({ gap, selected, onPress, price }: { gap: Gap; selected?
       style={({ hovered }: PS) => ({ flexGrow: 1, flexBasis: 130, maxWidth: 340, alignItems: 'center', gap: 16, paddingTop: 26, paddingBottom: 24, paddingHorizontal: 12, borderRadius: 30,
         backgroundColor: '#FFFFFF', borderWidth: selected ? 1 : HAIR, borderColor: selected ? '#8F86C6' : 'rgba(20,20,40,0.10)',
         shadowColor: '#14142A', shadowOpacity: hovered ? 0.10 : 0.06, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } })}>
-      <Bubble category={gap.fills[0]} size={100} chip={
+      <Bubble category={gap.fills[0]} size={78} chip={
         <><View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: c.fg }} /><Text numberOfLines={1} style={{ fontFamily: SYS ?? F.medium, fontWeight: '500', fontSize: 13, color: '#5E5E66' }}>{KIND_LABEL[gap.kind]}</Text></>
       } />
       <View style={{ alignItems: 'center', gap: 4 }}>
@@ -761,14 +761,14 @@ export function PickBubble({ item, gain, badge, why, inBag, onAdd, fit }: { item
   ) : <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.gray2 }}>{`${fit}% match`}</Text>;
   return (
     <View style={{ flexGrow: 1, flexBasis: 140, maxWidth: 200, alignItems: 'center', gap: 8, paddingTop: 14, paddingBottom: 12, paddingHorizontal: 12, borderRadius: 24, backgroundColor: '#fff', borderWidth: 1, borderColor: '#EEF0F3' }}>
-      <Bubble category={item.category} chip={chip} lead={badge === 'best'} />
+      <Bubble category={item.category} chip={chip} size={66} lead={badge === 'best'} />
       <View style={{ alignItems: 'center', gap: 2, alignSelf: 'stretch' }}>
         <Text {...({ dataSet: { grad: 'name' } } as any)} style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 15, lineHeight: 20, letterSpacing: -0.2, color: C.ink, textAlign: 'center' }} numberOfLines={2}>{item.name}</Text>
-        <Text style={[st.meta, { fontSize: 12, textAlign: 'center' }]} numberOfLines={1}>{[item.brand, why].filter(Boolean).join(' · ')}</Text>
+        <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 15, color: C.ink, textAlign: 'center', fontVariant: ['tabular-nums'] }}>{item.price != null ? money(item.price) : 'At store'}</Text>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-        {gain ? <><Ico name="up" size={11} color={BLUE} /><Text style={{ fontFamily: F.bold, fontSize: 12, color: BLUE }}>{`+${gain} fit`}</Text><Text style={st.meta}>·</Text></> : null}
-        <Text style={{ fontFamily: F.semibold, fontSize: 14, color: C.ink }}>{item.price != null ? money(item.price) : 'At store'}</Text>
+        {gain ? <><Ico name="up" size={11} color={BLUE} /><Text style={{ fontFamily: F.bold, fontSize: 12, color: BLUE }}>{`+${gain} fit`}</Text></> : null}
+        {why ? <Text style={[st.meta, { fontSize: 12 }]} numberOfLines={1}>{gain ? `· ${why}` : why}</Text> : null}
       </View>
       <Pressable {...(inBag ? {} : fill('chrome-key'))} onPress={() => { haptic(); onAdd(); }} accessibilityRole="button" accessibilityLabel={inBag ? `Remove ${item.name} from bag` : `Add ${item.name} to bag`}
         style={({ hovered }: PS) => [st.btnSm, st.tint, { borderRadius: 12 }, { alignSelf: 'stretch', height: 34, flexDirection: 'row', gap: 5 }, hovered && { backgroundColor: 'rgba(94,106,206,0.24)' }, inBag && { backgroundColor: '#E5F4EA', borderColor: '#CDEBD6' }]}>
