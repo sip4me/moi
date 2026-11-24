@@ -193,7 +193,7 @@ function BagPill({ n }: { n: number }) {
   }, [n, pop]);
   return (
     <Animated.View style={{ transform: [{ scale: pop }] }}>
-      <Pressable {...fill('pearl')} onPress={() => router.push('/routine/checkout')} accessibilityRole="button" accessibilityLabel={`Bag, ${n} item${n === 1 ? '' : 's'}. Check out`}
+      <Pressable {...fill('pearl')} onPress={() => router.push('/routine/checkout')} accessibilityRole="button" accessibilityLabel={`Your picks, ${n} item${n === 1 ? '' : 's'}`}
         style={({ hovered }: PS) => ({ flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 12, borderRadius: 18, backgroundColor: '#fff', borderWidth: 1.5, borderColor: hovered ? '#C9CEF0' : 'transparent' })}>
         <Ico name="bag" size={16} />
         <Text style={{ fontFamily: F.semibold, fontSize: 13, color: C.ink }}>{n}</Text>

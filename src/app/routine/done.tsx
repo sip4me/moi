@@ -74,7 +74,7 @@ export default function Done() {
             <Text style={{ fontFamily: F.display, fontSize: 44, lineHeight: 48, color: C.ink }}>{shown}</Text>
             <Text style={st.meta}>routine fit</Text>
           </View>
-          <Text style={[st.sub, { textAlign: 'center' }]}>{`${n} pick${n === 1 ? '' : 's'} added to your routine${p.buy === 'buy' ? '. Your stores are open in new tabs.' : '.'}`}</Text>
+          <Text style={[st.sub, { textAlign: 'center' }]}>{`${n} pick${n === 1 ? '' : 's'} added to your routine'.'`}</Text>
           <View style={{ alignSelf: 'stretch', gap: 10 }}>
             {opt(remind, setRemind, 'Routine reminders', 'Morning and evening, two taps a day', '⏰')}
             {opt(alerts, setAlerts, 'Price-drop alerts', `On ${n === 1 ? 'this pick' : `these ${n} picks`}`, '↓')}

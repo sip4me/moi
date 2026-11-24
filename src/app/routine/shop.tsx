@@ -66,7 +66,7 @@ export default function Shop() {
             <ScoreBar score={score} after={after} />
           </View>
           <View style={{ flexDirection: 'row' }}><Text style={[T.name, { flex: 1 }]}>Estimated total</Text><Text style={T.price}>{`about ${money(Math.round(total(bag) * 100) / 100)}`}</Text></View>
-          <Btn label="Review and check out" onPress={() => router.push('/routine/checkout')} />
+          <Btn label="Your picks" onPress={() => router.push('/routine/checkout')} />
           <Text style={[st.meta, { fontSize: 12, textAlign: 'center' }]}>Prices are estimates. You buy from the store.</Text>
         </>
       ) : null}
@@ -76,7 +76,7 @@ export default function Shop() {
   if (!hasInfo(s)) return <Shell active="shop"><NeedInfo goals={s.goals.length > 0} /></Shell>;
   return (
     <Shell active="shop" side={wide && bag.length ? bagPanel : undefined}
-      footer={!wide && bag.length ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><View style={{ flex: 1 }}><Text style={T.h2}>{`${bag.length} item${bag.length === 1 ? '' : 's'} · ${money(Math.round(total(bag)))}`}</Text><Text style={T.meta}>{`+${after - score} fit`}</Text></View><Btn label="Check out" onPress={() => router.push('/routine/checkout')} /></View> : undefined}>
+      footer={!wide && bag.length ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><View style={{ flex: 1 }}><Text style={T.h2}>{`${bag.length} item${bag.length === 1 ? '' : 's'} · ${money(Math.round(total(bag)))}`}</Text><Text style={T.meta}>{`+${after - score} fit`}</Text></View><Btn label="Your picks" onPress={() => router.push('/routine/checkout')} /></View> : undefined}>
       {/* One type scale on this page (system sans): title 26, section 16, body 14, meta 12. Compact rows so more fits. */}
       <View style={{ gap: 6 }}>
         <Text {...({ dataSet: { grad: 'title' } } as any)} style={T.title}>Shop your gaps</Text>
