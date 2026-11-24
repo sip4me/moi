@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Svg, { Path } from 'react-native-svg';
 import { ActivityIndicator, Animated, Platform, Easing, Image, Linking, Modal, Pressable, ScrollView, type ScrollViewInstance, StyleSheet, Text, TextInput, useWindowDimensions, View, type ViewStyle } from 'react-native';
 import { useScrollCue } from '../ScrollCue';
-import { GlassBackdrop } from './Glass';
+import { GlassBackdrop, SoftBackdrop } from './Glass';
 import { CelebrateLayer, useToasting } from './Celebrate';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { icon3d } from '../../data/icons3d';
@@ -128,8 +128,8 @@ export function Shell({ active, children, side, footer, step, hideNav, glass }: 
   useEffect(() => { if (account && !account.anonymous && !r.saved) setRoutine(x => ({ ...x, saved: true })); }, [account, r.saved]);
   return (
     <View style={{ flex: 1 }}>
-    {glass ? <GlassBackdrop /> : null}
-    <SafeAreaView style={{ flex: 1, backgroundColor: glass ? 'transparent' : PALETTE.pearl }} edges={['top', 'bottom']}>
+    {glass ? <GlassBackdrop /> : <SoftBackdrop />}
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }} edges={['top', 'bottom']}>
       {top}
       <View style={{ flex: 1, flexDirection: 'row' }}>
         <View style={{ flex: 1 }}>
