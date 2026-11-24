@@ -41,6 +41,13 @@ export async function readBarcode(uri: string): Promise<string | null> {
   return code;
 }
 
+/** Every product barcode in the photo (a shelf can show many). */
+export async function readBarcodes(uri: string): Promise<string[]> {
+  const [{ readBarcodes: read }, data] = await Promise.all([zxing(), toImageData(uri)]);
+  const found = await read(data, { formats: ['EAN13', 'EAN8', 'UPCA', 'UPCE'], tryHarder: true, maxNumberOfSymbols: 24 });
+  return [...new Set(found.filter(r => r.isValid).map(r => r.text))];
+}
+
 /** Looks a barcode up in the catalog (and Open Beauty Facts behind it). */
 export async function productByBarcode(code: string): Promise<CatalogProduct | null> {
   const sb = supabase();

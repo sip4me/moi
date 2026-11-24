@@ -2,7 +2,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Platform } from 'react-native';
 import { productByBarcode, readBarcode } from '../labelScan';
 import { ensureUser, supabase } from '../supabase';
-import { classify, type Catalog, type Item } from './model';
+import { areaOf, classify, searchRemote, type Area, type Catalog, type Item } from './model';
 
 /** Takes (or picks) a photo of a product. */
 export async function takeProductPhoto(fromLibrary = false): Promise<string | null> {
@@ -75,4 +75,39 @@ export async function ingredientsFromPhoto(uri: string, item: Item, onProgress?:
   const merged: Item = { ...item, category: item.category || category, tags: Array.from(new Set([...item.tags, ...tags])) };
   queue({ name: item.name, brand: item.brand || null, code: null, ingredients: text, category: merged.category, photo: await uploadPhoto(uri).catch(() => null), found: false }).catch(() => {});
   return { item: merged, found: text.split(',').filter(s => s.trim()).length, confident };
+}
+
+/**
+ * Snap your shelf: one photo of several products. Reads every barcode first (exact matches), then the
+ * printed brand and product names for anything whose barcode isn't showing, and matches both against the
+ * product database. Everything happens on the device; the photo isn't uploaded.
+ */
+export async function shelfFromPhoto(uri: string, area: Area, onProgress?: (stage: 'barcodes' | 'labels' | 'matching', p: number) => void): Promise<Item[]> {
+  const { readBarcodes, readText } = await import('../labelScan');
+  const sb = supabase();
+  const found = new Map<string, Item>();
+  const keep = (i: Item) => { if (i.id && !found.has(i.id) && (areaOf(i.category) === area)) found.set(i.id, i); };
+
+  onProgress?.('barcodes', 0);
+  const codes = await readBarcodes(uri).catch(() => [] as string[]);
+  if (sb && codes.length) {
+    const { data } = await sb.from('kb_products').select('id,brand,name,category,step_cat,hair,tags,price_usd,ing_groups,goals').in('code', codes);
+    for (const r of (data ?? []) as any[]) keep({ kind: 'product', id: r.id, brand: r.brand ?? '', name: r.name, category: r.hair ? r.category : r.step_cat ?? r.category, tags: r.tags ?? [], price: r.price_usd, ingGroups: r.ing_groups ?? [], goals: r.goals ?? [] });
+  }
+
+  onProgress?.('labels', 0);
+  const text = await readText(uri, p => onProgress?.('labels', p)).catch(() => '');
+  // Lines that look like a brand or product name: mostly letters, 2 to 6 words.
+  const lines = [...new Set(text.split(/\n+/).map(l => l.replace(/[^\p{L}\p{N}&' -]/gu, ' ').replace(/\s+/g, ' ').trim())
+    .filter(l => l.length >= 4 && l.length <= 48 && /\p{L}{3}/u.test(l) && l.split(' ').length <= 6 && !/\b(ml|oz|fl|ingredients?|aqua|water|directions?)\b/i.test(l)))].slice(0, 14);
+  onProgress?.('matching', 0);
+  for (let k = 0; k < lines.length; k++) {
+    const line = lines[k];
+    const hits = await searchRemote(line, undefined, area).catch(() => [] as Item[]);
+    const words = line.toLowerCase().split(' ').filter(w => w.length >= 4);
+    const best = hits.find(h => words.some(w => `${h.brand} ${h.name}`.toLowerCase().includes(w)));
+    if (best) keep(best);
+    onProgress?.('matching', (k + 1) / lines.length);
+  }
+  return [...found.values()].slice(0, 20);
 }

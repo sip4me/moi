@@ -337,11 +337,11 @@ export function classify(name: string, ingredients = ''): { category: string; ta
 /** Searches the whole database (local results only cover the most popular products). */
 /** Full database search (kb_search): every word matched, typos tolerated, the step's category ranked first. Throws on network errors. */
 /** Full database search (kb_search): every word matched, typos tolerated, the step's category ranked first. Throws on network errors. */
-export async function searchRemote(q: string, hint?: string): Promise<Item[]> {
+export async function searchRemote(q: string, hint?: string, areaOverride?: Area): Promise<Item[]> {
   const sb = supabase();
   const term = q.trim();
   if (!sb || term.length < 2) return [];
-  const area = areaOf(hint);
+  const area = areaOverride ?? areaOf(hint);
   const { data, error } = area === 'hair' ? await sb.rpc('kb_search', { q: term, hint: hint ?? null, lim: 30 }) : await sb.rpc('kb_search_area', { q: term, hint: hint ?? null, lim: 30, area });
   if (error) throw error;
   return (data ?? []).map((r: any) => (r.kind === 'tool'

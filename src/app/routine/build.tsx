@@ -3,6 +3,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import { BLUE, Btn, ChipBtn, Faint, Heading, InputsPanel, LivePanel, PlusDot, iconFor, Label, PickerSheet, Pill, ScoreBar, Segmented, Shell, st, Timeline, useWide } from '../../components/routine/Kit';
 import { icon3d } from '../../data/icons3d';
+import { ShelfSheet } from '../../components/routine/ShelfSheet';
+import { fill } from '../../lib/routine/shine';
 import { analyze, buildNew, KIND_COLOR, KIND_LABEL } from '../../lib/routine/gaps';
 import { allSteps, AREAS, BEAUTY_ROUTINES, CATEGORY_LABEL, DAYS, defaultBeauty, defaultOccasion, newStepId, OCCASION_ICON, OCCASIONS, setRoutine, useCatalog, useRoutine, type RoutineState, type Step } from '../../lib/routine/model';
 import { C, F } from '../../theme';
@@ -34,6 +36,7 @@ export default function Build() {
   const [btab, setBtab] = useState<Record<string, string>>({});
   const [editDays, setEditDays] = useState(false);
   const [warn, setWarn] = useState(false);
+  const [shelf, setShelf] = useState(false);
   const [open, setOpen] = useState<{ w: Where; id: string } | null>(null);
   const { score, gaps } = useMemo(() => analyze(s, cat), [s, cat]);
 
@@ -137,6 +140,16 @@ export default function Build() {
         </View>
       ) : null}
       {area === 'hair' ? <View style={{ maxWidth: 420 }}><Segmented options={['Wash day', 'Everyday', 'Occasions']} value={tab} onChange={setTab} /></View> : null}
+      {/* Faster than adding one by one: photograph the shelf. */}
+      <Pressable {...fill('pearl')} onPress={() => setShelf(true)} accessibilityRole="button" style={({ hovered }: any) => ({ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 20, backgroundColor: '#fff', borderWidth: 1.5, borderColor: hovered ? '#C9CEF0' : 'transparent', maxWidth: 640 })}>
+        <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#EEF0FB', alignItems: 'center', justifyContent: 'center' }}><Image source={icon3d('mirror')} style={{ width: 34, height: 34 }} /></View>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>Snap your shelf</Text>
+          <Text style={st.meta}>One photo adds everything we recognise.</Text>
+        </View>
+        <Text style={{ fontFamily: F.semibold, fontSize: 18, color: '#8E92A8' }}>›</Text>
+      </Pressable>
+      <ShelfSheet open={shelf} area={area as any} onClose={() => setShelf(false)} />
       {s.mode === 'new' && areas.includes('hair') && !s.goals.length ? <Text style={st.sub}>Pick your goals first.</Text> : null}
       {body}
       <PickerSheet step={openStep} onClose={() => setOpen(null)}
