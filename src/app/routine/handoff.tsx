@@ -52,7 +52,7 @@ export default function Handoff() {
         <View style={{ padding: 14, borderRadius: 16, backgroundColor: '#EEEAFB' }}>
           <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 14, lineHeight: 20, color: '#4B3F99' }}>{items[0] && lookNote(items[0], s) ? `${lookNote(items[0], s)} Once you confirm, Moi adds it to your routine and updates your fit.` : 'Once you confirm, Moi adds it to your routine and updates your fit.'}</Text>
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>{lock}<Text style={[t, { fontSize: 13, flex: 1 }]}>{`Paid securely to ${where}. Moi never sees your card.`}</Text></View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>{lock}<Text style={[t, { fontSize: 13, flex: 1 }]}>{`Paid securely to ${where}. Moi never sees your card without permission.`}</Text></View>
       </View>
     </View>
   );

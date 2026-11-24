@@ -8,7 +8,8 @@ import { Btn, Bubble, Heading, Shell, SYS, useWide } from '../../components/rout
 import { Logo } from '../../components/ui';
 import { haptic } from '../../lib/haptics';
 import { checkoutRoutine, FOUNDING_CAP, refreshAccess, ROUTINE_PLANS, useAccess, useFounding, type RoutinePlan } from '../../lib/routine/access';
-import { analyze, picksFor } from '../../lib/routine/gaps';
+import { analyze, gapArea, picksFor } from '../../lib/routine/gaps';
+import { shouldLine } from '../../lib/routine/looks';
 import { hasInfo, useCatalog, useRoutine } from '../../lib/routine/model';
 import { fill } from '../../lib/routine/shine';
 import { useStore } from '../../state/store';
@@ -16,7 +17,7 @@ import { C, F } from '../../theme';
 
 const crown = require('../../../assets/crown-pink.png');
 
-/** Moi Routine paywall: founding yearly ($25, lifetime database access, first 1,000 customers) or monthly ($6). */
+/** Moi Routine paywall: the full product database and picks. Yearly $24 (first 1,000 keep database access for life) or monthly $4. */
 export default function Plans() {
   const { status } = useLocalSearchParams<{ status?: string }>();
   const s = useRoutine();
@@ -103,10 +104,12 @@ export default function Plans() {
   // Figma "34 · Paywall": one headline, a phone showing their own plan, one button, one price line.
   const p = ROUTINE_PLANS[pick];
   const yearly = pick === 'routine_founder';
-  const gaps = hasInfo(s) ? analyze(s, cat).gaps : [];
+  // Same gaps the report shows: only ones with something to buy (clashes carry advice).
+  const gaps = hasInfo(s) ? analyze(s, cat).gaps.filter(g => g.kind === 'clash' || picksFor(g, s, cat, 1).length > 0) : [];
   const fit = hasInfo(s) ? analyze(s, cat).score : 0;
   const fixed = gaps.map(g => picksFor(g, s, cat, 1)[0]?.item).filter((i): i is NonNullable<typeof i> => !!i);
   const after = hasInfo(s) ? analyze(s, cat, fixed).score : 0;
+  const should = shouldLine(s, [...gaps].sort((x, y) => y.weight - x.weight), gapArea);
   return (
     <Shell active="plans"
       footer={<View style={{ width: wide ? 420 : '100%', gap: 10, alignItems: 'center' }}>
@@ -117,9 +120,16 @@ export default function Plans() {
         <Pressable onPress={() => router.push({ pathname: '/sign-in', params: { mode: 'signin', next: '/routine/plans' } })} accessibilityRole="button" style={{ alignSelf: 'flex-end' }} hitSlop={8}>
           <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 14, color: '#8E9298' }}>Restore</Text>
         </Pressable>
+        {/* Their goal first, like Cal AI's "You should lose…". */}
+        {should ? (
+          <View style={{ alignSelf: 'stretch', alignItems: 'center', gap: 6, paddingVertical: 14, paddingHorizontal: 16, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.75)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
+            <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 13, letterSpacing: 0.6, color: '#6C6A80', textTransform: 'uppercase' }}>You should:</Text>
+            <Text style={{ fontFamily: SYS ?? F.bold, fontWeight: '700', fontSize: 19, lineHeight: 25, color: '#111114', textAlign: 'center' }}>{should}</Text>
+          </View>
+        ) : null}
         <View style={{ alignItems: 'center' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8 }}><Text {...G} style={H}>Unlock</Text><Logo size={wide ? 38 : 32} color="#111114" /><Text {...G} style={H}>to reach</Text></View>
-          <Text {...G} style={H}>your beauty goals faster.</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8 }}><Text {...G} style={H}>Unlock</Text><Logo size={wide ? 38 : 32} color="#111114" /><Text {...G} style={H}>to get</Text></View>
+          <Text {...G} style={H}>there faster.</Text>
         </View>
         {/* Their own plan, shown on a phone. */}
         <View style={{ width: 236, borderRadius: 38, borderWidth: 9, borderColor: '#111114', backgroundColor: '#fff', paddingTop: 34, paddingBottom: 14, paddingHorizontal: 12, gap: 10, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 24, shadowOffset: { width: 0, height: 12 } }}>
@@ -146,7 +156,7 @@ export default function Plans() {
           <View style={{ height: 30, borderRadius: 15, backgroundColor: '#111114', alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 11, color: '#fff' }}>Let’s get started!</Text></View>
         </View>
         <View style={{ alignItems: 'center', gap: 6 }}>
-          <Text style={small}>{yearly ? `Just ${p.price}/year (about $2/mo)` : `Just ${p.price}/month`}</Text>
+          <Text style={small}>{yearly ? `Just ${p.price}/year ($2/mo)` : `Just ${p.price}/month`}</Text>
           <Pressable onPress={() => { haptic('select'); setPick(yearly ? 'routine_monthly' : 'routine_founder'); }} accessibilityRole="button" hitSlop={8}>
             <Text style={[small, { fontSize: 13, textDecorationLine: 'underline' }]}>{yearly ? `Prefer monthly? ${ROUTINE_PLANS.routine_monthly.price}/month` : `Switch to yearly · ${ROUTINE_PLANS.routine_founder.price}/year`}</Text>
           </Pressable>

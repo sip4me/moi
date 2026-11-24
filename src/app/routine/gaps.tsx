@@ -7,6 +7,7 @@ import { GlassCard } from '../../components/routine/Glass';
 import { celebrate } from '../../components/routine/Celebrate';
 import { useAccess } from '../../lib/routine/access';
 import { analyze, gapArea, hasMorePicks, KIND_COLOR, picksFor, rankPicks, type Gap, type GapKind } from '../../lib/routine/gaps';
+import { shouldLine } from '../../lib/routine/looks';
 import { AREAS, hasInfo, hasInput, itemKey, setRoutine, useCatalog, useRoutine } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 
@@ -55,7 +56,8 @@ export default function Gaps() {
                 {gaps.length > 3 ? <Text style={[st.meta, { textAlign: 'center' }]}>{`+${gaps.length - 3} more in your report`}</Text> : null}
               </View>
             ) : <Text style={[st.sub, { textAlign: 'center' }]}>Your routine covers your goals.</Text>}
-            <Btn label="Save my routines" onPress={() => router.push('/routine/plans')} style={{ alignSelf: 'stretch' }} />
+            {shouldLine(s, top, gapArea) ? <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 16, lineHeight: 22, color: C.ink, textAlign: 'center' }}>{`You should: ${shouldLine(s, top, gapArea)}`}</Text> : null}
+            <Btn label="Unlock my picks" onPress={() => router.push('/routine/plans')} style={{ alignSelf: 'stretch' }} />
             <Pressable onPress={() => router.back()} accessibilityRole="button" hitSlop={8}>
               <Text style={{ fontFamily: F.semibold, fontSize: 15, color: '#5B67C9' }}>Not now</Text>
             </Pressable>

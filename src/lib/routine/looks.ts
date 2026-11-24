@@ -57,3 +57,23 @@ export function lookNote(i: Item, s: RoutineState, fallback?: string): string | 
   }
   return fallback;
 }
+
+const article = (w: string) => (/^[aeiou]/i.test(w) ? 'an' : 'a');
+const list = (xs: string[]) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`);
+
+/**
+ * The plan in one line, like Cal AI's "You should lose…": "Get a lip liner and a kohl liner to get your
+ * lip contour look." Built from their top gaps and the goal those gaps serve.
+ */
+export function shouldLine(s: RoutineState, gaps: { title: string; fills: string[]; id: string }[], areaOfGap: (g: { id: string; fills: string[] }) => string): string | null {
+  const top = gaps.slice(0, 2);
+  if (!top.length) return null;
+  const area = areaOfGap(top[0]);
+  const lip = pref(s, 'mk_lip_look')[0], eye = pref(s, 'mk_eye_look')[0], face = pref(s, 'mk_face_look')[0];
+  const goal = area === 'makeup' ? (lip ?? eye ?? face ? `get your ${(lip ?? eye ?? face)!.toLowerCase()} look` : 'finish your makeup routine')
+    : area === 'skin' ? (pref(s, 'skin_concerns')[0] ? `help with ${pref(s, 'skin_concerns')[0].toLowerCase()}` : 'complete your skin routine')
+    : area === 'body' ? (pref(s, 'body_concerns')[0] ? `help with ${pref(s, 'body_concerns')[0].toLowerCase()}` : 'complete your body routine')
+    : s.goals[0] ? `${s.goals[0].toLowerCase()}` : 'reach your hair goal';
+  const things = top.map(g => `${article(g.title)} ${g.title.toLowerCase()}`);
+  return `Get ${list(things)} to ${goal}.`;
+}

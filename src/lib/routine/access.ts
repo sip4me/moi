@@ -10,8 +10,8 @@ import { setRoutine, useRoutine } from './model';
 export type RoutinePlan = 'routine_founder' | 'routine_monthly';
 export const FOUNDING_CAP = 1000;
 export const ROUTINE_PLANS: Record<RoutinePlan, { label: string; price: string; per: string; perks: string[] }> = {
-  routine_founder: { label: 'Founding yearly', price: '$25', per: 'year', perks: ['Lifetime access to the product database', 'About $2 a month'] },
-  routine_monthly: { label: 'Monthly', price: '$6', per: 'month', perks: ['Cancel anytime'] },
+  routine_founder: { label: 'Founding yearly', price: '$24', per: 'year', perks: ['Lifetime access to the product database', '$2 a month'] },
+  routine_monthly: { label: 'Monthly', price: '$4', per: 'month', perks: ['Cancel anytime'] },
 };
 
 // ── Access ────────────────────────────────────────────────────────────────────
