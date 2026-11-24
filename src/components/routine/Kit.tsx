@@ -849,6 +849,54 @@ export function LinearTeaser({ area = 'hair' }: { area?: string }) {
  * Under a gap's 3 picks: refresh for 3 more, up to 3 times. After that (or when we run out), ask whether
  * price is the problem: yes shows the cheapest matches first; no asks what else was off.
  */
+/**
+ * A gap's picks, focused like Spotify's "Great picks!": the 3 products overlapping, one title, one line,
+ * one main action (add the best pick). Everything else waits behind "See all 3".
+ */
+export function PicksFocus({ gap, picks, inBag, onToggle, more }: { gap: Gap; picks: { item: Item; gain: number; fit: number }[]; inBag: (i: Item) => boolean; onToggle: (i: Item) => void; more: boolean }) {
+  const [all, setAll] = useState(false);
+  const best = picks[0];
+  if (!best) return null;
+  const added = inBag(best.item);
+  const line = [best.item.name, best.item.price != null ? money(best.item.price) : null, best.gain ? `+${best.gain} fit` : null].filter(Boolean).join(' · ');
+  return (
+    <View style={{ alignItems: 'center', gap: 14, paddingVertical: 22, paddingHorizontal: 18, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.72)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
+      <View style={{ flexDirection: 'row' }}>
+        {picks.slice(0, 3).map((p, n) => <View key={p.item.id} style={{ marginLeft: n ? -18 : 0, zIndex: 3 - n }}><Bubble category={p.item.category} size={64} /></View>)}
+      </View>
+      <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.bold, fontWeight: '700', fontSize: 24, lineHeight: 29, letterSpacing: -0.5, color: '#1D1D22', textAlign: 'center' }}>{`Picks for your ${gap.title.toLowerCase()}`}</Text>
+      <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 15, lineHeight: 21, color: '#4A4858', textAlign: 'center' }}>{`Best for you: ${line}`}</Text>
+      <View style={{ width: '100%', maxWidth: 320 }}>
+        <Btn label={added ? 'Added to bag' : 'Add the best pick'} onPress={() => onToggle(best.item)} />
+      </View>
+      <Pressable onPress={() => setAll(v => !v)} accessibilityRole="button" hitSlop={8}>
+        <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 15, color: '#5F55A3' }}>{all ? 'Hide' : `See all ${picks.length}`}</Text>
+      </Pressable>
+      {all ? (
+        <View style={{ alignSelf: 'stretch', gap: 10 }}>
+          {picks.map((p, n) => {
+            const on = inBag(p.item);
+            return (
+              <View key={p.item.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 10, borderTopWidth: n ? 0.5 : 0, borderTopColor: 'rgba(20,20,40,0.10)' }}>
+                <Bubble category={p.item.category} size={40} />
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 14, lineHeight: 19, color: '#1D1D22' }}>{p.item.name}</Text>
+                  <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 12, color: '#6C6A80' }}>{[p.item.price != null ? money(p.item.price) : 'At store', p.gain ? `+${p.gain} fit` : null].filter(Boolean).join(' · ')}</Text>
+                </View>
+                <Pressable {...(on ? {} : fill('chrome-key'))} onPress={() => onToggle(p.item)} accessibilityRole="button" accessibilityLabel={on ? `Remove ${p.item.name} from bag` : `Add ${p.item.name} to bag`}
+                  style={{ height: 30, paddingHorizontal: 12, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? '#E5F4EA' : '#DADADA', borderWidth: 1.5, borderColor: on ? '#CDEBD6' : '#161616' }}>
+                  <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 12, color: on ? '#1E7B45' : '#111114' }}>{on ? 'Added' : 'Add'}</Text>
+                </Pressable>
+              </View>
+            );
+          })}
+          <MorePicks gap={gap} more={more} />
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 export function MorePicks({ gap, more }: { gap: Gap; more: boolean }) {
   const s = useRoutine();
   const r = s.refresh?.[gap.id];

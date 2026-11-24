@@ -92,7 +92,6 @@ export default function Plans() {
           <View style={{ alignItems: 'center', gap: 6 }}>
             <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#111114', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>✓</Text></View>
             <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '700', fontSize: 14, lineHeight: 18, color: '#111114', textAlign: 'center' }}>Your routine plan is ready!</Text>
-            {fit ? <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: '#F1F1F4' }}><Text style={{ fontFamily: SYS ?? F.medium, fontSize: 11, color: '#111114' }}>{after > fit ? `Fit ${fit} → ${after}` : `Fit ${fit}`}</Text></View> : null}
           </View>
           <View style={{ backgroundColor: '#F4F4F7', borderRadius: 14, padding: 8, gap: 6 }}>
             <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 11, color: '#111114' }}>{gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'} to fix` : 'Your routine'}</Text>

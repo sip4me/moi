@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
-import { BLUE, Btn, ChipBtn, GapBall, GapCard, Heading, SYS, iconFor, InputsPanel, money, MorePicks, st, NeedInfo, Pill, PickBubble, Shell, useWide, WhereToBuy } from '../../components/routine/Kit';
+import { BLUE, Btn, GapBall, GapCard, Heading, SYS, iconFor, InputsPanel, money, PicksFocus, st, NeedInfo, Pill, Shell, useWide } from '../../components/routine/Kit';
 import { icon3d } from '../../data/icons3d';
 import { GlassCard } from '../../components/routine/Glass';
 import { celebrate } from '../../components/routine/Celebrate';
@@ -22,7 +22,6 @@ export default function Gaps() {
   const gaps = useMemo(() => found.filter(g => g.kind === 'clash' || picksFor(g, s, cat, 1).length > 0), [found, s, cat]);
   const [filter, setFilter] = useState<'all' | GapKind>('all');
   const [open, setOpen] = useState<string | undefined>(params.g);
-  const [where, setWhere] = useState<string | undefined>();
   const access = useAccess();
   const toggleBag = (k: string) => { if (!s.bag.includes(k)) celebrate('Added to bag'); setBag(k); };
   const setBag = (k: string) => setRoutine(r => ({ ...r, bag: r.bag.includes(k) ? r.bag.filter(x => x !== k) : [...r.bag, k] }));
@@ -95,14 +94,7 @@ export default function Gaps() {
                 })}
               </View>
               {sel && p.length ? (
-                <View style={{ gap: 12, padding: 16, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.7)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
-                  <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 17, letterSpacing: -0.3, color: '#1D1D22' }}>{`Picks for ${sel.title.toLowerCase()}`}</Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-                    {p.map((x: any) => <PickBubble key={x.item.id} item={x.item} fit={x.fit} gain={x.gain} badge={x.badge} why={x.why} inBag={s.bag.includes(itemKey(x.item))} onAdd={() => toggleBag(itemKey(x.item))} />)}
-                  </View>
-                  <MorePicks gap={sel} more={hasMorePicks(sel, s, cat)} />
-                  {where === sel.id ? <WhereToBuy item={p[0].item} /> : <ChipBtn label="Where to buy" icon="store" onPress={() => setWhere(sel.id)} />}
-                </View>
+                <PicksFocus gap={sel} picks={p} more={hasMorePicks(sel, s, cat)} inBag={i => s.bag.includes(itemKey(i))} onToggle={i => toggleBag(itemKey(i))} />
               ) : null}
             </View>
           );
