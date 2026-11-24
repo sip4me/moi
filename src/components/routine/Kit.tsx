@@ -580,7 +580,6 @@ export function LivePanel({ score, gaps, onOpen }: { score: number; gaps: Gap[];
       <Faint />
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <Text style={[st.label, { flex: 1, color: C.gray2 }]}>{gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'}` : 'No gaps'}</Text>
-        {gaps.length ? <Pressable onPress={onOpen} accessibilityRole="button" hitSlop={6}><Text style={{ fontFamily: F.semibold, fontSize: 12, color: '#5B67C9' }}>See all</Text></Pressable> : null}
       </View>
       {top.map(g => (
         <View key={g.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>

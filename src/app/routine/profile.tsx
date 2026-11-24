@@ -73,7 +73,6 @@ export default function RoutineProfile() {
         <View>
           <Row first k="Plan" v={plan} onPress={a.ok ? undefined : () => router.push('/routine/plans')} />
           {a.founder ? <Row k="Database access" v="Lifetime" /> : null}
-          <Row k="Manage subscription" onPress={() => router.push('/settings')} />
         </View>
       </SectionCard>
 
@@ -106,8 +105,8 @@ export default function RoutineProfile() {
 
       <SectionCard label="ACCOUNT" style={card}>
         <View>
-          {signedIn ? <Row first k="Signed in as" v={who} /> : <Row first k="Create an account" onPress={() => router.push({ pathname: '/sign-in', params: { mode: 'signup', next: '/routine/profile' } })} />}
-          <Row k="Edit my name" onPress={() => router.push('/details')} />
+          {signedIn ? <Row first k="Signed in as" v={who} /> : null}
+          <Row first={!signedIn} k="Edit my name" onPress={() => router.push('/details')} />
         </View>
       </SectionCard>
     </Shell>
