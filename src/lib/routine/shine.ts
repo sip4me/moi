@@ -70,10 +70,12 @@ const CSS = `
 [data-fill="glass-bg"] { position: relative; overflow: hidden; background-image: linear-gradient(180deg, #F4C7B5 0%, #E6BFC2 26%, #C2B2C3 46%, #8FA0B4 66%, #4F8197 84%, #2C6478 100%) !important; }
 [data-fill="glass-bg"]::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1; opacity: .38; mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E"); }
-[data-fill="soft-bg"] { position: relative; overflow: hidden; background-image: linear-gradient(180deg, #F4C7B5 0%, #EDC3BE 14%, #E6BFC2 26%, #D6C3CF 38%, #E8E6EF 48%, #F6F7FA 58%, #F6F7FA 100%) !important; }
+[data-fill="soft-bg"] { position: relative; overflow: hidden; background-image: linear-gradient(180deg, #F8E9E4 0%, #F4E6E7 16%, #EFE9F0 32%, #F2F2F7 46%, #F6F7FA 58%, #F6F7FA 100%) !important; }
 [data-fill="soft-bg"]::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1; opacity: .22; mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E"); }
-[data-fill="soft-orb"] { filter: blur(18px); }
+[data-fill="soft-orb"] { filter: blur(44px) saturate(70%); }
+/* Frost: a white veil over the circles so the colour reads as a tint, not a picture. */
+[data-fill="soft-frost"] { background-color: rgba(246,247,250,0.42) !important; -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
 [data-fill="glass-card"] { background-color: rgba(255,255,255,0.14) !important; background-image: linear-gradient(160deg, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0.16) 100%) !important;
   -webkit-backdrop-filter: blur(30px) saturate(135%); backdrop-filter: blur(30px) saturate(135%); border-color: rgba(255,255,255,0.6) !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 0 0 1px rgba(255,255,255,0.12), 0 40px 70px -30px rgba(25,40,70,0.45); }
@@ -102,4 +104,4 @@ if (Platform.OS === 'web' && typeof document !== 'undefined' && !document.getEle
 /** Props that give a Text shiny letters (web) — spread onto <Text>. */
 export const shine = (kind: 'chrome' | 'rose' | 'titanium' | 'blush') => (Platform.OS === 'web' ? ({ dataSet: { shine: kind } } as any) : {});
 /** Props that give a View a jewellery fill (web). */
-export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'lilac' | 'pearl' | 'pearl-on' | 'pearl-ask' | 'paper' | 'gold-coin' | 'glass-bg' | 'soft-bg' | 'soft-orb' | 'glass-card' | 'glass-bar' | 'glass-panel') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});
+export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'lilac' | 'pearl' | 'pearl-on' | 'pearl-ask' | 'paper' | 'gold-coin' | 'glass-bg' | 'soft-bg' | 'soft-orb' | 'soft-frost' | 'glass-card' | 'glass-bar' | 'glass-panel') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});

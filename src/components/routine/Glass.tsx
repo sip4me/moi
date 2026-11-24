@@ -64,9 +64,10 @@ export function SoftBackdrop() {
   );
   return (
     <View {...fill('soft-bg')} pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, backgroundColor: '#F6F7FA' }}>
-      {orb(u * 0.42, -u * 0.16, -u * 0.12, 's1', '#E8A06B', '#C8164E', 12, 8, 0.42)}
-      {orb(u * 0.36, W - u * 0.22, u * 0.08, 's2', '#C996A8', '#5E9468', -10, 10, 0.36)}
-      {orb(u * 0.2, W * 0.58, -u * 0.06, 's3', '#F4A38C', '#E06B4F', 8, 6, 0.34)}
+      {orb(u * 0.42, -u * 0.16, -u * 0.12, 's1', '#E8A06B', '#C8164E', 12, 8, 0.2)}
+      {orb(u * 0.36, W - u * 0.22, u * 0.08, 's2', '#C996A8', '#5E9468', -10, 10, 0.16)}
+      {orb(u * 0.2, W * 0.58, -u * 0.06, 's3', '#F4A38C', '#E06B4F', 8, 6, 0.16)}
+      <View {...fill('soft-frost')} style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }} />
     </View>
   );
 }
