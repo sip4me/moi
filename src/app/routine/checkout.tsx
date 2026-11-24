@@ -6,6 +6,7 @@ import { Bubble, QtyStepper, Btn, ChipBtn, iconFor, money, NeedInfo, ScoreBar, S
 import { analyze, retailerLinks } from '../../lib/routine/gaps';
 import { allSteps, AREA_Q, AREAS, BEAUTY_ROUTINES, CATEGORY_LABEL, DAYS, findByKey, GOALS, hasInfo, HAIR_Q, itemKey, placeItems, pref, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
 import { C, F } from '../../theme';
+import { fill } from '../../lib/routine/shine';
 
 // "Confirm and buy", in the layout of Airbnb's "Confirm and pay": a back arrow and title; on the left,
 // "Your routine" rows (label, value, underlined Edit) so goals and answers can be changed right here, then a
@@ -71,7 +72,7 @@ export default function Checkout() {
     const on = how === key;
     return (
       <Pressable key={key} onPress={() => setHow(key)} accessibilityRole="radio" accessibilityState={{ checked: on }}
-        style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 16, borderWidth: on ? 2 : 1, borderColor: on ? C.ink : '#D9DCE3', marginTop: first ? 0 : -1, borderTopLeftRadius: first ? 14 : 0, borderTopRightRadius: first ? 14 : 0, borderBottomLeftRadius: first ? 0 : 14, borderBottomRightRadius: first ? 0 : 14, zIndex: on ? 1 : 0, backgroundColor: '#fff' }}>
+        style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 16, borderWidth: on ? 2 : 1, borderColor: on ? '#7A4A5E' : '#DCD4E0', marginTop: first ? 0 : -1, borderTopLeftRadius: first ? 14 : 0, borderTopRightRadius: first ? 14 : 0, borderBottomLeftRadius: first ? 0 : 14, borderBottomRightRadius: first ? 0 : 14, zIndex: on ? 1 : 0, backgroundColor: on ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.7)' }}>
         <View style={{ flex: 1, gap: 4 }}>
           <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>{title}</Text>
           <Text style={{ fontFamily: F.regular, fontSize: 14, lineHeight: 20, color: '#4A4F5C' }}>{sub}</Text>
@@ -83,7 +84,7 @@ export default function Checkout() {
 
   const first = bag[0];
   const card = (
-    <View style={{ borderRadius: 16, borderWidth: 1, borderColor: '#E3E5EB', backgroundColor: '#fff', padding: 24, gap: 0, shadowColor: '#283050', shadowOpacity: 0.08, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } }}>
+    <View {...fill('metal-card')} style={{ borderRadius: 22, borderWidth: 1, borderColor: '#D9D2E0', backgroundColor: '#fff', padding: 24, gap: 0 }}>
       {first ? (
         <View style={{ flexDirection: 'row', gap: 14, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: '#E3E5EB' }}>
           <View style={{ width: 104, height: 84, borderRadius: 12, backgroundColor: '#F2F3F6', alignItems: 'center', justifyContent: 'center' }}><Image source={iconFor(first.category)} style={{ width: 64, height: 64 }} /></View>
@@ -146,7 +147,7 @@ export default function Checkout() {
         </View>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingTop: 6 }}>
           {bag.map(i => (
-            <View key={itemKey(i)} style={{ flexGrow: 1, flexBasis: 150, maxWidth: wide ? 220 : undefined, alignItems: 'center', gap: 10, paddingTop: 16, paddingBottom: 14, paddingHorizontal: 12, borderRadius: 26, backgroundColor: '#fff', borderWidth: 1, borderColor: '#EEF0F3' }}>
+            <View {...fill('metal-card')} key={itemKey(i)} style={{ flexGrow: 1, flexBasis: 150, maxWidth: wide ? 220 : undefined, alignItems: 'center', gap: 10, paddingTop: 14, paddingBottom: 14, paddingHorizontal: 12, borderRadius: 24, backgroundColor: '#fff', borderWidth: 1, borderColor: '#D9DCE2' }}>
               <Bubble category={i.category} chip={<Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.gray2 }} numberOfLines={1}>{CATEGORY_LABEL[i.category] ?? 'Pick'}</Text>} />
               <View style={{ alignItems: 'center', gap: 2, alignSelf: 'stretch' }}>
                 <Text style={{ fontFamily: F.semibold, fontSize: 15, lineHeight: 19, color: C.ink, textAlign: 'center' }} numberOfLines={2}>{i.name}</Text>

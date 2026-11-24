@@ -343,22 +343,21 @@ export function Ico({ name, size = 18, color = C.ink }: { name: keyof typeof ICO
 
 /** A small action button. `iconOnly` shows just the icon (the label stays as the accessible name and hover tooltip). */
 /** Cart line controls: a red trash to remove, and − count + for how many. */
+/** Cart line controls, in the brushed-metal stepper style: a red trash to remove, and − count + in a recessed well. */
 export function QtyStepper({ n, onChange, onRemove, label }: { n: number; onChange: (n: number) => void; onRemove: () => void; label: string }) {
-  const round = (name: string, on: () => void, a11y: string, disabled?: boolean, red?: boolean) => (
-    <Pressable onPress={() => { if (disabled) return; haptic('select'); on(); }} accessibilityRole="button" accessibilityLabel={a11y} accessibilityState={{ disabled }} hitSlop={6}
-      style={({ hovered, pressed }: PS) => ({ width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center',
-        backgroundColor: red ? (hovered ? '#FDE4E1' : '#FEF0EE') : hovered ? '#F1F2F4' : '#fff', borderWidth: 1, borderColor: red ? '#F7C6BF' : '#D9DCE3',
-        opacity: disabled ? 0.35 : pressed ? 0.8 : 1 })}>
-      <Ico name={name} size={16} color={red ? '#D92D20' : C.ink} />
+  const key = (name: string, on: () => void, a11y: string, disabled?: boolean, red?: boolean) => (
+    <Pressable {...fill('metal')} onPress={() => { if (disabled) return; haptic('select'); on(); }} accessibilityRole="button" accessibilityLabel={a11y} accessibilityState={{ disabled }} hitSlop={4}
+      style={({ pressed }: PS) => ({ width: 38, height: 34, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F3F4F6', borderWidth: 1.5, borderColor: '#C3C7CE', opacity: disabled ? 0.4 : pressed ? 0.85 : 1 })}>
+      <Ico name={name} size={15} color={red ? '#D92D20' : disabled ? '#A0A5AE' : '#5A606B'} />
     </Pressable>
   );
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-      {round('trash', onRemove, `Remove ${label}`, false, true)}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, padding: 2, borderRadius: 20, backgroundColor: '#F4F5F8' }}>
-        {round('minus', () => onChange(n - 1), `One fewer ${label}`, n <= 1)}
-        <Text style={{ minWidth: 22, textAlign: 'center', fontFamily: F.semibold, fontSize: 15, color: C.ink, fontVariant: ['tabular-nums'] }} accessibilityLabel={`Quantity ${n}`}>{n}</Text>
-        {round('plus', () => onChange(n + 1), `One more ${label}`, n >= 9)}
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      {key('trash', onRemove, `Remove ${label}`, false, true)}
+      <View {...fill('metal-well')} style={{ flexDirection: 'row', alignItems: 'center', gap: 2, padding: 3, borderRadius: 14, backgroundColor: '#EEF0F3' }}>
+        {key('minus', () => onChange(n - 1), `One fewer ${label}`, n <= 1)}
+        <Text style={{ minWidth: 26, textAlign: 'center', fontFamily: F.semibold, fontSize: 15, color: C.ink, fontVariant: ['tabular-nums'] }} accessibilityLabel={`Quantity ${n}`}>{n}</Text>
+        {key('plus', () => onChange(n + 1), `One more ${label}`, n >= 9)}
       </View>
     </View>
   );
@@ -698,16 +697,16 @@ const TONES: Record<string, string> = { cleanser: 'sage', exfoliant: 'sage', ton
 const toneOf = (c: string) => TONES[c] ?? ['lilac', 'sage', 'peach', 'rose', 'sky'][[...c].reduce((a, ch) => a + ch.charCodeAt(0), 0) % 5];
 
 /** The product as a glass bubble: the category icon floats inside a glossy sphere, a frosted chip sits on its lower edge. */
-export function Bubble({ category, size = 112, chip, lead }: { category: string; size?: number; chip?: React.ReactNode; lead?: boolean }) {
+export function Bubble({ category, size = 84, chip, lead }: { category: string; size?: number; chip?: React.ReactNode; lead?: boolean }) {
   return (
-    <View style={{ width: size, height: size + 14, alignItems: 'center' }}>
+    <View style={{ width: chip ? Math.max(size, 110) : size, height: chip ? size + 12 : size, alignItems: 'center' }}>
       <View {...(Platform.OS === 'web' ? ({ dataSet: { fill: 'bubble', tone: toneOf(category) } } as any) : {})} style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: '#EEE9F3', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
         {/* The product sits inside the glass, filling it, slightly low as if afloat. */}
         <Image source={iconFor(category)} style={{ width: size * 0.96, height: size * 0.96, marginTop: size * 0.1 }} resizeMode="contain" />
         <View {...fill('bubble-lens')} pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, borderRadius: size / 2 }} />
         <View {...fill('bubble-gloss')} pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, borderRadius: size / 2 }} />
       </View>
-      {chip ? <View {...fill('bubble-chip')} style={{ position: 'absolute', bottom: 0, flexDirection: 'row', alignItems: 'center', gap: 4, height: 28, paddingHorizontal: 10, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.92)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.9)' }}>{chip}</View> : null}
+      {chip ? <View {...fill('bubble-chip')} style={{ position: 'absolute', bottom: 0, flexDirection: 'row', alignItems: 'center', gap: 4, height: 24, paddingHorizontal: 9, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.92)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.9)' }}>{chip}</View> : null}
     </View>
   );
 }
@@ -718,7 +717,7 @@ export function PickBubble({ item, gain, badge, why, inBag, onAdd, fit }: { item
     <><Ico name={badge === 'best' ? 'crown' : 'tag'} size={12} color={badge === 'best' ? PALETTE.garnet : '#1E7B45'} /><Text style={{ fontFamily: F.semibold, fontSize: 12, color: badge === 'best' ? PALETTE.garnet : '#1E7B45' }}>{badge === 'best' ? 'Best for you' : 'Best value'}</Text></>
   ) : <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.gray2 }}>{`${fit}% match`}</Text>;
   return (
-    <View style={{ flexGrow: 1, flexBasis: 150, maxWidth: 230, alignItems: 'center', gap: 8, paddingTop: 16, paddingBottom: 14, paddingHorizontal: 12, borderRadius: 26, backgroundColor: '#fff', borderWidth: 1, borderColor: '#EEF0F3' }}>
+    <View style={{ flexGrow: 1, flexBasis: 140, maxWidth: 200, alignItems: 'center', gap: 8, paddingTop: 14, paddingBottom: 12, paddingHorizontal: 12, borderRadius: 24, backgroundColor: '#fff', borderWidth: 1, borderColor: '#EEF0F3' }}>
       <Bubble category={item.category} chip={chip} lead={badge === 'best'} />
       <View style={{ alignItems: 'center', gap: 2, alignSelf: 'stretch' }}>
         <Text style={{ fontFamily: F.semibold, fontSize: 15, lineHeight: 19, color: C.ink, textAlign: 'center' }} numberOfLines={2}>{item.name}</Text>
