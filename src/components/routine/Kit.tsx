@@ -716,14 +716,17 @@ export function Bubble({ category, size = 84, chip }: { category: string; size?:
   const tone = toneOf(category);
   const web = (k: string, extra?: object) => (Platform.OS === 'web' ? ({ dataSet: { fill: k, ...extra } } as any) : {});
   return (
-    <View style={{ width: chip ? Math.max(size + 40, 140) : size, height: chip ? size + 14 : size + 6, alignItems: 'center' }}>
+    <View style={{ width: chip ? Math.max(size + 40, 140) : size, height: chip ? size + 20 : size + 6, alignItems: 'center' }}>
       {/* Shadow on the ground (Figma: 80% wide, 22% tall, under the ball) */}
       <View {...web('ball-shadow')} pointerEvents="none" style={{ position: 'absolute', top: size * 0.82, width: size * 0.8, height: size * 0.22, borderRadius: size }} />
-      <View {...web('ball', { tone })} style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: '#EEE9F3', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        <Image source={iconFor(category)} style={{ width: size * 0.6, height: size * 0.6, marginTop: size * 0.04 }} resizeMode="contain" />
+      <View {...web('ball', { tone })} style={{ width: size, height: size, borderRadius: size / 2, borderWidth: 0, backgroundColor: '#EEE9F3', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        {/* Contents fill the sphere, as in the reference: a soft, enlarged copy behind, the product crisp in front. */}
+        <Image {...web('ball-scene')} source={iconFor(category)} style={{ position: 'absolute', width: size * 1.7, height: size * 1.7, left: -size * 0.35, top: -size * 0.3 }} resizeMode="cover" />
+        <Image source={iconFor(category)} style={{ width: size * 0.64, height: size * 0.64, marginTop: size * 0.06 }} resizeMode="contain" />
         <View {...web('ball-tint')} pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, borderRadius: size }} />
         <View {...web('ball-edge')} pointerEvents="none" style={{ position: 'absolute', left: '8%', top: '10%', width: '105%', height: '105%', borderRadius: size }} />
-        <View {...web('ball-soft')} pointerEvents="none" style={{ position: 'absolute', left: '12%', top: '6%', width: '52%', height: '34%', borderRadius: size }} />
+        <View {...web('ball-bounce')} pointerEvents="none" style={{ position: 'absolute', left: '20%', bottom: '3%', width: '60%', height: '22%', borderRadius: size }} />
+        <View {...web('ball-soft')} pointerEvents="none" style={{ position: 'absolute', left: '13%', top: '3%', width: '74%', height: '42%', borderRadius: size }} />
         <View {...web('ball-glint')} pointerEvents="none" style={{ position: 'absolute', left: '22%', top: '15%', width: '21%', height: '10%', borderRadius: size }} />
       </View>
       {chip ? <View {...fill('bubble-chip')} style={{ position: 'absolute', bottom: 0, flexDirection: 'row', alignItems: 'center', gap: 5, height: 30, paddingHorizontal: 12, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.9)', borderWidth: HAIR, borderColor: 'rgba(20,20,40,0.08)' }}>{chip}</View> : null}
