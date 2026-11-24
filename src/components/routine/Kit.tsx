@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Svg, { Path } from 'react-native-svg';
 import { ActivityIndicator, Animated, Platform, Easing, Image, Linking, Modal, Pressable, ScrollView, type ScrollViewInstance, StyleSheet, Text, TextInput, useWindowDimensions, View, type ViewStyle } from 'react-native';
 import { useScrollCue } from '../ScrollCue';
-import { GlassBackdrop, SoftBackdrop } from './Glass';
+import { GlassBackdrop } from './Glass';
 import { CelebrateLayer, useToasting } from './Celebrate';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { icon3d } from '../../data/icons3d';
@@ -128,7 +128,8 @@ export function Shell({ active, children, side, footer, step, hideNav, glass }: 
   useEffect(() => { if (account && !account.anonymous && !r.saved) setRoutine(x => ({ ...x, saved: true })); }, [account, r.saved]);
   return (
     <View style={{ flex: 1 }}>
-    {glass ? <GlassBackdrop /> : <SoftBackdrop />}
+    {/* Every Routine page stands on the welcome screen's ground; working pages put their content on one frosted glass card. */}
+    <GlassBackdrop />
     <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }} edges={['top', 'bottom']}>
       {top}
       <View style={{ flex: 1, flexDirection: 'row' }}>
@@ -136,16 +137,20 @@ export function Shell({ active, children, side, footer, step, hideNav, glass }: 
           <View style={{ flex: 1 }}>
           <ScrollView ref={scrollRef} style={{ flex: 1 }} {...cue.props}
             contentContainerStyle={wide ? { paddingHorizontal: 72, paddingTop: 32, paddingBottom: 64, gap: 32, width: '100%', maxWidth: 920, alignSelf: 'center' } : { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 40, gap: 24 }}>
-            {children}
-            {!wide && side ? <View style={{ gap: 16 }}>{side}</View> : null}
+            {glass ? children : (
+              <View {...fill('glass-panel')} style={{ borderRadius: 30, padding: wide ? 32 : 18, gap: wide ? 28 : 22, backgroundColor: 'rgba(255,255,255,0.66)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.7)' }}>
+                {children}
+              </View>
+            )}
+            {!wide && side ? <View {...fill('glass-panel')} style={{ gap: 16, borderRadius: 26, padding: 18, backgroundColor: 'rgba(255,255,255,0.66)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.7)' }}>{side}</View> : null}
           </ScrollView>
           {cue.cue}
           </View>
           {footer ? (wide
-            ? <View {...(glass ? {} : fill('frost-panel'))} style={[st.wFooter, { backgroundColor: glass ? 'transparent' : 'rgba(250,250,252,0.7)', borderTopColor: 'rgba(255,255,255,0.6)' }]}><View style={{ maxWidth: 808, width: '100%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 12 }}>{footer}</View></View>
-            : <View {...(glass ? {} : fill('frost-panel'))} style={[st.mFooter, { backgroundColor: glass ? 'transparent' : 'rgba(250,250,252,0.7)', borderTopLeftRadius: glass ? 0 : 24, borderTopRightRadius: glass ? 0 : 24 }]}>{footer}</View>) : null}
+            ? <View style={[st.wFooter, { backgroundColor: 'transparent', borderTopColor: 'rgba(255,255,255,0.4)' }]}><View style={{ maxWidth: 808, width: '100%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 12 }}>{footer}</View></View>
+            : <View style={[st.mFooter, { backgroundColor: 'transparent' }]}>{footer}</View>) : null}
         </View>
-        {wide && side ? <ScrollView style={st.side} contentContainerStyle={{ paddingHorizontal: 22, paddingVertical: 20, gap: 12 }}>{side}</ScrollView> : null}
+        {wide && side ? <ScrollView style={st.side} contentContainerStyle={{ padding: 16, paddingTop: 24 }}><View {...fill('glass-panel')} style={{ gap: 12, borderRadius: 26, padding: 20, backgroundColor: 'rgba(255,255,255,0.66)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.7)' }}>{side}</View></ScrollView> : null}
       </View>
       <Menu open={menu} onClose={() => setMenu(false)} active={active} />
       <CelebrateLayer />
@@ -904,7 +909,7 @@ export const st = StyleSheet.create({
   navOn: { backgroundColor: '#fff' },
   navAddon: { marginTop: 12, borderTopWidth: 1, borderTopColor: '#E3E5E8', borderTopLeftRadius: 0, borderTopRightRadius: 0, paddingTop: 12, height: 56 },
   navText: { fontFamily: F.medium, fontSize: 15, color: C.gray2 },
-  side: { width: 300, flexGrow: 0, backgroundColor: 'rgba(250,250,252,0.62)', borderLeftWidth: 1, borderLeftColor: 'rgba(255,255,255,0.7)' },
+  side: { width: 320, flexGrow: 0, backgroundColor: 'transparent' },
   mHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, height: 52 },
   topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4, minHeight: 60 },
   menuBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderColor: 'transparent', backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 3 } },

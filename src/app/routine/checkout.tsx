@@ -118,7 +118,7 @@ export default function Checkout() {
 
   return (
     <Shell active="shop" side={wide ? <View style={{ paddingTop: 72 }}>{card}</View> : undefined}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginLeft: wide ? -46 : 0 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
         <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/routine/shop'))} accessibilityRole="button" accessibilityLabel="Back" hitSlop={10}
           style={({ hovered }: any) => ({ width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: hovered ? '#ECEEF2' : 'transparent' })}>
           <Svg width={10} height={16} viewBox="0 0 10 16"><Path d="M8 2 2 8l6 6" stroke={C.ink} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" fill="none" /></Svg>
