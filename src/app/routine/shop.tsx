@@ -76,18 +76,17 @@ export default function Shop() {
   if (!hasInfo(s)) return <Shell active="shop"><NeedInfo goals={s.goals.length > 0} /></Shell>;
   return (
     <Shell active="shop" side={wide && bag.length ? bagPanel : undefined}
-      footer={!wide && bag.length ? <Pressable onPress={() => {}} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><View style={{ flex: 1 }}><Text style={T.h2}>{`${bag.length} in bag · about ${money(Math.round(total(bag)))}`}</Text><Text style={T.meta}>{`Routine fit ${score} → ${after}`}</Text></View></Pressable> : undefined}>
+      footer={!wide && bag.length ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><View style={{ flex: 1 }}><Text style={T.h2}>{`${bag.length} item${bag.length === 1 ? '' : 's'} · ${money(Math.round(total(bag)))}`}</Text><Text style={T.meta}>{`+${after - score} fit`}</Text></View><Btn label="Check out" onPress={() => router.push('/routine/checkout')} /></View> : undefined}>
       {/* One type scale on this page (system sans): title 26, section 16, body 14, meta 12. Compact rows so more fits. */}
       <View style={{ gap: 6 }}>
         <Text {...({ dataSet: { grad: 'title' } } as any)} style={T.title}>Shop your gaps</Text>
-        <Text style={T.body}>Fixes ranked by how much they raise your fit.</Text>
       </View>
       {bundle.length > 1 ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.75)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
           <View style={{ flexDirection: 'row' }}>{bundle.slice(0, 3).map((i, n) => <View key={n} style={{ marginLeft: n ? -10 : 0 }}><Bubble category={i.category} size={36} /></View>)}</View>
           <View style={{ flex: 1, gap: 2 }}>
-            <Text style={T.h2}>{`All ${bundle.length} fixes · about ${money(Math.round(total(bundle)))}`}</Text>
-            <Text style={T.meta}>{`Fit ${score} → ${bundleAfter}`}</Text>
+            <Text style={T.h2}>{`All ${bundle.length} · ${money(Math.round(total(bundle)))}`}</Text>
+            <Text style={T.meta}>{`+${bundleAfter - score} fit`}</Text>
           </View>
           <Pressable {...fill('chrome-key')} onPress={addAll} accessibilityRole="button" style={{ height: 34, paddingHorizontal: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#DADADA', borderWidth: 1.5, borderColor: '#161616' }}>
             <Text style={[T.label, { color: '#111114' }]}>Add all</Text>
@@ -95,18 +94,14 @@ export default function Shop() {
         </View>
       ) : null}
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-        <Pill label="Fits my budget" on={budgetOnly} onPress={() => setBudgetOnly(v => !v)} />
+        <Pill label="In budget" on={budgetOnly} onPress={() => setBudgetOnly(v => !v)} />
         <Pill label="Under $15" on={under15} onPress={() => setUnder15(v => !v)} />
       </View>
       {rows.length === 0 ? <Text style={T.body}>{gaps.length ? 'No matches. Turn a filter off.' : 'No gaps to fill.'}</Text> : null}
       <View style={{ gap: 12, maxWidth: 720 }}>
         {rows.map(({ g, picks }) => (
           <Panel key={g.id} style={{ gap: 8, padding: 14 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
-              <Text style={[T.h2, { flex: 1 }]}>{g.title}</Text>
-              <Text style={T.meta}>{`${picks.length} pick${picks.length === 1 ? '' : 's'}`}</Text>
-            </View>
-            <Text style={[T.meta, { color: '#6E6E78' }]}>{g.why}</Text>
+            <Text style={T.h2}>{g.title}</Text>
             <View style={{ marginTop: 2 }}>
               {picks.map((p, n) => {
                 const inBag = s.bag.includes(itemKey(p.item));
@@ -115,7 +110,7 @@ export default function Shop() {
                     <Bubble category={p.item.category} size={40} />
                     <View style={{ flex: 1, gap: 2 }}>
                       <Text style={T.name}>{p.item.name}</Text>
-                      <Text style={T.meta}>{[p.badge === 'best' ? 'Best for you' : p.badge === 'value' ? 'Best value' : null, p.gain ? `+${p.gain} fit` : `${p.fit}% match`, p.why].filter(Boolean).join(' · ')}</Text>
+                      <Text style={T.meta}>{[p.badge === 'best' ? 'Best' : p.badge === 'value' ? 'Best value' : null, p.gain ? `+${p.gain} fit` : null].filter(Boolean).join(' · ')}</Text>
                     </View>
                     <View style={{ alignItems: 'flex-end', gap: 6 }}>
                       <Text style={T.price}>{p.item.price != null ? money(p.item.price) : 'At store'}</Text>
@@ -131,7 +126,6 @@ export default function Shop() {
           </Panel>
         ))}
       </View>
-      {!wide && bag.length ? <View style={{ backgroundColor: '#fff', borderRadius: 24, padding: 20 }}>{bagPanel}</View> : null}
       <Text style={[T.meta, { fontSize: 11 }]}>{`Product data: Moi, Open Beauty Facts contributors (ODbL), California Safe Cosmetics Program (CC-BY)`}</Text>
     </Shell>
   );

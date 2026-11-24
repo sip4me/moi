@@ -62,14 +62,9 @@ export default function Checkout() {
 
   const summary = (
     <SilverCard>
-      <LabelValue label={`${count} pick${count === 1 ? '' : 's'}`} value={`${money(total)}${priced.length < bag.length ? ' +' : ''}`} big />
-      <View style={{ gap: 10 }}>
-        {bag.map(i => <LabelValue key={itemKey(i)} label={`${CATEGORY_LABEL[i.category] ?? i.name}${q(i) > 1 ? ` × ${q(i)}` : ''}`} value={i.price != null ? money(i.price * q(i)) : 'At store'} />)}
-        {!bag.length ? <Text style={{ fontFamily: F.medium, fontSize: 15, color: SILVER.label }}>Your bag is empty.</Text> : null}
-      </View>
-      <View style={{ height: 1, backgroundColor: '#E2E2E2' }} />
+      <LabelValue label="Total" value={`${money(total)}${priced.length < bag.length ? ' +' : ''}`} big />
       <View style={{ gap: 8 }}>
-        <LabelValue label="Routine fit" value={`${score} → ${after}`} />
+        <LabelValue label="Fit" value={`${score} → ${after}`} />
         <ScoreBar score={score} after={after} />
       </View>
     </SilverCard>
@@ -82,34 +77,31 @@ export default function Checkout() {
           style={({ hovered }: any) => ({ width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: hovered ? 'rgba(255,255,255,0.5)' : 'transparent' })}>
           <Svg width={10} height={16} viewBox="0 0 10 16"><Path d="M8 2 2 8l6 6" stroke={SILVER.ink} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" fill="none" /></Svg>
         </Pressable>
-        <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.medium, fontWeight: '700', fontSize: wide ? 32 : 26, lineHeight: wide ? 38 : 31, letterSpacing: -0.7, color: SILVER.ink }}>Confirm and buy</Text>
+        <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.medium, fontWeight: '700', fontSize: wide ? 32 : 26, lineHeight: wide ? 38 : 31, letterSpacing: -0.7, color: SILVER.ink }}>Checkout</Text>
       </View>
 
       <View style={{ maxWidth: 600, gap: 22 }}>
         {bag.map(i => (
-          <StepperCard key={itemKey(i)} name={i.name} sub={i.price != null ? `${money(i.price)} each${CATEGORY_LABEL[i.category] ? ` · ${CATEGORY_LABEL[i.category]}` : ''}` : CATEGORY_LABEL[i.category]}
+          <StepperCard key={itemKey(i)} name={i.name} sub={q(i) > 1 && i.price != null ? `${money(i.price)} each` : undefined}
             price={i.price != null ? money(i.price * q(i)) : 'At store'} n={q(i)} onChange={n => setQ(i, n)} onRemove={() => removeItem(i)} footer={stores(i)} />
         ))}
         {!bag.length ? <SilverCard><Text style={{ fontFamily: F.medium, fontSize: 16, color: SILVER.label }}>Nothing in your bag yet.</Text></SilverCard> : null}
 
         <SilverCard>
-          <LabelValue label="How to buy" value={how === 'buy' ? 'Buy now' : 'Save for later'} />
           <ChromeChoice value={how} onChange={setHow} options={[
-            { key: 'buy', title: 'Buy now', sub: 'Opens each store' },
-            { key: 'save', title: 'Save for later', sub: 'Adds to your routine' },
+            { key: 'buy', title: 'Buy now' },
+            { key: 'save', title: 'Save for later' },
           ]} />
         </SilverCard>
 
-        <SilverCard style={{ gap: 14 }}>
-          <LabelValue label={`Your ${areaLabel.toLowerCase()} routine`} value="Edit" onPress={about} />
-          {[...answerRows, { label: 'Routine', value: routineValue }, { label: 'Budget', value: s.hair.budget ?? '' }].map(r => (
-            <LabelValue key={r.label} label={r.label} value={r.value || 'Not set'} onPress={r.label === 'Routine' ? () => router.push({ pathname: '/routine/build', params: { area } }) : about} />
-          ))}
+        {/* One line for the answers this was built on; tap to change them. */}
+        <SilverCard style={{ paddingVertical: 18 }}>
+          <LabelValue label={[...answerRows.map(r => r.value), s.hair.budget].filter(v => v && v !== 'Nothing').join(' · ') || areaLabel} value="Edit" onPress={about} />
         </SilverCard>
 
         {!wide ? summary : null}
-        <ChromeButton label={how === 'buy' ? 'Confirm and buy' : 'Confirm and save'} onPress={confirm} disabled={!bag.length} />
-        <Text style={{ fontFamily: F.medium, fontSize: 12, lineHeight: 18, color: '#7A7A7A', textAlign: 'center' }}>Prices are estimates. You buy from the store at its price.</Text>
+        <ChromeButton label={how === 'buy' ? `Buy · ${money(total)}` : 'Save'} onPress={confirm} disabled={!bag.length} />
+        <Text style={{ fontFamily: F.medium, fontSize: 12, lineHeight: 18, color: '#7A7A7A', textAlign: 'center' }}>Estimated prices.</Text>
       </View>
     </Shell>
   );

@@ -70,13 +70,13 @@ export function StepperCard({ name, sub, price, n, onChange, onRemove, footer }:
 }
 
 /** Two choices as keys in one track: the chosen one is pressed in. */
-export function ChromeChoice<T extends string>({ value, options, onChange }: { value: T; options: { key: T; title: string; sub: string }[]; onChange: (v: T) => void }) {
+export function ChromeChoice<T extends string>({ value, options, onChange }: { value: T; options: { key: T; title: string; sub?: string }[]; onChange: (v: T) => void }) {
   return (
     <ChromeTrack>
       {options.map(o => (
-        <ChromeKey key={o.key} on={value === o.key} onPress={() => onChange(o.key)} a11y={o.title} style={{ minHeight: 76, paddingHorizontal: 12, paddingVertical: 10 }}>
+        <ChromeKey key={o.key} on={value === o.key} onPress={() => onChange(o.key)} a11y={o.title} style={{ minHeight: 54, paddingHorizontal: 12, paddingVertical: 8 }}>
           <Text style={{ fontFamily: F.semibold, fontSize: 15, color: value === o.key ? SILVER.ink : '#6E6E6E' }}>{o.title}</Text>
-          <Text style={{ fontFamily: F.regular, fontSize: 12, lineHeight: 16, color: value === o.key ? '#5A5A5A' : SILVER.label, textAlign: 'center', marginTop: 3 }} numberOfLines={2}>{o.sub}</Text>
+          {o.sub ? <Text style={{ fontFamily: F.regular, fontSize: 12, lineHeight: 16, color: value === o.key ? '#5A5A5A' : SILVER.label, textAlign: 'center', marginTop: 3 }}>{o.sub}</Text> : null}
         </ChromeKey>
       ))}
     </ChromeTrack>
