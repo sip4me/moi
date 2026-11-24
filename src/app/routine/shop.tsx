@@ -84,7 +84,7 @@ export default function Shop() {
       {rows.length === 0 ? <Text style={st.sub}>{gaps.length ? 'No matches. Turn a filter off.' : 'No gaps to fill.'}</Text> : null}
       {rows.map(({ g, picks }) => (
         <View key={g.id} style={{ gap: 16 }}>
-          <View style={{ gap: 4 }}><Text style={{ fontFamily: F.semibold, fontSize: 20, color: C.ink }}>{g.title}</Text><Text style={st.meta}>{g.why}</Text></View>
+          <View style={{ gap: 4 }}><Text style={{ fontFamily: F.semibold, fontSize: 20, color: C.ink }}>{g.title}</Text><Text style={[st.sub, { fontSize: 13, lineHeight: 19 }]}>{g.why}</Text></View>
           {/* A ranked list, not a carousel: options side by side in one column are easier to compare. */}
           <View style={{ gap: 8, maxWidth: 720 }}>
             {picks.map((p, i) => <PickRow key={p.item.id} rank={i + 1} item={p.item} fit={p.fit} gain={p.gain} badge={p.badge} why={p.why} inBag={s.bag.includes(itemKey(p.item))} onAdd={() => toggle(itemKey(p.item))} />)}

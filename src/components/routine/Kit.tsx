@@ -615,7 +615,7 @@ export function InputsPanel({ s, compact }: { s: RoutineState; compact?: boolean
   const row = (k: string, v: string, href: string) => (
     <Pressable key={k} onPress={() => router.push(href as any)} accessibilityRole="button" accessibilityLabel={`Edit ${k}`}
       style={({ hovered }: PS) => ({ gap: 1, paddingVertical: compact ? 6 : 10, paddingHorizontal: 12, marginHorizontal: -12, borderRadius: compact ? 0 : 10, borderTopWidth: compact ? 1 : 0, borderTopColor: '#F0F1F4', backgroundColor: hovered ? '#F4F5F8' : 'transparent' })}>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}><Text style={[st.label, { flex: 1 }]}>{k}</Text><Text style={{ fontFamily: F.semibold, fontSize: 12, color: '#6E7BD9' }}>Edit</Text></View>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}><Text style={[st.meta, { flex: 1, fontSize: 12 }]}>{k}</Text><Text style={{ fontFamily: F.semibold, fontSize: 12, color: '#6E7BD9' }}>Edit</Text></View>
       <Text style={{ fontFamily: F.medium, fontSize: compact ? 13 : 14, lineHeight: compact ? 18 : 20, color: v ? C.ink : C.gray }} numberOfLines={compact ? 2 : undefined}>{v || 'Not set'}</Text>
     </Pressable>
   );
@@ -639,14 +639,14 @@ export function LivePanel({ score, gaps, onOpen, empty }: { score: number; gaps:
   const top = [...gaps].sort((x, y) => y.weight - x.weight).slice(0, 4);
   if (empty) return (
     <View style={{ gap: 10 }}>
-      <Text style={[st.label, { color: C.gray2 }]}>Live check</Text>
+      <Text style={st.label}>Live check</Text>
       <Text style={[st.meta, { fontSize: 13 }]}>Add your first product to see your fit.</Text>
       <ScoreBar score={0} />
     </View>
   );
   return (
     <View style={{ gap: 10 }}>
-      <Text style={[st.label, { color: C.gray2 }]}>Live check</Text>
+      <Text style={st.label}>Live check</Text>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
         <Text style={{ fontFamily: F.display, fontSize: 30, lineHeight: 32, color: C.ink }}>{score}</Text>
         <Text style={[st.meta, { fontSize: 12 }]}>routine fit</Text>
@@ -654,7 +654,7 @@ export function LivePanel({ score, gaps, onOpen, empty }: { score: number; gaps:
       <ScoreBar score={score} />
       <Faint />
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <Text style={[st.label, { flex: 1, color: C.gray2 }]}>{gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'}` : 'No gaps'}</Text>
+        <Text style={[st.label, { flex: 1 }]}>{gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'}` : 'No gaps'}</Text>
       </View>
       {top.map(g => (
         <View key={g.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -671,20 +671,20 @@ export function LiveStrip({ score, gaps, empty }: { score: number; gaps: Gap[]; 
   const top = [...gaps].sort((x, y) => y.weight - x.weight).slice(0, 2);
   if (empty) return (
     <View style={{ alignSelf: 'stretch', paddingVertical: 10, paddingHorizontal: 14, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ECEEF2', flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-      <Text style={[st.label, { color: C.gray2, fontSize: 11 }]}>Live check</Text>
+      <Text style={st.label}>Live check</Text>
       <Text style={[st.meta, { fontSize: 12, flex: 1 }]} numberOfLines={1}>Add your first product to see your fit</Text>
     </View>
   );
   return (
     <View style={{ alignSelf: 'stretch', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ECEEF2', gap: 6 }} accessibilityLabel={`Live check: routine fit ${score}, ${gaps.length} gaps`}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-        <Text style={[st.label, { color: C.gray2, fontSize: 11 }]}>Live check</Text>
+        <Text style={st.label}>Live check</Text>
         <Text style={{ fontFamily: F.display, fontSize: 20, lineHeight: 22, color: C.ink }}>{score}</Text>
         <View style={{ flex: 1 }}><ScoreBar score={score} /></View>
       </View>
       <Faint />
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <Text style={[st.label, { color: C.gray2, fontSize: 11 }]}>{gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'}` : 'No gaps'}</Text>
+        <Text style={st.label}>{gaps.length ? `${gaps.length} gap${gaps.length === 1 ? '' : 's'}` : 'No gaps'}</Text>
         {top.map(g => (
           <View key={g.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flexShrink: 1 }}>
             <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: KIND_COLOR[g.kind].fg }} />
@@ -904,8 +904,9 @@ export const st = StyleSheet.create({
   tab: { flex: 1, alignItems: 'center', gap: 3 },
   tabText: { fontFamily: F.medium, fontSize: 11, color: C.gray },
   h1: { fontFamily: F.display, color: C.ink, letterSpacing: -0.5 },
-  sub: { fontFamily: F.regular, fontSize: 15, lineHeight: 22, color: PALETTE.quiet },
-  label: { fontFamily: F.semibold, fontSize: 12, letterSpacing: 0.6, color: '#A3A7AD' },
+  // Subheads take the welcome gradient's deep rose-plum so they read as part of the picture, not grey filler.
+  sub: { fontFamily: F.medium, fontSize: 15, lineHeight: 22, color: '#7A4A5E' },
+  label: { fontFamily: F.semibold, fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: '#9E3550' },
   meta: { fontFamily: F.medium, fontSize: 13, color: '#9A9EA4' },
   pill: { paddingHorizontal: 16, height: 40, borderRadius: 20, justifyContent: 'center', backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#D3D6DB' },
   pillOn: { backgroundColor: PALETTE.garnet, borderColor: PALETTE.garnet },
