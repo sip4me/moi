@@ -108,7 +108,7 @@ function Menu({ open, onClose, active }: { open: boolean; onClose: () => void; a
   );
 }
 
-export function Shell({ active, children, side, footer, step, hideNav, glass }: { active?: string; children: React.ReactNode; side?: React.ReactNode; footer?: React.ReactNode; step?: string; hideNav?: boolean; glass?: boolean }) {
+export function Shell({ active, children, side, footer, step, hideNav, glass, silver }: { active?: string; children: React.ReactNode; side?: React.ReactNode; footer?: React.ReactNode; step?: string; hideNav?: boolean; glass?: boolean; silver?: boolean }) {
   const wide = useWide();
   const r = useRoutine();
   const toasting = useToasting();
@@ -129,7 +129,7 @@ export function Shell({ active, children, side, footer, step, hideNav, glass }: 
   return (
     <View style={{ flex: 1 }}>
     {/* Every Routine page stands on the welcome screen's ground; working pages put their content on one frosted glass card. */}
-    <GlassBackdrop />
+    {silver ? <View pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, backgroundColor: '#C9C9CA' }} /> : <GlassBackdrop />}
     <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }} edges={['top', 'bottom']}>
       {top}
       <View style={{ flex: 1, flexDirection: 'row' }}>
@@ -137,12 +137,12 @@ export function Shell({ active, children, side, footer, step, hideNav, glass }: 
           <View style={{ flex: 1 }}>
           <ScrollView ref={scrollRef} style={{ flex: 1 }} {...cue.props}
             contentContainerStyle={wide ? { paddingHorizontal: 72, paddingTop: 32, paddingBottom: 64, gap: 32, width: '100%', maxWidth: 920, alignSelf: 'center' } : { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 40, gap: 24 }}>
-            {glass ? children : (
+            {glass || silver ? children : (
               <View {...fill('glass-panel')} style={{ borderRadius: 30, padding: wide ? 32 : 18, gap: wide ? 28 : 22, backgroundColor: 'rgba(255,255,255,0.66)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.7)' }}>
                 {children}
               </View>
             )}
-            {!wide && side ? <View {...fill('glass-panel')} style={{ gap: 16, borderRadius: 26, padding: 18, backgroundColor: 'rgba(255,255,255,0.66)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.7)' }}>{side}</View> : null}
+            {!wide && side && silver ? side : !wide && side ? <View {...fill('glass-panel')} style={{ gap: 16, borderRadius: 26, padding: 18, backgroundColor: 'rgba(255,255,255,0.66)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.7)' }}>{side}</View> : null}
           </ScrollView>
           {cue.cue}
           </View>
@@ -150,7 +150,7 @@ export function Shell({ active, children, side, footer, step, hideNav, glass }: 
             ? <View style={[st.wFooter, { backgroundColor: 'transparent', borderTopColor: 'rgba(255,255,255,0.4)' }]}><View style={{ maxWidth: 808, width: '100%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 12 }}>{footer}</View></View>
             : <View style={[st.mFooter, { backgroundColor: 'transparent' }]}>{footer}</View>) : null}
         </View>
-        {wide && side ? <ScrollView style={st.side} contentContainerStyle={{ padding: 16, paddingTop: 24 }}><View {...fill('glass-panel')} style={{ gap: 12, borderRadius: 26, padding: 20, backgroundColor: 'rgba(255,255,255,0.66)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.7)' }}>{side}</View></ScrollView> : null}
+        {wide && side && silver ? <ScrollView style={st.side} contentContainerStyle={{ padding: 16, paddingTop: 24 }}>{side}</ScrollView> : wide && side ? <ScrollView style={st.side} contentContainerStyle={{ padding: 16, paddingTop: 24 }}><View {...fill('glass-panel')} style={{ gap: 12, borderRadius: 26, padding: 20, backgroundColor: 'rgba(255,255,255,0.66)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.7)' }}>{side}</View></ScrollView> : null}
       </View>
       <Menu open={menu} onClose={() => setMenu(false)} active={active} />
       <CelebrateLayer />

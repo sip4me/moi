@@ -110,6 +110,15 @@ const CSS = `
 /* Frosted separation: each section is a soft frosted plate on the flat grey ground. */
 [data-fill="frost-panel"] { background-color: rgba(250,250,252,0.72) !important; -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(50,48,70,0.05), 0 14px 32px -18px rgba(50,48,70,0.22); border-color: rgba(255,255,255,0.95) !important; }
+/* Checkout silver (chrome stepper reference): light grey cards, chrome-bezel keys in a recessed track. */
+[data-fill="silver-card"] { background-color: #F2F2F2 !important; box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 26px 44px -30px rgba(0,0,0,0.38), 0 2px 6px rgba(0,0,0,0.04); }
+[data-fill="chrome-track"] { background-color: #EDEDED !important; border-color: #E3E3E3 !important; box-shadow: inset 0 1px 2px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.85); }
+[data-fill="chrome-cell"] { background-color: #EAEAEA !important; border-color: #E0E0E0 !important; box-shadow: inset 0 1px 2px rgba(0,0,0,0.04); }
+[data-fill="chrome-key"], [data-fill="chrome-key-on"] { border: 1.5px solid #161616 !important; background-image: linear-gradient(180deg, #E5E5E5 0%, #D3D3D3 100%) !important; transition: box-shadow .12s ease, transform .12s ease;
+  box-shadow: inset 0 0 0 2px #FAFAFA, inset 0 0 0 3.5px #9C9C9C, inset 0 0 0 5px #ECECEC, inset 5px 5px 8px rgba(255,255,255,0.85), inset -4px -5px 8px rgba(0,0,0,0.15), 0 14px 22px -10px rgba(0,0,0,0.42), 0 2px 3px rgba(0,0,0,0.14); }
+[data-fill="chrome-key"]:hover { background-image: linear-gradient(180deg, #EAEAEA 0%, #D8D8D8 100%) !important; }
+[data-fill="chrome-key"]:active, [data-fill="chrome-key-on"] { background-image: linear-gradient(180deg, #D6D6D6 0%, #E2E2E2 100%) !important;
+  box-shadow: inset 0 0 0 2px #F2F2F2, inset 0 0 0 3.5px #8E8E8E, inset 0 0 0 5px #E4E4E4, inset 0 4px 8px rgba(0,0,0,0.18), 0 4px 8px -4px rgba(0,0,0,0.3); }
 [data-fill="glass-card"] { background-color: rgba(255,255,255,0.14) !important; background-image: linear-gradient(160deg, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0.16) 100%) !important;
   -webkit-backdrop-filter: blur(30px) saturate(135%); backdrop-filter: blur(30px) saturate(135%); border-color: rgba(255,255,255,0.6) !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 0 0 1px rgba(255,255,255,0.12), 0 40px 70px -30px rgba(25,40,70,0.45); }
@@ -138,4 +147,4 @@ if (Platform.OS === 'web' && typeof document !== 'undefined' && !document.getEle
 /** Props that give a Text shiny letters (web) — spread onto <Text>. */
 export const shine = (kind: 'chrome' | 'rose' | 'titanium' | 'blush') => (Platform.OS === 'web' ? ({ dataSet: { shine: kind } } as any) : {});
 /** Props that give a View a jewellery fill (web). */
-export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'lilac' | 'pearl' | 'pearl-on' | 'pearl-ask' | 'paper' | 'gold-coin' | 'glass-bg' | 'soft-bg' | 'soft-orb' | 'soft-frost' | 'metal' | 'metal-well' | 'metal-card' | 'frost-panel' | 'bubble' | 'bubble-lens' | 'bubble-gloss' | 'bubble-chip' | 'glass-card' | 'glass-bar' | 'glass-panel') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});
+export const fill = (kind: 'cateye' | 'champagne' | 'champagne-coin' | 'cobalt-dot' | 'garnet' | 'lilac' | 'pearl' | 'pearl-on' | 'pearl-ask' | 'paper' | 'gold-coin' | 'glass-bg' | 'soft-bg' | 'soft-orb' | 'soft-frost' | 'silver-card' | 'chrome-track' | 'chrome-cell' | 'chrome-key' | 'chrome-key-on' | 'metal' | 'metal-well' | 'metal-card' | 'frost-panel' | 'bubble' | 'bubble-lens' | 'bubble-gloss' | 'bubble-chip' | 'glass-card' | 'glass-bar' | 'glass-panel') => (Platform.OS === 'web' ? ({ dataSet: { fill: kind } } as any) : {});
