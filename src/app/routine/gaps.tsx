@@ -1,12 +1,12 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
-import { BLUE, Btn, ChipBtn, GapCard, Heading, iconFor, InputsPanel, money, st, NeedInfo, Pill, ProductCard, Shell, useWide, WhereToBuy } from '../../components/routine/Kit';
+import { BLUE, Btn, ChipBtn, GapCard, Heading, iconFor, InputsPanel, money, st, NeedInfo, Pill, PickRow, Shell, useWide, WhereToBuy } from '../../components/routine/Kit';
 import { icon3d } from '../../data/icons3d';
 import { GlassCard } from '../../components/routine/Glass';
 import { celebrate } from '../../components/routine/Celebrate';
 import { useAccess } from '../../lib/routine/access';
-import { analyze, gapArea, KIND_COLOR, picksFor, type Gap, type GapKind } from '../../lib/routine/gaps';
+import { analyze, gapArea, KIND_COLOR, picksFor, rankPicks, type Gap, type GapKind } from '../../lib/routine/gaps';
 import { AREAS, hasInfo, itemKey, setRoutine, useCatalog, useRoutine } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 
@@ -79,18 +79,17 @@ export default function Gaps() {
           <View key={grp.key} style={{ gap: 12 }}>
             {groups.length > 1 ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 8 }}><Image source={icon3d(grp.icon)} style={{ width: 28, height: 28 }} /><Text style={{ fontFamily: F.semibold, fontSize: 17, color: C.ink, flex: 1 }}>{grp.label}</Text><Text style={{ fontFamily: F.medium, fontSize: 13, color: C.gray }}>{`${grp.gaps.length} gap${grp.gaps.length === 1 ? '' : 's'}`}</Text></View> : null}
             {grp.gaps.map(g => {
-          const p = picksFor(g, s, cat, 3);
+          const p = open === g.id ? rankPicks(g, s, cat, score) : picksFor(g, s, cat, 3);
           const priced = p.filter(x => x.item.price != null);
           const from = priced.length ? Math.min(...priced.map(x => x.item.price!)) : null;
           const isOpen = open === g.id;
           return (
             <View key={g.id} style={{ gap: 12 }}>
-              <GapCard gap={g} selected={isOpen} onPress={() => setOpen(isOpen ? undefined : g.id)} cta={p.length ? (isOpen ? 'Hide picks' : 'See picks') : undefined} price={from != null ? `from about ${money(from)}` : undefined} />
+              <GapCard gap={g} selected={isOpen} onPress={() => setOpen(isOpen ? undefined : g.id)} cta={p.length ? (isOpen ? 'Hide' : 'View') : undefined} price={from != null ? `from about ${money(from)}` : undefined} />
               {isOpen ? (
                 <View style={{ gap: 12, paddingLeft: wide ? 16 : 0 }}>
-                  <View style={{ flexDirection: 'row', gap: 12 }}>
-                    {p.map((x, i) => <ProductCard key={x.item.id} item={x.item} fit={x.fit} why={x.why} best={i === 0} inBag={s.bag.includes(itemKey(x.item))} onAdd={() => toggleBag(itemKey(x.item))} />)}
-                    {wide && p.length < 3 ? Array.from({ length: 3 - p.length }).map((_, i) => <View key={i} style={{ flex: 1 }} />) : null}
+                  <View style={{ gap: 8 }}>
+                    {p.map((x: any, i) => <PickRow key={x.item.id} rank={i + 1} item={x.item} fit={x.fit} gain={x.gain} badge={x.badge} why={x.why} inBag={s.bag.includes(itemKey(x.item))} onAdd={() => toggleBag(itemKey(x.item))} />)}
                   </View>
                   {p[0] ? (where === g.id ? <WhereToBuy item={p[0].item} /> : <ChipBtn label="Where to buy" icon="store" onPress={() => setWhere(g.id)} />) : null}
                 </View>

@@ -4,7 +4,7 @@ import { Image, Linking, Pressable, ScrollView, Text, View } from 'react-native'
 import { BLUE, Btn, ChipBtn, Heading, iconFor, Label, money, NeedInfo, Pill, PickRow, ScoreBar, Shell, st, useWide } from '../../components/routine/Kit';
 import { useAccess } from '../../lib/routine/access';
 import { celebrate } from '../../components/routine/Celebrate';
-import { analyze, picksFor, profileOf, retailerLinks } from '../../lib/routine/gaps';
+import { analyze, profileOf, rankPicks, retailerLinks } from '../../lib/routine/gaps';
 import { findByKey, hasInfo, itemKey, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 
@@ -23,16 +23,8 @@ export default function Shop() {
   const max = profileOf(s).budgetMax;
   // Ranked by advantage: how much each pick actually raises this routine's fit, then match, then price.
   // The top pick is "Best for you"; a cheaper one within 2 points of it is "Best value".
-  const rows = useMemo(() => gaps.map(g => {
-    const ps = picksFor(g, s, cat, 6)
-      .filter(p => (!budgetOnly || (p.item.price ?? 0) <= max || max > 999) && (!under15 || (p.item.price ?? 0) <= 15))
-      .map(p => ({ ...p, gain: Math.max(0, analyze(s, cat, [p.item]).score - score) }))
-      .sort((a, b) => b.gain - a.gain || b.fit - a.fit || (a.item.price ?? 999) - (b.item.price ?? 999))
-      .slice(0, 3);
-    const top = ps[0];
-    const value = top ? ps.slice(1).filter(p => p.item.price != null && top.item.price != null && p.item.price < top.item.price && p.gain >= top.gain - 2).sort((a, b) => (a.item.price ?? 0) - (b.item.price ?? 0))[0] : undefined;
-    return { g, picks: ps.map((p, i) => ({ ...p, badge: i === 0 ? 'best' as const : p === value ? 'value' as const : undefined })) };
-  }).filter(r => r.picks.length), [gaps, s, cat, budgetOnly, under15, max, score]);
+  const rows = useMemo(() => gaps.map(g => ({ g, picks: rankPicks(g, s, cat, score, i => (!budgetOnly || (i.price ?? 0) <= max || max > 999) && (!under15 || (i.price ?? 0) <= 15)) })
+  ).filter(r => r.picks.length), [gaps, s, cat, budgetOnly, under15, max, score]);
   const bundle = rows.map(r => r.picks[0].item).filter(i => i.price != null);
   const bundleAfter = useMemo(() => analyze(s, cat, bundle).score, [s, cat, bundle.length]);
   const total = (items: Item[]) => items.reduce((a, i) => a + (i.price ?? 0), 0);

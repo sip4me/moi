@@ -702,7 +702,7 @@ export const Faint = () => <View style={{ height: 1, backgroundColor: '#ECEEF2',
 export function GapCard({ gap, onPress, selected, cta, price }: { gap: Gap; onPress?: () => void; selected?: boolean; cta?: string; price?: string }) {
   const c = KIND_COLOR[gap.kind];
   return (
-    <Pressable onPress={onPress} style={({ pressed, hovered }: PS) => [st.gap, selected && { borderColor: PALETTE.garnet }, hovered && { borderColor: PALETTE.garnetDeep, backgroundColor: '#F1F2F4' }, pressed && { opacity: 0.9 }]}>
+    <Pressable onPress={onPress} style={({ pressed, hovered }: PS) => [st.gap, selected && { borderColor: '#8F99E6' }, hovered && { borderColor: '#B7BEF0', backgroundColor: '#FAFAFE' }, pressed && { opacity: 0.9 }]}>
       <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}>
         <View style={[st.gapIcon, { backgroundColor: c.bg }]}><Image source={iconFor(gap.fills[0])} style={{ width: 46, height: 46 }} /></View>
         <View style={{ flex: 1, gap: 4 }}>
@@ -712,12 +712,12 @@ export function GapCard({ gap, onPress, selected, cta, price }: { gap: Gap; onPr
       </View>
       <Text style={st.why}>{gap.why}</Text>
       {cta ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-        {/* Same frosted pill as every other button; tapping the card toggles it. */}
-        <View style={[st.btnSm, st.tint, { flexDirection: 'row', gap: 6, paddingHorizontal: 16 }]}>
+        {price ? <Text style={[st.meta, { flex: 1 }]}>{price}</Text> : <View style={{ flex: 1 }} />}
+        {/* Sits at the tail of the card; the arrow leads the eye to the picks. */}
+        <View style={[st.btnSm, st.tint, { flexDirection: 'row', gap: 6, paddingLeft: 18, paddingRight: 14, alignSelf: 'auto' }]}>
           <Text style={[st.btnSmText, { color: TINT_INK }]}>{cta}</Text>
-          <Svg width={14} height={14} viewBox="0 0 24 24"><Path d={cta.startsWith('Hide') ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6'} stroke={TINT_INK} strokeWidth={2.4} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
+          <Svg width={15} height={15} viewBox="0 0 24 24"><Path d={cta === 'Hide' ? 'M6 15l6-6 6 6' : 'M5 12h14M13 6l6 6-6 6'} stroke={TINT_INK} strokeWidth={2.4} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
         </View>
-        {price ? <Text style={st.meta}>{price}</Text> : null}
       </View> : null}
     </Pressable>
   );

@@ -185,6 +185,18 @@ export function picksFor(g: Gap, s: RoutineState, cat: Catalog, n = 3): { item: 
   return cheaper.filter(item => !planMatch(item, plan).watch.length || pool.length <= n).map(item => ({ item, fit: fitOf(item, s), why: reason(item), hits: goalHits(item, s).length })).sort((a, b) => b.hits - a.hits || Number(b.item.price != null) - Number(a.item.price != null) || b.fit - a.fit || (a.item.price ?? 0) - (b.item.price ?? 0)).slice(0, n);
 }
 
+/** Picks for a gap, ranked by advantage: how much each one actually raises this routine's fit, then match, then price.
+ *  The top pick is "Best for you"; a cheaper one within 2 points of it is "Best value". */
+export function rankPicks(g: Gap, s: RoutineState, cat: Catalog, score: number, keep: (i: Item) => boolean = () => true, n = 3) {
+  const ps = picksFor(g, s, cat, 6).filter(p => keep(p.item))
+    .map(p => ({ ...p, gain: Math.max(0, analyze(s, cat, [p.item]).score - score) }))
+    .sort((a, b) => b.gain - a.gain || b.fit - a.fit || (a.item.price ?? 999) - (b.item.price ?? 999))
+    .slice(0, n);
+  const top = ps[0];
+  const value = top ? ps.slice(1).filter(p => p.item.price != null && top.item.price != null && p.item.price < top.item.price && p.gain >= top.gain - 2).sort((a, b) => (a.item.price ?? 0) - (b.item.price ?? 0))[0] : undefined;
+  return ps.map((p, i) => ({ ...p, badge: i === 0 ? ('best' as const) : p === value ? ('value' as const) : undefined }));
+}
+
 /** For "Build me a new one": the steps a routine for these goals should have, each filled with the best pick. */
 export function buildNew(s: RoutineState, cat: Catalog) {
   const blank: RoutineState = { ...s, wash: [], every: [], occ: {} };
