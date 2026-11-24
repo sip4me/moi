@@ -7,7 +7,7 @@ import { GlassCard } from '../../components/routine/Glass';
 import { celebrate } from '../../components/routine/Celebrate';
 import { useAccess } from '../../lib/routine/access';
 import { analyze, gapArea, KIND_COLOR, picksFor, rankPicks, type Gap, type GapKind } from '../../lib/routine/gaps';
-import { AREAS, hasInfo, itemKey, setRoutine, useCatalog, useRoutine } from '../../lib/routine/model';
+import { AREAS, hasInfo, hasInput, itemKey, setRoutine, useCatalog, useRoutine } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 
 const FILTERS: { key: 'all' | GapKind; label: string }[] = [{ key: 'all', label: 'All' }, { key: 'step', label: 'Steps' }, { key: 'clash', label: 'Ingredients' }, { key: 'tool', label: 'Tools' }, { key: 'budget', label: 'Budget' }];
@@ -17,7 +17,9 @@ export default function Gaps() {
   const cat = useCatalog();
   const wide = useWide();
   const params = useLocalSearchParams<{ g?: string }>();
-  const { score, gaps } = useMemo(() => analyze(s, cat), [s, cat]);
+  const { score, gaps: found } = useMemo(() => analyze(s, cat), [s, cat]);
+  // No empty recommendations: a gap shows only if there is a product to fix it (clashes carry their own advice).
+  const gaps = useMemo(() => found.filter(g => g.kind === 'clash' || picksFor(g, s, cat, 1).length > 0), [found, s, cat]);
   const [filter, setFilter] = useState<'all' | GapKind>('all');
   const [open, setOpen] = useState<string | undefined>(params.g);
   const [where, setWhere] = useState<string | undefined>();
@@ -26,6 +28,7 @@ export default function Gaps() {
   const setBag = (k: string) => setRoutine(r => ({ ...r, bag: r.bag.includes(k) ? r.bag.filter(x => x !== k) : [...r.bag, k] }));
 
   if (!hasInfo(s)) return <Shell active="gaps"><NeedInfo goals={s.goals.length > 0} /></Shell>;
+  if (!hasInput(s)) return <Shell active="gaps"><NeedInfo goals /></Shell>;
   // Paywall: the gaps themselves are shown, the fixes and product picks need a plan.
   if (!access.ok && !access.loading) {
     const top = [...gaps].sort((x, y) => y.weight - x.weight).slice(0, 3);

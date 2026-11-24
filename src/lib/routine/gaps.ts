@@ -103,7 +103,16 @@ export function analyze(s: RoutineState, cat: Catalog, extra: Item[] = []): { sc
     if (wearsBase && !has('makeup_remover')) add({ id: 'mk_remover', kind: 'step', title: 'Makeup remover', why: 'Sleeping in makeup clogs pores. Remove it before you cleanse.', fills: ['makeup_remover'] }, 10);
     if ((skinType === 'Oily' || pv('mk_finish').includes('Matte') || pv('mk_musts').includes('Long-wear')) && has('foundation') && !has('primer', 'powder')) add({ id: 'mk_set', kind: 'step', title: 'Primer or powder', why: 'Oily skin moves makeup. A primer or powder keeps it in place.', fills: ['primer', 'powder'] }, 6);
     if (pv('mk_musts').includes('SPF in base') && !has('spf')) add({ id: 'mk_spf', kind: 'step', title: 'SPF under makeup', why: 'Most bases hold too little SPF alone. Add a sunscreen first.', fills: ['spf'] }, 10);
-    if ((pv('mk_look').includes('Full glam') || has('eyeshadow')) && !has('setting_spray')) add({ id: 'mk_spray', kind: 'step', title: 'Setting spray', why: 'Locks a full look in place for hours.', fills: ['setting_spray'] }, 4);
+    if ((pv('mk_face_look').includes('Full glam') || pv('mk_eye_look').includes('Siren eyes') || has('eyeshadow')) && !has('setting_spray')) add({ id: 'mk_spray', kind: 'step', title: 'Setting spray', why: 'Locks a full look in place for hours.', fills: ['setting_spray'] }, 4);
+    // Trend looks: each needs one product to read right.
+    const lip = pv('mk_lip_look')[0], eye = pv('mk_eye_look')[0], face = pv('mk_face_look')[0];
+    if ((lip === 'Lip contour' || lip === 'Bold lip') && !items.some(i => i.category === 'lips' && /liner|pencil|contour/i.test(i.name))) add({ id: 'mk_liner', kind: 'step', title: 'Lip liner', why: lip === 'Lip contour' ? 'A soft brown or pink liner, blended in, is what shapes a contoured lip.' : 'A matching liner keeps a bold lip sharp and stops it bleeding.', fills: ['lips'] }, 6);
+    if (lip === 'Glossy' && !has('lip_gloss')) add({ id: 'mk_gloss', kind: 'step', title: 'Lip gloss', why: 'A glossy lip needs a gloss or a glossy balm on top.', fills: ['lip_gloss'] }, 5);
+    if ((eye === 'Micro wing' || eye === 'Smudged kohl' || eye === 'Siren eyes') && !has('eyeliner')) add({ id: 'mk_eyeliner', kind: 'step', title: eye === 'Smudged kohl' ? 'Kohl liner' : 'Eyeliner', why: eye === 'Smudged kohl' ? 'A soft kohl pencil smudges along the lash line for this look.' : 'This eye look is built on liner.', fills: ['eyeliner'] }, 6);
+    if (eye === 'Soft metallic' && !has('eyeshadow')) add({ id: 'mk_shadow', kind: 'step', title: 'Metallic shadow', why: 'A sheer metallic shadow on the lid is the whole look.', fills: ['eyeshadow'] }, 5);
+    if ((face === 'Soft sculpt' || face === 'Toasty') && !has('bronzer')) add({ id: 'mk_contour', kind: 'step', title: face === 'Toasty' ? 'Warm bronzer' : 'Soft contour', why: face === 'Toasty' ? 'A warm bronzer gives the cozy, bronzed face this look is known for.' : 'A soft bronzer or contour adds shape without harsh lines.', fills: ['bronzer'] }, 6);
+    if ((face === 'Soft sculpt' || face === 'Cloud skin') && !has('blush')) add({ id: 'mk_blush', kind: 'step', title: 'Blush', why: 'Blush does the sculpting in this look, lifted toward the temples.', fills: ['blush'] }, 5);
+    if (face === 'Cloud skin' && !has('powder')) add({ id: 'mk_powder', kind: 'step', title: 'Blurring powder', why: 'A fine powder gives the soft-focus finish of cloud skin.', fills: ['powder'] }, 5);
     if (has('foundation') && !has('concealer') && pv('mk_coverage').includes('Full')) add({ id: 'mk_conceal', kind: 'step', title: 'Concealer', why: 'Full coverage looks lighter with a thin base and concealer where needed.', fills: ['concealer'] }, 4);
   }
 
@@ -231,12 +240,33 @@ export function tailoredBeauty(s: RoutineState, key: string): Step[] {
     out.splice(Math.max(1, out.findIndex(x => x.hint === 'moisturizer')), 0, treat);
     return out;
   }
-  if (key === 'makeupDay') {
-    if (has('mk_look', 'Minimal')) return [box('Skin tint', 'foundation'), box('Mascara', 'mascara'), box('Lips', 'lips')];
-    if (has('mk_look', 'Full glam')) return [...base, box('Bronzer', 'bronzer'), box('Setting spray', 'setting_spray')];
+  // Makeup: each routine follows the trend look the person picked for it.
+  if (key === 'makeupFace') {
+    const f = pref(s, 'mk_face_look')[0];
+    if (f === 'Skin first') return [box('Skin tint', 'foundation'), box('Concealer', 'concealer'), box('Cream blush', 'blush')];
+    if (f === 'Soft sculpt') return [box('Base', 'foundation'), box('Concealer', 'concealer'), box('Soft contour', 'bronzer'), box('Blush', 'blush'), box('Highlighter', 'highlighter')];
+    if (f === 'Cloud skin') return [box('Primer', 'primer'), box('Soft-matte base', 'foundation'), box('Blush', 'blush'), box('Blurring powder', 'powder')];
+    if (f === 'Toasty') return [box('Base', 'foundation'), box('Warm bronzer', 'bronzer'), box('Blush', 'blush'), box('Highlighter', 'highlighter')];
+    if (f === 'Full glam') return [...base, box('Setting spray', 'setting_spray')];
     return base;
   }
-  if (key === 'makeupEvent') return has('mk_look', 'Minimal') ? [box('Blush', 'blush'), box('Highlighter', 'highlighter')] : base;
+  if (key === 'makeupEyes') {
+    const e = pref(s, 'mk_eye_look')[0];
+    if (e === 'Barely there') return [box('Brow gel', 'brows'), box('Mascara', 'mascara')];
+    if (e === 'Micro wing') return [box('Brows', 'brows'), box('Liquid liner', 'eyeliner'), box('Mascara', 'mascara')];
+    if (e === 'Smudged kohl') return [box('Kohl liner', 'eyeliner'), box('Mascara', 'mascara')];
+    if (e === 'Siren eyes') return [box('Brows', 'brows'), box('Eyeshadow', 'eyeshadow'), box('Eyeliner', 'eyeliner'), box('Mascara', 'mascara')];
+    if (e === 'Soft metallic') return [box('Metallic shadow', 'eyeshadow'), box('Mascara', 'mascara')];
+    return base;
+  }
+  if (key === 'makeupLips') {
+    const l = pref(s, 'mk_lip_look')[0];
+    if (l === 'Lip contour') return [box('Lip liner', 'lips'), box('Lip balm or gloss', 'lip_gloss')];
+    if (l === 'Blurred lip') return [box('Lip liner', 'lips'), box('Matte lipstick', 'lips')];
+    if (l === 'Glossy') return [box('Lip gloss', 'lip_gloss')];
+    if (l === 'Bold lip') return [box('Lip liner', 'lips'), box('Bold lipstick', 'lips')];
+    return base;
+  }
   if (key === 'body') {
     const c = (v: string) => has('body_concerns', v);
     return base.filter(x => (x.hint !== 'body_scrub' || c('Bumps') || c('Body breakouts') || c('Uneven tone')) && (x.hint !== 'body_oil' || c('Dryness') || has('body_feel', 'Dry')) && (x.hint !== 'body_spf' || c('Uneven tone')));

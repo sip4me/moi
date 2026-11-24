@@ -600,7 +600,7 @@ export function InputsPanel({ s, compact }: { s: RoutineState; compact?: boolean
       {row('Routine', `${logged} product${logged === 1 ? '' : 's'}${skipped ? ` · ${skipped} skipped` : ''}${(s.areas ?? ['hair']).includes('hair') ? ` · wash ${s.washDays.map(d => DAYS[d]).join(', ') || 'days not set'}` : ''}`, '/routine/build')}
       {s.occasions.length ? row('Occasions', s.occasions.join(', '), '/routine/build') : null}
       {(s.areas ?? []).includes('skin') ? row('Skin', [...(s.prefs?.skin_type ?? []), ...(s.prefs?.skin_concerns ?? [])].join(' · '), '/routine/about') : null}
-      {(s.areas ?? []).includes('makeup') ? row('Makeup', [s.prefs?.mk_look?.[0], s.prefs?.mk_tone?.[0], s.prefs?.mk_undertone?.[0], s.prefs?.mk_finish?.[0], s.prefs?.mk_coverage?.[0] && `${s.prefs.mk_coverage[0]} coverage`].filter(Boolean).join(' · '), '/routine/about') : null}
+      {(s.areas ?? []).includes('makeup') ? row('Makeup', [s.prefs?.mk_face_look?.[0], s.prefs?.mk_eye_look?.[0], s.prefs?.mk_lip_look?.[0], s.prefs?.mk_tone?.[0], s.prefs?.mk_undertone?.[0], s.prefs?.mk_finish?.[0], s.prefs?.mk_coverage?.[0] && `${s.prefs.mk_coverage[0]} coverage`].filter(Boolean).join(' · '), '/routine/about') : null}
       {(s.areas ?? []).includes('body') ? row('Body', [...(s.prefs?.body_feel ?? []), ...(s.prefs?.body_concerns ?? [])].join(' · '), '/routine/about') : null}
     </View>
   );
@@ -849,7 +849,7 @@ export function NeedInfo({ goals }: { goals: boolean }) {
     <View style={{ gap: 16, maxWidth: 520, paddingTop: 8 }}>
       <Image source={icon3d(goals ? 'conditioner' : 'learn')} style={{ width: 72, height: 72 }} />
       <Text {...({ dataSet: { grad: 'title' } } as any)} style={[st.h1, { fontSize: 30, lineHeight: 36 }]}>{goals ? 'Add your routine first' : 'A few questions first'}</Text>
-      <Text style={st.sub}>{goals ? 'Add one product you use to see your gaps.' : 'Answer a few quick questions to see your gaps.'}</Text>
+      <Text style={st.sub}>{goals ? 'Add a product you use, or skip a step you don’t do. Then we match picks to your routine.' : 'Answer a few quick questions to see your gaps.'}</Text>
       <Btn label={goals ? 'Add my routine' : 'Start'} onPress={() => router.push(goals ? '/routine/build' : '/routine/about')} style={{ alignSelf: 'flex-start' }} />
     </View>
   );

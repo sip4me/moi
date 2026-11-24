@@ -5,7 +5,7 @@ import { BLUE, Btn, ChipBtn, Heading, iconFor, Label, money, NeedInfo, Pill, Bub
 import { useAccess } from '../../lib/routine/access';
 import { celebrate } from '../../components/routine/Celebrate';
 import { analyze, profileOf, rankPicks, retailerLinks } from '../../lib/routine/gaps';
-import { findByKey, hasInfo, itemKey, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
+import { findByKey, hasInfo, hasInput, itemKey, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 import { fill } from '../../lib/routine/shine';
 
@@ -74,6 +74,7 @@ export default function Shop() {
   );
 
   if (!hasInfo(s)) return <Shell active="shop"><NeedInfo goals={s.goals.length > 0} /></Shell>;
+  if (!hasInput(s)) return <Shell active="shop"><NeedInfo goals /></Shell>;
   return (
     <Shell active="shop" side={wide && bag.length ? bagPanel : undefined}
       footer={!wide && bag.length ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><View style={{ flex: 1 }}><Text style={T.h2}>{`${bag.length} item${bag.length === 1 ? '' : 's'} · ${money(Math.round(total(bag)))}`}</Text><Text style={T.meta}>{`+${after - score} fit`}</Text></View><Btn label="Your picks" onPress={() => router.push('/routine/checkout')} /></View> : undefined}>

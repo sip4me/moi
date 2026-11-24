@@ -73,7 +73,10 @@ export const AREA_Q: { area: Area; key: string; label: string; options: string[]
   { area: 'makeup', key: 'mk_undertone', label: 'Undertone', options: ['Cool', 'Warm', 'Neutral', 'Olive', 'Not sure'] },
   { area: 'makeup', key: 'mk_coverage', label: 'Coverage', options: ['Sheer', 'Medium', 'Full'] },
   { area: 'makeup', key: 'mk_finish', label: 'Finish', options: ['Matte', 'Natural', 'Dewy'] },
-  { area: 'makeup', key: 'mk_look', label: 'Your look', options: ['Minimal', 'Everyday', 'Full glam'] },
+  // Makeup splits into face, eye and lip routines; each look is a trend people are wearing now (late 2026).
+  { area: 'makeup', key: 'mk_face_look', label: 'Face look', options: ['Skin first', 'Soft sculpt', 'Cloud skin', 'Toasty', 'Full glam'] },
+  { area: 'makeup', key: 'mk_eye_look', label: 'Eye look', options: ['Barely there', 'Micro wing', 'Smudged kohl', 'Siren eyes', 'Soft metallic'] },
+  { area: 'makeup', key: 'mk_lip_look', label: 'Lip look', options: ['Lip contour', 'Blurred lip', 'Glossy', 'Bold lip'] },
   { area: 'makeup', key: 'mk_musts', label: 'Must-haves', options: ['Nothing', 'Long-wear', 'Waterproof', 'SPF in base', 'Clean or vegan'], max: 4 },
   { area: 'body', key: 'body_feel', label: 'Body skin', options: ['Dry', 'Normal', 'Oily'] },
   { area: 'body', key: 'body_concerns', label: 'Concerns', options: ['Dryness', 'Bumps', 'Body breakouts', 'Uneven tone', 'Odor'], max: 3 },
@@ -81,7 +84,7 @@ export const AREA_Q: { area: Area; key: string; label: string; options: string[]
 /** Skin, makeup and body routines: key, tab label, area. */
 export const BEAUTY_ROUTINES: { key: string; area: Area; label: string }[] = [
   { key: 'skinAM', area: 'skin', label: 'Morning' }, { key: 'skinPM', area: 'skin', label: 'Evening' }, { key: 'skinWeekly', area: 'skin', label: 'Weekly' },
-  { key: 'makeupDay', area: 'makeup', label: 'Everyday' }, { key: 'makeupEvent', area: 'makeup', label: 'Events' },
+  { key: 'makeupFace', area: 'makeup', label: 'Contour' }, { key: 'makeupEyes', area: 'makeup', label: 'Eyes' }, { key: 'makeupLips', area: 'makeup', label: 'Lips' },
   { key: 'body', area: 'body', label: 'Body' },
 ];
 export const pref = (s: RoutineState, key: string) => s.prefs?.[key] ?? [];
@@ -176,10 +179,26 @@ export const defaultBeauty = (key: string): Step[] => ({
   skinAM: [step('Cleanser', 'cleanser'), step('Toner', 'toner'), step('Serum', 'serum'), step('Moisturizer', 'moisturizer'), step('SPF', 'spf')],
   skinPM: [step('Makeup remover', 'makeup_remover'), step('Cleanser', 'cleanser'), step('Treatment', 'retinoid'), step('Moisturizer', 'moisturizer')],
   skinWeekly: [step('Exfoliant', 'exfoliant'), step('Face mask', 'face_mask')],
-  makeupDay: [step('Primer', 'primer'), step('Base', 'foundation'), step('Concealer', 'concealer'), step('Powder', 'powder'), step('Brows', 'brows'), step('Mascara', 'mascara'), step('Lips', 'lips')],
-  makeupEvent: [step('Eyeshadow', 'eyeshadow'), step('Eyeliner', 'eyeliner'), step('Blush', 'blush'), step('Highlighter', 'highlighter'), step('Setting spray', 'setting_spray')],
+  makeupFace: [step('Primer', 'primer'), step('Base', 'foundation'), step('Concealer', 'concealer'), step('Contour', 'bronzer'), step('Blush', 'blush'), step('Highlighter', 'highlighter'), step('Set', 'powder')],
+  makeupEyes: [step('Brows', 'brows'), step('Eyeshadow', 'eyeshadow'), step('Eyeliner', 'eyeliner'), step('Mascara', 'mascara')],
+  makeupLips: [step('Lip liner', 'lips'), step('Lipstick', 'lips'), step('Gloss', 'lip_gloss')],
   body: [step('Body wash', 'body_wash'), step('Scrub', 'body_scrub'), step('Lotion', 'body_lotion'), step('Body oil', 'body_oil'), step('Deodorant', 'deodorant'), step('Body SPF', 'body_spf')],
 } as Record<string, Step[]>)[key] ?? [];
+const EYE_CATS = ['brows', 'eyeshadow', 'eyeliner', 'mascara'], LIP_CATS = ['lips', 'lip_gloss'];
+/** Older saves had "Everyday" and "Events" makeup routines: move their products into face, eyes and lips. */
+function splitMakeup(b: Record<string, Step[]>): Record<string, Step[]> {
+  const old = [...(b.makeupDay ?? []), ...(b.makeupEvent ?? [])].filter(x => x.item?.addedAt || x.skipped);
+  const { makeupDay: _d, makeupEvent: _e, ...rest } = b;
+  if (!old.length) return rest;
+  const into = (key: string, keep: (h: string) => boolean) => {
+    const mine = old.filter(x => keep(x.item?.category ?? x.hint ?? ''));
+    const base = (rest[key] ?? defaultBeauty(key)).filter(x => !mine.some(m => (m.item?.category ?? m.hint) === x.hint));
+    return [...mine, ...base];
+  };
+  return { ...rest, makeupEyes: into('makeupEyes', h => EYE_CATS.includes(h)), makeupLips: into('makeupLips', h => LIP_CATS.includes(h)), makeupFace: into('makeupFace', h => !EYE_CATS.includes(h) && !LIP_CATS.includes(h)) };
+}
+/** True once the person has added a product or skipped a step somewhere in their routine. */
+export const hasInput = (s: RoutineState) => allSteps(s).some(x => x.step.item?.addedAt || x.step.skipped);
 const initialBeauty = () => Object.fromEntries(BEAUTY_ROUTINES.map(r => [r.key, defaultBeauty(r.key)]));
 const initial = (): RoutineState => ({ v: 2, mode: 'check', goals: [], hair: {}, washDays: [0, 3], wash: defaultWash(), every: defaultEvery(), occasions: [], occ: {}, bag: [], built: false, areas: [], prefs: {}, beauty: initialBeauty() });
 
@@ -197,7 +216,7 @@ AsyncStorage.getItem(KEY).then(v => { if (v) { try { const raw0 = JSON.parse(v);
       // checkmarks only ever mean "I added this".
       const autoFilled = !raw.v && !!raw.built;
       const strip = (st: Step[]) => (autoFilled ? st.map(x => ({ ...x, item: undefined })) : st.map(x => (x.item && !x.item.addedAt ? { ...x, item: { ...x.item, addedAt: 1 } } : x)));
-      state = { ...saved, v: 2, areas: (raw.areas ?? (raw.goals ? ['hair'] : [])).slice(0, 1), prefs: raw.prefs ?? {}, beauty: { ...initialBeauty(), ...(raw.beauty ?? {}) }, wash: withOilSteps(strip(clean(saved.wash))), every: strip(clean(saved.every)), occ: Object.fromEntries(Object.entries(saved.occ ?? {}).map(([k, v]) => [k, strip(clean(v as Step[]))])) }; } catch {} } else state = { ...state }; hydrated = true; emit(); }).catch(() => { state = { ...state }; hydrated = true; emit(); });
+      state = { ...saved, v: 2, areas: (raw.areas ?? (raw.goals ? ['hair'] : [])).slice(0, 1), prefs: raw.prefs ?? {}, beauty: splitMakeup({ ...initialBeauty(), ...(raw.beauty ?? {}) }), wash: withOilSteps(strip(clean(saved.wash))), every: strip(clean(saved.every)), occ: Object.fromEntries(Object.entries(saved.occ ?? {}).map(([k, v]) => [k, strip(clean(v as Step[]))])) }; } catch {} } else state = { ...state }; hydrated = true; emit(); }).catch(() => { state = { ...state }; hydrated = true; emit(); });
 
 export function setRoutine(fn: (s: RoutineState) => RoutineState) {
   state = fn(state);

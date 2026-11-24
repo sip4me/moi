@@ -7,7 +7,7 @@ import { icon3d } from '../../data/icons3d';
 import { ShelfSheet } from '../../components/routine/ShelfSheet';
 import { fill } from '../../lib/routine/shine';
 import { analyze, buildNew, KIND_COLOR, KIND_LABEL } from '../../lib/routine/gaps';
-import { allSteps, areaOf, AREAS, BEAUTY_ROUTINES, CATEGORY_LABEL, DAYS, defaultBeauty, defaultOccasion, newStepId, OCCASION_ICON, OCCASIONS, setRoutine, useCatalog, useRoutine, type RoutineState, type Step } from '../../lib/routine/model';
+import { allSteps, hasInput, areaOf, AREAS, BEAUTY_ROUTINES, CATEGORY_LABEL, DAYS, defaultBeauty, defaultOccasion, newStepId, OCCASION_ICON, OCCASIONS, setRoutine, useCatalog, useRoutine, type RoutineState, type Step } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 
 type Where = { list: 'wash' | 'every' } | { list: 'occ'; occ: string } | { list: 'beauty'; key: string };
@@ -143,7 +143,7 @@ export default function Build() {
 
   return (
     <Shell active="build" step={areas.length > 1 ? `Routine ${idx + 1} of ${areas.length}` : '2 of 3'} side={wide ? <View style={{ gap: 12 }}><InputsPanel compact s={s} /></View> : undefined}
-      footer={<View style={{ gap: 8, width: wide ? undefined : '100%', alignItems: wide ? 'flex-end' : 'stretch' }}>{warn && !logged ? <View accessibilityRole="alert" style={{ paddingVertical: 10, paddingHorizontal: 14, borderRadius: 14, backgroundColor: '#FEF3F2', borderWidth: 1, borderColor: '#FECDCA' }}><Text style={{ fontFamily: F.semibold, fontSize: 13, color: '#B42318' }}>Add at least one product you use, or skip the steps you don’t do.</Text></View> : null}<Btn glow={allDone} label={nextArea ? `Next: ${areaLabel(nextArea).toLowerCase()} routine` : 'Optimize my routine'} onPress={() => (nextArea ? router.push({ pathname: '/routine/build', params: { area: nextArea } }) : (s.mode === 'check' && !logged ? (setWarn(true), undefined) : router.push('/routine/gaps')))} /></View>}>
+      footer={<View style={{ gap: 8, width: wide ? undefined : '100%', alignItems: wide ? 'flex-end' : 'stretch' }}>{warn && !hasInput(s) ? <View accessibilityRole="alert" style={{ paddingVertical: 10, paddingHorizontal: 14, borderRadius: 14, backgroundColor: '#FEF3F2', borderWidth: 1, borderColor: '#FECDCA' }}><Text style={{ fontFamily: F.semibold, fontSize: 13, color: '#B42318' }}>Add at least one product you use, or skip the steps you don’t do.</Text></View> : null}<Btn glow={allDone} label={nextArea ? `Next: ${areaLabel(nextArea).toLowerCase()} routine` : 'Optimize my routine'} onPress={() => (nextArea ? router.push({ pathname: '/routine/build', params: { area: nextArea } }) : (!hasInput(s) ? (setWarn(true), undefined) : router.push('/routine/gaps')))} /></View>}>
       <Heading title={`${s.mode === 'new' ? 'Your new' : 'Your'} ${area === 'hair' ? 'hair' : areaLabel(area).toLowerCase()} routine`} sub={s.mode === 'new' ? 'Steps your answers need. Add or skip each.' : 'Add what you use, in order. Skip any step.'} />
       {areas.length > 1 ? (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
