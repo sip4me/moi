@@ -5,6 +5,7 @@ import Svg, { Path } from 'react-native-svg';
 import { money, NeedInfo, ScoreBar, Shell, SYS, useWide } from '../../components/routine/Kit';
 import { ChromeButton, ChromeChoice, LabelValue, SILVER, SilverCard, StepperCard } from '../../components/routine/Chrome';
 import { analyze, retailerLinks } from '../../lib/routine/gaps';
+import { HAS_AFFILIATE } from '../../lib/routine/affiliate';
 import { allSteps, AREA_Q, AREAS, BEAUTY_ROUTINES, CATEGORY_LABEL, DAYS, findByKey, GOALS, hasInfo, HAIR_Q, itemKey, placeItems, pref, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
 import { C, F } from '../../theme';
 
@@ -62,7 +63,7 @@ export default function Checkout() {
 
   const summary = (
     <SilverCard>
-      <LabelValue label="Total" value={`${money(total)}${priced.length < bag.length ? ' +' : ''}`} big />
+      <LabelValue label="Total" value={priced.length ? `${money(total)}${priced.length < bag.length ? ' + store' : ''}` : 'At store'} big />
       <View style={{ gap: 8 }}>
         <LabelValue label="Fit" value={`${score} → ${after}`} />
         <ScoreBar score={score} after={after} />
@@ -83,7 +84,7 @@ export default function Checkout() {
       <View style={{ maxWidth: 600, gap: 22 }}>
         {bag.map(i => (
           <StepperCard key={itemKey(i)} name={i.name} sub={q(i) > 1 && i.price != null ? `${money(i.price)} each` : undefined}
-            price={i.price != null ? money(i.price * q(i)) : 'At store'} n={q(i)} onChange={n => setQ(i, n)} onRemove={() => removeItem(i)} footer={stores(i)} />
+            price={i.price != null ? money(i.price * q(i)) : 'See price'} n={q(i)} onChange={n => setQ(i, n)} onRemove={() => removeItem(i)} footer={stores(i)} />
         ))}
         {!bag.length ? <SilverCard><Text style={{ fontFamily: F.medium, fontSize: 16, color: SILVER.label }}>Nothing in your bag yet.</Text></SilverCard> : null}
 
@@ -101,7 +102,7 @@ export default function Checkout() {
 
         {!wide ? summary : null}
         <ChromeButton label={how === 'buy' ? `Buy · ${money(total)}` : 'Save'} onPress={confirm} disabled={!bag.length} />
-        <Text style={{ fontFamily: F.medium, fontSize: 12, lineHeight: 18, color: '#7A7A7A', textAlign: 'center' }}>Estimated prices.</Text>
+        <Text style={{ fontFamily: F.medium, fontSize: 12, lineHeight: 18, color: '#7A7A7A', textAlign: 'center' }}>{`${priced.length ? 'Estimated prices. ' : ''}${HAS_AFFILIATE ? 'Moi may earn a commission from store links.' : ''}`.trim() || 'Prices are set by each store.'}</Text>
       </View>
     </Shell>
   );

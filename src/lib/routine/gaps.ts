@@ -1,3 +1,4 @@
+import { storeLinks } from './affiliate';
 import { allSteps, AREA_OF, areaOf, CATEGORY_LABEL, defaultBeauty, pref, type Area, type Catalog, type Item, type RoutineState, type Step } from './model';
 import { planFor, planMatch, planSteps } from './plan';
 
@@ -205,15 +206,8 @@ export function buildNew(s: RoutineState, cat: Catalog) {
   return gaps.filter(g => g.kind === 'step' || g.kind === 'tool').map(g => ({ g, item: pick(g) }));
 }
 
-export const retailerLinks = (i: Item) => {
-  const q = encodeURIComponent(`${i.brand} ${i.name}`.trim());
-  return [
-    { name: 'Amazon', url: `https://www.amazon.com/s?k=${q}` },
-    { name: 'Ulta Beauty', url: `https://www.ulta.com/search?search=${q}` },
-    { name: 'Target', url: `https://www.target.com/s?searchTerm=${q}` },
-    { name: 'Sephora', url: `https://www.sephora.com/search?keyword=${q}` },
-  ];
-};
+/** Store links (barcode-exact where possible, affiliate-tagged when Moi has the program IDs). */
+export const retailerLinks = (i: Item) => storeLinks(i);
 
 /** Which routine a gap belongs to: by what fills it, or by its id prefix for clashes. */
 export const gapArea = (g: { id: string; fills: string[] }): Area =>

@@ -11,6 +11,8 @@ export type Item = {
   category: string; // product step category or tool kind
   tags: string[];
   price?: number | null;
+  /** Barcode (UPC/EAN), so store links land on this exact product. */
+  code?: string | null;
   hairTypes?: string[];
   /** Ingredient label, when we have one. Used to match the tracker plan's look-for and avoid groups. */
   ingredients?: string;
@@ -223,9 +225,9 @@ export function allSteps(s: RoutineState): { where: string; step: Step }[] {
 // ── Catalog ───────────────────────────────────────────────────────────────────
 export type Catalog = { products: Item[]; tools: Item[] };
 // Labels stay on the server: ing_groups carries just which rules.json ingredient groups each label contains.
-const PRODUCT_COLS = 'id,brand,name,category,price_usd,tags,hair_types,ing_groups,goals';
-const AREA_COLS = 'id,brand,name,step_cat,price_usd,tags,ing_groups';
-const toProduct = (r: any): Item => ({ kind: 'product' as const, id: r.id, brand: r.brand, name: r.name, category: r.category, tags: r.tags ?? [], price: r.price_usd, hairTypes: r.hair_types ?? [], ingGroups: r.ing_groups ?? [], goals: r.goals ?? [] });
+const PRODUCT_COLS = 'id,code,brand,name,category,price_usd,tags,hair_types,ing_groups,goals';
+const AREA_COLS = 'id,code,brand,name,step_cat,price_usd,tags,ing_groups';
+const toProduct = (r: any): Item => ({ kind: 'product' as const, id: r.id, code: r.code ?? null, brand: r.brand, name: r.name, category: r.category, tags: r.tags ?? [], price: r.price_usd, hairTypes: r.hair_types ?? [], ingGroups: r.ing_groups ?? [], goals: r.goals ?? [] });
 const mergeProducts = (a: Item[], b: Item[]) => { const m = new Map(a.map(i => [i.id, i])); b.forEach(i => m.set(i.id, i)); return [...m.values()]; };
 const areaLoads = new Map<string, Promise<void>>();
 /** Skin, makeup and body products, sorted into steps in the database (kb_step_cat), loaded once per area. */
@@ -236,7 +238,7 @@ export function ensureAreaProducts(areas: string[]) {
     if (a === 'hair' || areaLoads.has(a)) continue;
     areaLoads.set(a, (async () => {
       const { data } = await sb.from('kb_products').select(AREA_COLS).eq('area', a).not('step_cat', 'is', null).order('popularity', { ascending: false }).limit(2500);
-      const items: Item[] = (data ?? []).map((r: any) => ({ kind: 'product' as const, id: r.id, brand: r.brand, name: r.name, category: r.step_cat, tags: r.tags ?? [], price: r.price_usd, ingGroups: r.ing_groups ?? [] }));
+      const items: Item[] = (data ?? []).map((r: any) => ({ kind: 'product' as const, id: r.id, code: r.code ?? null, brand: r.brand, name: r.name, category: r.step_cat, tags: r.tags ?? [], price: r.price_usd, ingGroups: r.ing_groups ?? [] }));
       catalog = { ...catalog, products: mergeProducts(catalog.products, items) };
       csubs.forEach(f => f());
     })().catch(() => { areaLoads.delete(a); }));

@@ -19,6 +19,14 @@ import { useContentProtection } from '../lib/protect';
  * Web loads Latin-subset WOFF2 copies (about 265 KB in all, instead of 1.6 MB of TTF), so the first screen
  * appears much sooner. Native apps keep the full TTF files.
  */
+// Phones: render the whole UI one step smaller (88%) by widening the layout viewport and scaling it down,
+// so everything fits more per screen and stays sharp (no CSS zoom, which breaks layout widths).
+if (Platform.OS === 'web' && typeof window !== 'undefined' && typeof document !== 'undefined') {
+  const sw = Math.min(window.screen?.width || window.innerWidth, window.innerWidth);
+  const meta = document.querySelector('meta[name="viewport"]');
+  if (meta && sw > 0 && sw < 600) meta.setAttribute('content', `width=${Math.round(sw / 0.88)}, initial-scale=0.88, minimum-scale=0.88, maximum-scale=0.88, user-scalable=no, viewport-fit=cover`);
+}
+
 // Web: someone who lands deep inside Routine (a shared link, a refresh) still gets the Moi welcome
 // one step behind them, so the browser's Back shows it instead of leaving the site.
 if (Platform.OS === 'web' && typeof window !== 'undefined') {
