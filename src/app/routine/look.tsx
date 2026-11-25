@@ -1,16 +1,15 @@
 import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import Svg, { Circle, Ellipse, Path } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import { Btn, Bubble, money, Shell, SYS, useWide } from '../../components/routine/Kit';
 import { analyze, profileOf, rankPicks, tailoredBeauty, type Gap } from '../../lib/routine/gaps';
-import { lookFromText, lookNote, lookTargets } from '../../lib/routine/looks';
-import { shadeOf } from '../../lib/routine/shade';
+import { lookFromText, lookNote } from '../../lib/routine/looks';
 import { BEAUTY_ROUTINES, CATEGORY_LABEL, pref, session, setRoutine, useCatalog, useRoutine, type Item, type RoutineState } from '../../lib/routine/model';
 import { F } from '../../theme';
+import { ModelFace } from '../../components/routine/ModelFace';
 
 const crown = require('../../../assets/crown-pink.png');
-const SKIN: Record<string, string> = { Fair: '#F2D7C4', Light: '#E8C2A2', Medium: '#CF9C76', Tan: '#B47C55', Deep: '#8A5A3C', Rich: '#5E3B27' };
 
 /** The steps a look needs (makeup: its face, eye and lip routines), each with the best product in budget. */
 function routineFor(s: RoutineState, cat: ReturnType<typeof useCatalog>) {
@@ -32,32 +31,6 @@ function routineFor(s: RoutineState, cat: ReturnType<typeof useCatalog>) {
   // Hair (or anything without look steps): their gaps, best pick each.
   if (!out.length) for (const g of analyze(s, cat).gaps.slice(0, 5)) { const p = rankPicks(g, s, cat, score, keep, 1)[0]; if (p) out.push({ step: g.title, pick: p }); }
   return out;
-}
-
-/** An illustrated face (not a real person), bare or wearing the routine's shades. */
-function Face({ s, items, on }: { s: RoutineState; items: Item[]; on: boolean }) {
-  const skin = SKIN[pref(s, 'mk_tone')[0] ?? ''] ?? '#D8A988';
-  const t = lookTargets(s);
-  const col = (c: string, fallback?: string) => { const i = items.find(x => x.category === c); return (i && shadeOf(i)) || (t[c] ? undefined : fallback); };
-  const lip = on ? col('lips') ?? col('lip_gloss') : undefined, gloss = on && items.some(i => i.category === 'lip_gloss');
-  const blush = on ? col('blush') : undefined, bronze = on ? col('bronzer') : undefined, liner = on ? col('eyeliner') : undefined, shadow = on ? col('eyeshadow') : undefined;
-  return (
-    <Svg width={150} height={180} viewBox="0 0 150 180">
-      <Path d="M20 70 Q20 10 75 10 Q130 10 130 70 L130 120 Q105 92 75 92 Q45 92 20 120 Z" fill="#3B2A22" />
-      <Ellipse cx={75} cy={92} rx={45} ry={58} fill={skin} />
-      {bronze ? <><Ellipse cx={40} cy={102} rx={10} ry={20} fill={bronze} opacity={0.28} /><Ellipse cx={110} cy={102} rx={10} ry={20} fill={bronze} opacity={0.28} /></> : null}
-      {blush ? <><Ellipse cx={50} cy={104} rx={12} ry={8} fill={blush} opacity={0.42} /><Ellipse cx={100} cy={104} rx={12} ry={8} fill={blush} opacity={0.42} /></> : null}
-      {shadow ? <><Ellipse cx={57} cy={80} rx={11} ry={6} fill={shadow} opacity={0.55} /><Ellipse cx={93} cy={80} rx={11} ry={6} fill={shadow} opacity={0.55} /></> : null}
-      <Path d="M47 72 Q57 66 67 71" stroke="#3B2A22" strokeWidth={2.4} fill="none" strokeLinecap="round" />
-      <Path d="M83 71 Q93 66 103 72" stroke="#3B2A22" strokeWidth={2.4} fill="none" strokeLinecap="round" />
-      <Ellipse cx={57} cy={84} rx={7} ry={4} fill="#fff" /><Circle cx={57} cy={84} r={3} fill="#2A1E18" />
-      <Ellipse cx={93} cy={84} rx={7} ry={4} fill="#fff" /><Circle cx={93} cy={84} r={3} fill="#2A1E18" />
-      {liner ? <><Path d="M49 82 Q57 78 66 82 L69 79" stroke={liner} strokeWidth={2.2} fill="none" strokeLinecap="round" /><Path d="M84 82 Q93 78 101 82 L104 79" stroke={liner} strokeWidth={2.2} fill="none" strokeLinecap="round" /></> : null}
-      <Path d="M75 88 L71 108 Q75 111 79 108" stroke="#00000022" strokeWidth={1.6} fill="none" />
-      <Path d="M61 124 Q68 118 75 121 Q82 118 89 124 Q82 133 75 133 Q68 133 61 124 Z" fill={lip ?? '#C98A7E'} opacity={lip ? 0.95 : 0.55} />
-      {gloss ? <Ellipse cx={72} cy={128} rx={5} ry={1.6} fill="#fff" opacity={0.7} /> : null}
-    </Svg>
-  );
 }
 
 /**
@@ -106,7 +79,7 @@ export default function Look() {
             <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.bold, fontWeight: '700', fontSize: 20, lineHeight: 25, color: '#1D1D22' }}>You can achieve this look:</Text>
             {isMakeup && list.length ? (
               <View style={{ alignItems: 'center', gap: 8 }}>
-                <Face s={s} items={items} on={after} />
+                <ModelFace tone={pref(s, 'mk_tone')[0]} items={items} on={after} width={wide ? 280 : 230} />
                 <View style={{ flexDirection: 'row', borderRadius: 999, backgroundColor: '#F1F1F4', padding: 3 }}>
                   {(['Without', 'With these'] as const).map(l => { const on = (l === 'With these') === after; return (
                     <Pressable key={l} onPress={() => setAfter(l === 'With these')} accessibilityRole="tab" accessibilityState={{ selected: on }} style={{ paddingHorizontal: 14, height: 30, borderRadius: 15, justifyContent: 'center', backgroundColor: on ? '#fff' : 'transparent' }}>
