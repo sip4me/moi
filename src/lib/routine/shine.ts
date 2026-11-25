@@ -42,12 +42,22 @@ const CSS = `
 /* Main buttons and selected chips: soft luxury pill (reference step 6). White-to-lavender face, inner lavender glow,
    a white halo ring with a faint lavender line, and a soft lavender shadow underneath. Dark ink text. */
 /* Main and round buttons: the checkout's chrome key, set in a thin silver track ring. */
-[data-fill="garnet"], [data-fill="lilac"] { position: relative; background-color: #DADADA !important; background-image: linear-gradient(180deg, #E6E6E6 0%, #D2D2D2 100%) !important; border: 1.5px solid #161616 !important;
-  box-shadow: inset 0 0 0 2px #FAFAFA, inset 0 0 0 3.5px #9C9C9C, inset 0 0 0 5px #ECECEC, inset 5px 5px 8px rgba(255,255,255,0.85), inset -4px -5px 8px rgba(0,0,0,0.15), 0 0 0 5px #EDEDED, 0 0 0 6px #DEDEDE, 0 16px 26px -12px rgba(0,0,0,0.42), 0 2px 3px rgba(0,0,0,0.12);
-  transition: box-shadow .15s ease, transform .15s ease, background-image .15s ease; }
-[data-fill="garnet"]:hover, [data-fill="lilac"]:hover { background-image: linear-gradient(180deg, #ECECEC 0%, #D8D8D8 100%) !important; }
-[data-fill="garnet"]:active, [data-fill="lilac"]:active { transform: translateY(1px); background-image: linear-gradient(180deg, #D4D4D4 0%, #E2E2E2 100%) !important; box-shadow: inset 0 0 0 2px #F2F2F2, inset 0 0 0 3.5px #8E8E8E, inset 0 0 0 5px #E4E4E4, inset 0 4px 8px rgba(0,0,0,0.18), 0 0 0 5px #EDEDED, 0 0 0 6px #DEDEDE, 0 4px 8px -4px rgba(0,0,0,0.3); }
-[data-fill="garnet"] div, [data-fill="lilac"] div { color: #111114 !important; text-shadow: none !important; }
+/* Action keys (reference: silver-glass keypad). A chrome bevel that runs dark → bright → grey on the left and right
+   sides, a flat grey square face in the middle (::before), a thin black outline and a soft shadow underneath. */
+[data-fill="garnet"], [data-fill="lilac"], [data-fill="chrome-key"], [data-fill="chrome-key-on"] { position: relative; isolation: isolate; overflow: hidden; border: 1.5px solid #141414 !important; background-color: #D6D6D6 !important;
+  background-image: linear-gradient(90deg, #6A6A6A 0px, #F7F7F7 3px, #CDCDCD 7px, #D9D9D9 12px, #D9D9D9 calc(100% - 12px), #CDCDCD calc(100% - 7px), #F7F7F7 calc(100% - 3px), #6A6A6A 100%), linear-gradient(180deg, #F2F2F2 0px, #D9D9D9 6px, #D9D9D9 calc(100% - 6px), #A9A9A9 100%) !important;
+  background-blend-mode: multiply, normal;
+  box-shadow: 0 14px 22px -12px rgba(0,0,0,0.45), 0 3px 5px -2px rgba(0,0,0,0.18) !important;
+  transition: box-shadow .14s ease, transform .14s ease, filter .14s ease; }
+[data-fill="garnet"]::before, [data-fill="lilac"]::before, [data-fill="chrome-key"]::before, [data-fill="chrome-key-on"]::before { content: ""; position: absolute; z-index: -1; inset: 5px 7px; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(180deg, #DEDEDE 0%, #D6D6D6 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(0,0,0,0.06), 0 0 0 0.5px rgba(0,0,0,0.08); transition: background .14s ease; }
+[data-fill="garnet"]:hover, [data-fill="lilac"]:hover, [data-fill="chrome-key"]:hover { filter: brightness(1.03); box-shadow: 0 16px 24px -12px rgba(0,0,0,0.5), 0 3px 6px -2px rgba(0,0,0,0.2) !important; }
+[data-fill="garnet"]:hover::before, [data-fill="lilac"]:hover::before, [data-fill="chrome-key"]:hover::before { background: linear-gradient(180deg, #E6E6E6 0%, #DCDCDC 100%); }
+[data-fill="garnet"]:active, [data-fill="lilac"]:active, [data-fill="chrome-key"]:active, [data-fill="chrome-key-on"] { transform: translateY(1.5px); box-shadow: 0 5px 8px -5px rgba(0,0,0,0.35) !important; }
+[data-fill="garnet"]:active::before, [data-fill="lilac"]:active::before, [data-fill="chrome-key"]:active::before, [data-fill="chrome-key-on"]::before { background: linear-gradient(180deg, #CFCFCF 0%, #D9D9D9 100%); box-shadow: inset 0 2px 4px rgba(0,0,0,0.14); }
+[data-fill="garnet"]:focus-visible, [data-fill="lilac"]:focus-visible, [data-fill="chrome-key"]:focus-visible { outline: 2px solid #5F4FC4; outline-offset: 3px; }
+[data-fill="garnet"][aria-disabled="true"], [data-fill="chrome-key"][aria-disabled="true"] { filter: grayscale(1) opacity(.55); box-shadow: none !important; }
+[data-fill="garnet"] div, [data-fill="lilac"] div, [data-fill="chrome-key"] div { color: #111114 !important; text-shadow: none !important; }
 [data-fill="garnet"] svg [stroke]:not([stroke="none"]), [data-fill="lilac"] svg [stroke]:not([stroke="none"]) { stroke: #111114 !important; }
 [data-fill="garnet"] svg [data-chev] { stroke: #111114 !important; }
 /* Secondary buttons, unselected chips, menu button: raised white pill (reference step 4). */
@@ -115,11 +125,6 @@ const CSS = `
 [data-fill="silver-card"] { background-color: #F2F2F2 !important; box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 26px 44px -30px rgba(0,0,0,0.38), 0 2px 6px rgba(0,0,0,0.04); }
 [data-fill="chrome-track"] { background-color: #EDEDED !important; border-color: #E3E3E3 !important; box-shadow: inset 0 1px 2px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.85); }
 [data-fill="chrome-cell"] { background-color: #EAEAEA !important; border-color: #E0E0E0 !important; box-shadow: inset 0 1px 2px rgba(0,0,0,0.04); }
-[data-fill="chrome-key"], [data-fill="chrome-key-on"] { border: 1.5px solid #161616 !important; background-image: linear-gradient(180deg, #E5E5E5 0%, #D3D3D3 100%) !important; transition: box-shadow .12s ease, transform .12s ease;
-  box-shadow: inset 0 0 0 2px #FAFAFA, inset 0 0 0 3.5px #9C9C9C, inset 0 0 0 5px #ECECEC, inset 5px 5px 8px rgba(255,255,255,0.85), inset -4px -5px 8px rgba(0,0,0,0.15), 0 14px 22px -10px rgba(0,0,0,0.42), 0 2px 3px rgba(0,0,0,0.14); }
-[data-fill="chrome-key"]:hover { background-image: linear-gradient(180deg, #EAEAEA 0%, #D8D8D8 100%) !important; }
-[data-fill="chrome-key"]:active, [data-fill="chrome-key-on"] { background-image: linear-gradient(180deg, #D6D6D6 0%, #E2E2E2 100%) !important;
-  box-shadow: inset 0 0 0 2px #F2F2F2, inset 0 0 0 3.5px #8E8E8E, inset 0 0 0 5px #E4E4E4, inset 0 4px 8px rgba(0,0,0,0.18), 0 4px 8px -4px rgba(0,0,0,0.3); }
 /* Glass ball (Juicy "Taste mix" recipe). */
 [data-fill="ball"] { background-image: radial-gradient(circle at 50% 42%, #FFFFFF 0%, #F1EEF6 55%, #DAD4E6 100%) !important; }
 [data-fill="ball"][data-tone="lilac"] { background-image: radial-gradient(circle at 50% 42%, #FBFAFE 0%, #E7E2F3 55%, #C9C0E0 100%) !important; }

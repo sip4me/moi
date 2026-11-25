@@ -7,10 +7,11 @@ import { openPortal } from '../../lib/billing';
 import { Btn, Bubble, Heading, Shell, SYS, useWide } from '../../components/routine/Kit';
 import { Logo } from '../../components/ui';
 import { haptic } from '../../lib/haptics';
-import { checkoutRoutine, countdown, FOUNDING_CAP, refreshAccess, ROUTINE_PLANS, useAccess, useFounding, useOffer, type RoutinePlan } from '../../lib/routine/access';
+import { checkoutRoutine, countdown, FOUNDING_CAP, refreshAccess, ROUTINE_PLANS, spinOffer, useAccess, useFounding, useOffer, type RoutinePlan } from '../../lib/routine/access';
+import { useWheel, Wheel, WheelNote } from '../../components/routine/Wheel';
 import { analyze, gapArea, picksFor } from '../../lib/routine/gaps';
 import { shouldLine } from '../../lib/routine/looks';
-import { hasInfo, useCatalog, useRoutine } from '../../lib/routine/model';
+import { hasInfo, resetRoutine, setRoutine, useCatalog, useRoutine } from '../../lib/routine/model';
 import { fill } from '../../lib/routine/shine';
 import { useStore } from '../../state/store';
 import { LINKS } from '../../config';
@@ -27,7 +28,8 @@ export default function Plans() {
   const a = useAccess();
   const f = useFounding();
   const founding = f?.open ?? true;
-  const [pick, setPick] = useState<RoutinePlan>('routine_founder');
+  // The launch offer leads with one plan: $4 a month.
+  const pick: RoutinePlan = 'routine_monthly';
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [justPaid, setJustPaid] = useState(false);
@@ -56,16 +58,26 @@ export default function Plans() {
 
   // Payment didn't go through: back from Stripe without paying, or checkout couldn't open.
   const [failed, setFailed] = useState<'' | 'cancel' | 'error'>(status === 'cancel' ? 'cancel' : '');
-  const buy = async (plan?: RoutinePlan) => {
+  const buy = async (plan?: RoutinePlan, spin = false) => {
     setBusy(true); setErr(''); setFailed('');
     try {
-      const r = await checkoutRoutine(plan ?? (offer.open ? pick : 'routine_standard'));
+      const r = await checkoutRoutine(plan ?? (offer.open ? pick : 'routine_standard'), spin);
       if (r === 'test') { haptic('success'); setJustPaid(true); }
     } catch { setFailed('error'); haptic('tap'); }
     setBusy(false);
   };
   const help = () => Linking.openURL(LINKS.contact);
   const [skipDecline, setSkipDecline] = useState(false);
+  // "Not now": a discount wheel first; turning that down too warns that the routine won't be kept.
+  const [stage, setStage] = useState<'' | 'wheel' | 'won' | 'leave'>('');
+  const [won, setWon] = useState<number | null>(null);
+  const wheel = useWheel();
+  const spin = async () => {
+    setErr('');
+    try { const r = await spinOffer(); if (r.again) { setWon(r.percent); setStage('won'); return; } wheel.spinTo(r.percent, () => { setWon(r.percent); setStage('won'); haptic('success'); }); }
+    catch { setErr('The wheel couldn’t spin. Check your connection and try again.'); }
+  };
+  const leave = () => { resetRoutine(); setRoutine(r => ({ ...r, welcomed: true })); router.replace('/routine'); };
 
   const H = { fontFamily: SYS ?? F.bold, fontWeight: '700' as const, fontSize: wide ? 28 : 23, lineHeight: wide ? 33 : 28, letterSpacing: -0.6, color: '#111114', textAlign: 'center' as const };
   const G = { dataSet: { grad: 'title' } } as any; // the steel-to-ink title gradient used on every page
@@ -106,18 +118,26 @@ export default function Plans() {
     );
   }
   // Result screens: confirming, still processing, didn't go through. Same layout as the celebration.
-  const result = (o: { dim?: boolean; spin?: boolean; title: string; sub: string; main?: { label: string; on: () => void }; alt?: { label: string; on: () => void } }) => (
+  const textBtn = (label: string, on: () => void, danger?: boolean) => (
+    <Pressable onPress={on} accessibilityRole="button" hitSlop={8}
+      style={({ pressed, focused }: any) => ({ paddingVertical: 6, paddingHorizontal: 10, borderRadius: 10, opacity: pressed ? 0.6 : 1, ...(focused ? { outlineStyle: 'solid', outlineWidth: 2, outlineColor: '#5F4FC4' } : {}) } as any)}>
+      {({ hovered }: any) => <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 15, color: danger ? '#B42318' : '#111114', textDecorationLine: hovered ? 'underline' : 'none' }}>{label}</Text>}
+    </Pressable>
+  );
+  const result = (o: { dim?: boolean; spin?: boolean; title: string; sub: string; main?: { label: string; on: () => void; off?: boolean }; alt?: { label: string; on: () => void; danger?: boolean }; art?: React.ReactNode; note?: React.ReactNode }) => (
     <Shell active="plans" glass
       footer={o.main ? <View style={{ width: wide ? 420 : '100%', gap: 12, alignItems: 'center' }}>
-        <View style={{ width: '100%' }}><Btn label={busy ? 'Opening checkout…' : o.main.label} onPress={busy ? undefined : o.main.on} /></View>
-        {o.alt ? <Pressable onPress={o.alt.on} accessibilityRole="button" hitSlop={8}><Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 15, color: '#111114' }}>{o.alt.label}</Text></Pressable> : null}
+        <View style={{ width: '100%' }}><Btn label={busy ? 'Opening checkout…' : o.main.label} disabled={busy || o.main.off} onPress={busy || o.main.off ? undefined : o.main.on} /></View>
+        {o.alt ? textBtn(o.alt.label, o.alt.on, o.alt.danger) : null}
       </View> : undefined}>
-      <View style={{ alignItems: 'center', gap: 14, maxWidth: 420, alignSelf: 'center', width: '100%', marginTop: 28, paddingVertical: 28, paddingHorizontal: 22, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.38)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.65)', ...({ backdropFilter: 'blur(22px) saturate(140%)', WebkitBackdropFilter: 'blur(22px) saturate(140%)' } as any) }}>
-        <Image source={crown} resizeMode="contain" style={{ width: 84, height: 84, transform: [{ rotate: '-14deg' }], opacity: o.dim ? 0.35 : 1 }} />
+      <View style={{ alignItems: 'center', gap: 14, maxWidth: 420, alignSelf: 'center', width: '100%', marginTop: 28, paddingVertical: 28, paddingHorizontal: 22, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.92)', borderWidth: 1, borderColor: 'rgba(17,17,20,0.08)' }}>
+        {o.art ?? <Image source={crown} resizeMode="contain" style={{ width: 84, height: 84, transform: [{ rotate: '-14deg' }], opacity: o.dim ? 0.35 : 1 }} />}
         {o.spin ? <ActivityIndicator color={C.gray} /> : null}
         <Text {...G} style={[H, { fontSize: 23, lineHeight: 28 }]}>{o.title}</Text>
         <Text style={[small, { fontSize: 14, lineHeight: 20, color: '#4A4858' }]}>{o.sub}</Text>
-        {o.main && o.alt?.on !== help ? <Pressable onPress={help} accessibilityRole="link" hitSlop={8}><Text style={[small, { textDecorationLine: 'underline' }]}>Need help? hello@usemoi.com</Text></Pressable> : null}
+        {o.note}
+        {err && o.art ? <Text accessibilityRole="alert" style={{ fontFamily: F.semibold, fontSize: 13, color: '#B42318', textAlign: 'center' }}>{err}</Text> : null}
+        {o.main && o.alt?.on !== help && !o.art && !o.alt?.danger ? <Pressable onPress={help} accessibilityRole="link" hitSlop={8}><Text style={[small, { textDecorationLine: 'underline' }]}>Need help? hello@usemoi.com</Text></Pressable> : null}
       </View>
     </Shell>
   );
@@ -147,12 +167,35 @@ export default function Plans() {
     });
   }
 
+  if (stage === 'wheel') return result({
+    art: <Wheel turn={wheel.turn} />, title: 'Before you go, spin for a discount', sub: 'Every slice is real: 20%, 30% or 50% off your first payment.', note: <WheelNote />,
+    main: { label: wheel.spinning ? 'Spinning…' : 'Spin the wheel', on: spin, off: wheel.spinning },
+    alt: wheel.spinning ? undefined : { label: 'No thanks', on: () => setStage('leave') },
+  });
+  if (stage === 'won' && won) {
+    const base = ROUTINE_PLANS[offer.open ? pick : 'routine_standard'];
+    const cents = { routine_monthly: 400, routine_founder: 2400, routine_yearly: 2400, routine_standard: 1000 }[offer.open ? pick : 'routine_standard'];
+    const now = `$${((cents * (100 - won)) / 10000).toFixed(2)}`;
+    return result({
+      art: <View style={{ paddingHorizontal: 18, paddingVertical: 10, borderRadius: 16, backgroundColor: '#111114' }}><Text style={{ fontFamily: SYS ?? F.bold, fontWeight: '800', fontSize: 34, color: '#F0A6BE' }}>{`${won}% OFF`}</Text></View>,
+      title: `You won ${won}% off`,
+      sub: `Your first payment is ${now} instead of ${base.price}. Then ${base.price} ${cents >= 2400 ? 'a year' : 'a month'}, cancel anytime.`,
+      main: { label: `Claim ${won}% off`, on: () => buy(offer.open ? pick : 'routine_standard', true) },
+      alt: { label: 'No thanks', on: () => setStage('leave') },
+    });
+  }
+  if (stage === 'leave') return result({
+    dim: true, title: 'Leave without saving?', sub: 'The routine you were building won’t be saved. Royal keeps it, with your picks, on any device.',
+    main: { label: 'Keep my routine', on: () => setStage(won ? 'won' : '') },
+    alt: { label: 'Leave anyway', on: leave, danger: true },
+  });
+
   // Figma "34 · Paywall": one headline, a phone showing their own plan, one button, one price line.
   // Launch offer: 3 days from their first look at this page. After it ends, the plan is $10 a month.
   const offerOn = offer.open;
   const plan: RoutinePlan = offerOn ? pick : 'routine_standard';
   const p = ROUTINE_PLANS[plan];
-  const yearly = plan === 'routine_founder';
+  const yearly = (plan as string) === 'routine_founder';
   const off = yearly ? 80 : 60; // $24/yr vs $120/yr, $4/mo vs $10/mo
   // Same gaps the report shows: only ones with something to buy (clashes carry advice).
   const gaps = hasInfo(s) ? analyze(s, cat).gaps.filter(g => g.kind === 'clash' || picksFor(g, s, cat, 1).length > 0) : [];
@@ -164,7 +207,8 @@ export default function Plans() {
     <Shell active="plans"
       footer={<View style={{ width: wide ? 420 : '100%', gap: 10, alignItems: 'center' }}>
         <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 16, color: '#111114' }}>{`✓  ${!offerOn ? 'Unlimited searches · Cancel anytime' : yearly && founding ? 'Lifetime database access' : 'Cancel anytime'}`}</Text>
-        <View style={{ width: '100%' }}><Btn label={busy ? 'Opening checkout…' : 'Continue'} onPress={busy ? undefined : () => buy()} /></View>
+        <View style={{ width: '100%' }}><Btn label={busy ? 'Opening checkout…' : 'Continue'} disabled={busy} onPress={busy ? undefined : () => buy()} /></View>
+        {textBtn('Not now', () => setStage('wheel'))}
       </View>}>
       <View style={{ alignItems: 'center', gap: 18, maxWidth: 520, alignSelf: 'center', width: '100%' }}>
         <Pressable onPress={() => router.push({ pathname: '/sign-in', params: { mode: 'signin', next: '/routine/plans' } })} accessibilityRole="button" style={{ alignSelf: 'flex-end' }} hitSlop={8}>
@@ -212,7 +256,6 @@ export default function Plans() {
               <View style={{ height: 4, borderRadius: 2, backgroundColor: '#ECEEF2' }}><View style={{ height: 4, borderRadius: 2, width: `${after}%`, backgroundColor: '#3FA45B' }} /></View>
             </View> : null}
           </View>
-          <View style={{ height: 30, borderRadius: 15, backgroundColor: '#111114', alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 11, color: '#fff' }}>Let’s get started!</Text></View>
         </View>
         <View style={{ alignItems: 'center', gap: 6 }}>
           {offerOn ? (
@@ -221,9 +264,6 @@ export default function Plans() {
                 <Text style={{ textDecorationLine: 'line-through', color: '#8E9298' }}>{yearly ? '$120/year' : '$10/month'}</Text>
                 {yearly ? `  Just ${p.price}/year ($2/mo)` : `  Just ${p.price}/month`}
               </Text>
-              <Pressable onPress={() => { haptic('select'); setPick(yearly ? 'routine_monthly' : 'routine_founder'); }} accessibilityRole="button" hitSlop={8}>
-                <Text style={[small, { fontSize: 13, textDecorationLine: 'underline' }]}>{yearly ? `Prefer monthly? ${ROUTINE_PLANS.routine_monthly.price}/month` : `Switch to yearly · ${ROUTINE_PLANS.routine_founder.price}/year`}</Text>
-              </Pressable>
             </>
           ) : <Text style={small}>{`${p.price}/month · Unlimited searches`}</Text>}
         </View>

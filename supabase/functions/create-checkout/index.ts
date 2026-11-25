@@ -39,7 +39,7 @@ Deno.serve(async req => {
     const token = req.headers.get('Authorization')?.replace('Bearer ', '') ?? '';
     const { data: { user } } = await db.auth.getUser(token);
     if (!user) return json({ error: 'Sign in first' }, 401);
-    const body = await req.json().catch(() => ({})) as { plan?: string };
+    const body = await req.json().catch(() => ({})) as { plan?: string; spin?: boolean };
     let plan = body.plan;
     if (!plan || !PLANS.has(plan)) return json({ error: 'Unknown plan' }, 400);
     const routine = plan.startsWith('routine_');
@@ -75,6 +75,16 @@ Deno.serve(async req => {
       customer = c.id as string;
       await db.from('subscriptions').upsert({ user_id: user.id, stripe_customer_id: customer, updated_at: new Date().toISOString() });
     }
+    // The "Not now" wheel: the discount the server spun for this account, once, off the first payment.
+    let discount: Record<string, string> = {};
+    if (body.spin && routine) {
+      const { data: sp } = await db.from('offer_spins').select('percent, used_at').eq('user_id', user.id).maybeSingle();
+      if (sp && !sp.used_at && [20, 30, 50].includes(sp.percent)) {
+        const id = `moi_wheel_${sp.percent}`;
+        try { await stripe(`coupons/${id}`); } catch { await stripe('coupons', { id, percent_off: String(sp.percent), duration: 'once', name: `${sp.percent}% off your first payment` }); }
+        discount = { 'discounts[0][coupon]': id };
+      }
+    }
     // Only one free trial per person.
     const hadTrial = row && row.status !== 'none';
 
@@ -88,6 +98,8 @@ Deno.serve(async req => {
       'subscription_data[metadata][user_id]': user.id,
       'subscription_data[metadata][plan]': plan,
       'metadata[plan]': plan,
+      ...discount,
+      ...(discount['discounts[0][coupon]'] ? { 'metadata[wheel]': discount['discounts[0][coupon]'] } : {}),
       payment_method_collection: 'always',
       success_url: routine ? `${SITE}/routine/plans?status=success` : `${SITE}/checkout?status=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: routine ? `${SITE}/routine/plans?status=cancel&plan=${plan}` : `${SITE}/checkout?status=cancel`,

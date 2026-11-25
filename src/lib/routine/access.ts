@@ -53,16 +53,26 @@ export function useAccess() {
 const open = (url: string) => (Platform.OS === 'web' ? window.location.assign(url) : Linking.openURL(url));
 
 /** Opens Stripe Checkout. Returns 'test' when Stripe isn't switched on yet: access is then unlocked on this device. */
-export async function checkoutRoutine(plan: RoutinePlan): Promise<'opened' | 'test'> {
+export async function checkoutRoutine(plan: RoutinePlan, spin = false): Promise<'opened' | 'test'> {
   const sb = supabase();
   if (!sb) { setRoutine(r => ({ ...r, testUnlock: plan, saved: true })); return 'test'; }
   await ensureUser();
-  const { data, error } = await sb.functions.invoke<{ configured: boolean; url?: string; error?: string }>('create-checkout', { body: { plan } });
+  const { data, error } = await sb.functions.invoke<{ configured: boolean; url?: string; error?: string }>('create-checkout', { body: { plan, ...(spin ? { spin: true } : {}) } });
   if (error) throw error;
   if (!data?.configured) { setRoutine(r => ({ ...r, testUnlock: plan, saved: true })); return 'test'; }
   if (!data.url) throw new Error(data.error ?? 'Checkout unavailable');
   open(data.url);
   return 'opened';
+}
+
+/** The "Not now" wheel: the server spins once per account and keeps the result; checkout applies it. */
+export async function spinOffer(): Promise<{ percent: 20 | 30 | 50; again: boolean }> {
+  const sb = supabase();
+  if (!sb) return { percent: 30, again: false }; // test build without a backend
+  await ensureUser();
+  const { data, error } = await sb.functions.invoke<{ percent?: number; again?: boolean; error?: string }>('spin-offer', { body: {} });
+  if (error || !data?.percent) throw error ?? new Error(data?.error ?? 'Spin failed');
+  return { percent: data.percent as 20 | 30 | 50, again: !!data.again };
 }
 
 // ── Counters ──────────────────────────────────────────────────────────────────

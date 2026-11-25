@@ -67,7 +67,7 @@ export default function Picks() {
   );
 
   return (
-    <Shell silver active="shop" side={wide ? <View style={{ paddingTop: 64 }}>{summary}</View> : undefined}>
+    <Shell silver active="shop" side={wide && bag.length ? <View style={{ paddingTop: 64 }}>{summary}</View> : undefined}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/routine/shop'))} accessibilityRole="button" accessibilityLabel="Back" hitSlop={10}
           style={({ hovered }: any) => ({ width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: hovered ? 'rgba(255,255,255,0.5)' : 'transparent' })}>
@@ -130,14 +130,14 @@ export default function Picks() {
             </SilverCard>
           );
         })}
-        {!bag.length ? <SilverCard><Text style={{ fontFamily: SYS ?? F.medium, fontSize: 16, color: SILVER.label }}>No picks yet.</Text></SilverCard> : null}
+        {!bag.length ? <SilverCard><Text style={{ fontFamily: SYS ?? F.medium, fontSize: 16, color: SILVER.ink }}>No picks yet. Add products from your gaps and they’ll show here.</Text></SilverCard> : null}
 
         <SilverCard style={{ paddingVertical: 18 }}>
           <LabelValue label={answers || areaLabel} value="Edit" onPress={() => router.push('/routine/about')} />
         </SilverCard>
 
-        {!wide ? summary : null}
-        <ChromeButton label="Save to my routine" onPress={saveAll} disabled={!bag.length} />
+        {!wide && bag.length ? summary : null}
+        {bag.length ? <ChromeButton label="Save to my routine" onPress={saveAll} /> : null}
         <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 12, lineHeight: 18, color: '#7A7A7A', textAlign: 'center' }}>
           {`You buy from the store, at the store’s price. ${HAS_AFFILIATE ? AFFILIATE_NOTE : ''}`}
         </Text>

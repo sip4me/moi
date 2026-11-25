@@ -104,8 +104,10 @@ Deno.serve(async req => {
   try {
     if (event.type.startsWith('customer.subscription.')) await save(event.data.object as unknown as Sub);
     if (event.type === 'checkout.session.completed') {
-      const s = event.data.object as { subscription?: string; customer?: string; client_reference_id?: string };
+      const s = event.data.object as { subscription?: string; customer?: string; client_reference_id?: string; metadata?: Record<string, string> };
       if (s.client_reference_id && s.customer) await db.from('subscriptions').upsert({ user_id: s.client_reference_id, stripe_customer_id: s.customer, stripe_subscription_id: s.subscription ?? null, updated_at: new Date().toISOString() });
+      // A wheel discount is good for one checkout.
+      if (s.client_reference_id && s.metadata?.wheel) await db.from('offer_spins').update({ used_at: new Date().toISOString() }).eq('user_id', s.client_reference_id);
       // The receipt never blocks unlocking: a failed email is logged, not retried by Stripe.
       await sendReceipt(event.data.object as unknown as Session).catch(e => console.error('receipt', e));
     }

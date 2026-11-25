@@ -100,6 +100,8 @@ export default function Chat() {
   };
   const host = (url: string) => { try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return 'the brand’s site'; } };
 
+  // Two products at a time; "See more" opens the rest of that message's picks.
+  const [more, setMore] = useState<Record<string, boolean>>({});
   const ring = (focused?: boolean) => (focused ? ({ outlineStyle: 'solid', outlineWidth: 2, outlineColor: '#5F4FC4', outlineOffset: 2 } as any) : null);
   const T = { fontFamily: SYS ?? F.medium, fontSize: 14, lineHeight: 20, color: '#1D1D22' };
   const chip = (label: string, on: boolean, onPress: () => void, dark?: boolean) => (
@@ -204,7 +206,15 @@ export default function Chat() {
             <Image source={crown} style={{ width: 28, height: 28, marginTop: 4 }} resizeMode="contain" />
             <View style={{ flex: 1, gap: 12, padding: 16, borderRadius: 20, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: 'rgba(17,17,20,0.10)' }}>
               {m.text ? <Text style={T}>{m.text}</Text> : null}
-              {m.cards?.length ? <View style={{ gap: 14 }}>{m.cards.map(card)}<Text style={{ fontFamily: F.regular, fontSize: 11, lineHeight: 15, color: '#6C6F7A' }}>{`${m.cards.some(x => x.source === 'moi' || (x as any).amazon) ? 'As an Amazon Associate, Moi earns from qualifying purchases. ' : ''}${m.cards.some(x => x.source === 'web') ? 'Web finds aren’t checked by Moi; the brand’s site has the current details.' : 'The store shows the current price.'}`}</Text></View> : null}
+              {m.cards?.length ? <View style={{ gap: 14 }}>{(more[m.id] ? m.cards : m.cards.slice(0, 2)).map(card)}
+                {m.cards.length > 2 ? (
+                  <Pressable onPress={() => setMore(x => ({ ...x, [m.id]: !x[m.id] }))} accessibilityRole="button" accessibilityState={{ expanded: !!more[m.id] }}
+                    accessibilityLabel={more[m.id] ? 'Show fewer products' : `See ${m.cards.length - 2} more product${m.cards.length - 2 === 1 ? '' : 's'}`}
+                    style={({ hovered, pressed, focused }: any) => ({ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 40, borderRadius: 12, backgroundColor: pressed ? '#E9E9EE' : hovered ? '#F1F1F4' : '#F6F6F8', borderWidth: 1, borderColor: 'rgba(17,17,20,0.10)', ...ring(focused) })}>
+                    <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 13, color: '#111114' }}>{more[m.id] ? 'Show less' : `See ${m.cards.length - 2} more`}</Text>
+                    <Svg width={14} height={14} viewBox="0 0 24 24" style={{ transform: [{ rotate: more[m.id] ? '180deg' : '0deg' }] }}><Path d="M6 9.5l6 6 6-6" stroke="#111114" strokeWidth={2.4} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
+                  </Pressable>
+                ) : null}<Text style={{ fontFamily: F.regular, fontSize: 11, lineHeight: 15, color: '#6C6F7A' }}>{`${m.cards.some(x => x.source === 'moi' || (x as any).amazon) ? 'As an Amazon Associate, Moi earns from qualifying purchases. ' : ''}${m.cards.some(x => x.source === 'web') ? 'Web finds aren’t checked by Moi; the brand’s site has the current details.' : 'The store shows the current price.'}`}</Text></View> : null}
               {/* Tap answers: only on the latest message. */}
               {m.local === 'photo' ? <View style={{ flexDirection: 'row' }}>{chip('Upload inspiration', false, sendPhoto, true)}</View> : null}
               {m === last && m.local === 'area' ? (

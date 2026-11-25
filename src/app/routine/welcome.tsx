@@ -203,8 +203,8 @@ export default function Welcome() {
             </Animated.View>
           </Animated.View>
         </View>
-        {/* The live count, as a long quiet bar at the bottom. */}
-        {members != null ? (
+        {/* The live count, as a long quiet bar at the bottom. Hidden until it's a number worth showing. */}
+        {members != null && members >= 10 ? (
           <View {...fill('glass-bar')} style={{ alignSelf: 'center', width: Math.min(360, W - 40), flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 8, paddingHorizontal: 14, marginBottom: 10, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.55)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.7)' }}>
             <Image source={COIN_CROWN} style={{ width: 18, height: 18 }} resizeMode="contain" />
             <Text style={{ fontFamily: F.medium, fontSize: 12, color: '#2A2F45' }}>

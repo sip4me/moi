@@ -30,7 +30,7 @@ export function GlassBackdrop({ anchor }: { anchor?: { w: number; h: number } })
     </Animated.View>
   );
   return (
-    <View {...fill('glass-bg')} pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, backgroundColor: '#B7AFC2' }}>
+    <View {...fill('glass-bg')} pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, overflow: 'hidden', backgroundColor: '#B7AFC2' }}>
       {orb(cw * 0.72, cx - cw * 0.26, cy - ch * 0.1, 'g1', '#E8A06B', '#C8164E', 10, 8)}
       {orb(cw * 0.66, Math.min(cx + cw * 0.62, W - cw * 0.66 * 0.62), cy + ch * 0.24, 'g2', '#C996A8', '#5E9468', -8, 10)}
       {orb(cw * 0.46, cx - cw * 0.04, cy + ch * 0.74, 'g3', '#F4A38C', '#E06B4F', 8, -6)}
