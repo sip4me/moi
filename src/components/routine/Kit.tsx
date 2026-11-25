@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, usePathname } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Svg, { Path } from 'react-native-svg';
 import { ActivityIndicator, Animated, Platform, Easing, Image, Linking, Modal, Pressable, ScrollView, type ScrollViewInstance, StyleSheet, Text, TextInput, useWindowDimensions, View, type ViewStyle } from 'react-native';
@@ -49,6 +49,20 @@ const NAV = [
 function useGo() {
   const { onboarded } = useStore();
   return (href: string) => (href === 'tracker' ? router.push((onboarded ? '/(tabs)' : '/onboarding') as any) : router.push(href as any));
+}
+
+/** "Ask Moi": opens the chat from any screen. A quiet white pill with a speech-bubble icon; hidden on the chat itself. */
+export function AskMoi({ style }: { style?: ViewStyle }) {
+  return (
+    <Pressable onPress={() => { haptic(); router.push('/routine/chat'); }} accessibilityRole="button" accessibilityLabel="Ask Moi" accessibilityHint="Opens a chat with Moi"
+      style={({ hovered, pressed, focused }: any) => [{ flexDirection: 'row', alignItems: 'center', gap: 7, height: 40, paddingHorizontal: 14, borderRadius: 20,
+        backgroundColor: pressed ? '#ECECEF' : hovered ? '#F6F6F8' : '#FFFFFF', borderWidth: 1, borderColor: hovered ? 'rgba(17,17,20,0.30)' : 'rgba(17,17,20,0.14)',
+        shadowColor: '#1F2430', shadowOpacity: 0.12, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, transform: [{ scale: pressed ? 0.97 : 1 }],
+        ...(focused ? ({ outlineStyle: 'solid', outlineWidth: 2, outlineColor: '#5F4FC4', outlineOffset: 2 } as object) : {}) }, style]}>
+      <Svg width={17} height={17} viewBox="0 0 24 24"><Path d="M4 5.5h16v10H10l-4.5 3.5V15.5H4z" stroke="#111114" strokeWidth={1.9} fill="none" strokeLinejoin="round" /><Path d="M8.5 10.5h.01M12 10.5h.01M15.5 10.5h.01" stroke="#111114" strokeWidth={2.6} strokeLinecap="round" /></Svg>
+      <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 14, color: '#111114' }}>Ask Moi</Text>
+    </Pressable>
+  );
 }
 
 function MenuButton({ onPress, hint }: { onPress: () => void; hint: boolean }) {
@@ -119,6 +133,7 @@ export function Shell({ active, children, side, footer, step, hideNav, glass, si
   const r = useRoutine();
   const toasting = useToasting();
   const [menu, setMenu] = useState(false);
+  const path = usePathname();
   const openMenu = () => { setMenu(true); if (!r.menuSeen) setRoutine(x => ({ ...x, menuSeen: true })); };
   const top = (
     <View style={[st.topBar, wide && { paddingHorizontal: 32, paddingTop: 24 }]}>
@@ -126,6 +141,7 @@ export function Shell({ active, children, side, footer, step, hideNav, glass, si
       <View style={{ flex: 1 }} />
       {r.bag.length ? <BagPill n={r.bag.reduce((t, k) => t + Math.max(1, r.qty?.[k] ?? 1), 0)} /> : null}
       {step && !toasting ? <Text style={[st.meta, r.bag.length ? { marginLeft: 12 } : null]}>{step}</Text> : null}
+      {path !== '/routine/chat' ? <AskMoi style={{ marginLeft: 12 }} /> : null}
     </View>
   );
   const scrollRef = useRef<ScrollViewInstance>(null);

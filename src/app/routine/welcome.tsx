@@ -5,6 +5,7 @@ import Svg, { Circle, Defs, LinearGradient, Path, Stop } from 'react-native-svg'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMembers } from '../../lib/routine/access';
 import { Logo } from '../../components/ui';
+import { AskMoi } from '../../components/routine/Kit';
 import { haptic } from '../../lib/haptics';
 import { fill } from '../../lib/routine/shine';
 import { session, setRoutine } from '../../lib/routine/model';
@@ -135,6 +136,8 @@ export default function Welcome() {
       {orb(cw * 0.66, Math.min(cx + cw * 0.62, W - cw * 0.66 * 0.62), cy + ch * 0.24, 'o2', '#C996A8', '#5E9468', -8, 10)}
       {orb(cw * 0.46, cx - cw * 0.04, cy + ch * 0.74, 'o3', '#F4A38C', '#E06B4F', 8, -6)}
       <SafeAreaView style={{ flex: 1, zIndex: 2 }}>
+        {/* Talk to Moi straight from the front door. */}
+        <AskMoi style={{ position: 'absolute', top: 15, left: 16, zIndex: 3 }} />
         {/* Get started: straight to sign-up, then the questions. */}
         <Pressable {...fill('chrome-key')} onPress={() => { haptic(); session.started = true; setRoutine(r => ({ ...r, welcomed: true })); if (account && !account.anonymous) router.push('/routine/about'); else router.push({ pathname: '/sign-in', params: { mode: 'signup', next: '/routine/about' } }); }}
           accessibilityRole="button" accessibilityLabel="Get started"
