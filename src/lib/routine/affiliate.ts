@@ -15,7 +15,8 @@
 import type { Item } from './model';
 
 const env = (k: string) => (process.env as Record<string, string | undefined>)[k]?.trim() || '';
-const AMAZON_TAG = env('EXPO_PUBLIC_AMAZON_TAG');
+// Moi's Amazon Associates store ID (a public tracking tag, not a secret). The env value wins if set.
+const AMAZON_TAG = env('EXPO_PUBLIC_AMAZON_TAG') || 'moibeauty07-20';
 const TEMPLATES: Record<string, string> = {
   'Ulta Beauty': env('EXPO_PUBLIC_AFF_ULTA'),
   Target: env('EXPO_PUBLIC_AFF_TARGET'),
@@ -47,8 +48,9 @@ export function storeLinks(i: Item & { code?: string | null }): StoreLink[] {
   const code = (i.code ?? '').replace(/\D/g, '');
   const exact = code.length >= 8;
   const q = encodeURIComponent(exact ? code : `${i.brand} ${i.name}`.trim());
-  // Known ASIN: straight into the Amazon cart. Otherwise an exact barcode search.
-  const amazon = amazonCart([i]) ?? `https://www.amazon.com/s?k=${q}${AMAZON_TAG ? `&tag=${encodeURIComponent(AMAZON_TAG)}` : ''}`;
+    // Known ASIN (checked in stock): the product's own Amazon page. Otherwise an Amazon search. Both carry Moi's tag.
+  const tag = AMAZON_TAG ? `tag=${encodeURIComponent(AMAZON_TAG)}` : '';
+  const amazon = i.asin ? `https://www.amazon.com/dp/${encodeURIComponent(i.asin)}${tag ? `?${tag}` : ''}` : `https://www.amazon.com/s?k=${q}${tag ? `&${tag}` : ''}`;
   const raw: [string, string][] = [
     ['Amazon', amazon],
     ['Ulta Beauty', `https://www.ulta.com/search?search=${encodeURIComponent(`${i.brand} ${i.name}`.trim())}`],
@@ -58,7 +60,7 @@ export function storeLinks(i: Item & { code?: string | null }): StoreLink[] {
   return raw.map(([name, url]) => ({
     name,
     url: name === 'Amazon' ? url : wrap(name, url),
-    exact: exact && (name === 'Amazon' || name === 'Target'),
+    exact: (name === 'Amazon' && !!i.asin) || (exact && (name === 'Amazon' || name === 'Target')),
     tagged: name === 'Amazon' ? !!AMAZON_TAG : !!TEMPLATES[name],
   }));
 }
