@@ -92,6 +92,18 @@ const TOOLS = [
   },
 ];
 
+// Beauty brands and stores Moi favours for web finds (picked from the partner brand list).
+const WEB_BRANDS: Record<string, string[]> = {
+  makeup: ['Charlotte Tilbury', 'e.l.f. Cosmetics', 'Haus Labs', 'MAC Cosmetics', 'Nars', 'Merit', 'rhode', 'Tower28 Beauty', 'Trish McEvoy', 'Chantecaille', 'Clé de Peau Beauté', 'Givenchy Beauty', 'Christian Dior', 'Vieve', 'Kulfi Beauty', 'KAHI Beauty', 'Sigma Beauty'],
+  skincare: ['Drunk Elephant', "Paula's Choice", 'Clinique', "Kiehl's", 'Elta MD', 'Supergoop', 'Medik8', 'Dr. Dennis Gross', 'Dr. Barbara Sturm', 'Shiseido', 'Peter Thomas Roth', 'RoC Skincare', 'Neostrata', 'Mario Badescu', 'Origins US', 'CLEARSTEM', 'INNBEAUTY PROJECT', 'ALPYN Beauty', 'Oneskin', 'Grown Alchemist', 'Naturopathica', 'Lancer', 'Ogee', 'Borghese', 'Bime Beauty', 'AP Beauty'],
+  haircare: ['Olaplex', 'Briogeo', 'amika', 'OUAI', 'Bumble and bumble', 'Kérastase', 'Living Proof', 'Oribe', 'Davines', 'Aveda', 'Prose'],
+  fragrance: ['Sol De Janeiro', 'Backhouse Fragrances', 'Christian Dior', 'Givenchy Beauty', 'Apotheke'],
+  bath_body: ['Sol De Janeiro', 'Supergoop', 'Grown Alchemist', 'Apotheke'],
+  tools_devices: ['FOREO', 'GHD', 'Solawave', 'CurrentBody', 'LED Esthetics', 'iRestore', 'Dashing Diva'],
+  wellness: ['ARMRA', 'Ancient Nutrition', 'Tru Niagen', 'Oura', 'Ultrahuman', 'LARQ', 'Goop'],
+  stores: ['Sephora', 'Ulta Beauty', 'CurrentBody', 'FragranceNet.com', 'eCosmetics'],
+};
+
 const system = (ctx: string) => `You are Moi, a warm, sharp beauty routine assistant inside the Moi app. You help people build a hair, skin or makeup routine that fits their habits, budget and the looks they love.
 
 How you work:
@@ -103,7 +115,9 @@ How you work:
 - Supplements: suggest only widely sold, reputable products, describe what they're for in plain words, never promise results or health benefits, and add "check with your doctor first, especially if pregnant or on medication" whenever you show one. If they chose "Explore with Moi", pick freely across brands and include at least one they may not know yet.
 - If they send a photo, read the look in it (shades, finishes, placement) and refine your picks to match it, using shade_hex in search_products.
 - Recommend only real products: call search_products first and use its ids in reply.cards with source "moi". Moi's products come first, and among them prefer ones with on_amazon true. Respect their budget and must-haves.
-- Only if search_products has nothing that fits (or they ask for a specific brand Moi doesn't have), use web_search to find up to 3 products (spanning prices when no budget is set) on their product pages, and add each with source "web", its exact url, brand and name. Only mention products you include as cards. Never invent products or links; use only pages your search returned. Prefer Amazon product pages when the product is sold there. Never state prices for web products.
+- Moi's favourite brands for web finds (use them when picking from the web, best fit first, and include them in your picks when they suit the look and budget; their own site or one of the stores listed is the link, plain, no tag):
+${Object.entries(WEB_BRANDS).map(([k, v]) => `  ${k}: ${v.join(', ')}`).join('\n')}
+- Only if search_products has nothing that fits (or they ask for a specific brand Moi doesn't have, or a splurge pick from a favourite brand above rounds out the price range), use web_search to find up to 3 products (spanning prices when no budget is set) on their product pages, and add each with source "web", its exact url, brand and name. Only mention products you include as cards. Never invent products or links; use only pages your search returned. Prefer Amazon product pages when the product is sold there. Never state prices for web products.
 - If they type an answer to a question in their own words, record it in reply.save with the matching option. Only save what they actually said; never guess or infer answers.
 - They may also want help with fragrance, tools and devices, or wellness (their interests are in the context). Moi's database has few of these, so for them use web finds, only real product pages. For wellness, keep to habits and products, never health or medical advice.
 - Talk about the look and the routine, never about the person's identity or body. No medical claims.
@@ -130,8 +144,12 @@ async function searchProducts(input: { category: string; query?: string; shade_h
     const d = target && lab && (p.shade_conf ?? 0) >= 0.5 ? dE(target, lab) : null;
     const score = (d != null ? Math.max(0, 1 - d / 30) * 10 : 0) + (p.asin ? 4 : 0) + (input.finish && p.finish === input.finish ? 2 : 0) - (d != null && d > 20 ? (d - 20) / 3 : 0);
     return { p, d, score };
-  }).sort((a, b) => b.score - a.score).slice(0, 6);
-  return { products: rows.map(({ p, d }) => ({ id: p.id, brand: p.brand, name: p.name, shade: p.shade_name, finish: p.finish, price: p.price_usd, on_amazon: !!p.asin, ...(d != null ? { shade_match: matchLabel(d) } : {}) })) };
+  });
+  // When a colour is asked for, clearly different shades are left out as long as closer ones exist.
+  const close = rows.filter(r => r.d == null || r.d < 20);
+  const pool = target && close.some(r => r.d != null) ? close : rows;
+  const top = pool.sort((a, b) => b.score - a.score).slice(0, 6);
+  return { products: top.map(({ p, d }) => ({ id: p.id, brand: p.brand, name: p.name, shade: p.shade_name, finish: p.finish, price: p.price_usd, on_amazon: !!p.asin, ...(d != null ? { shade_match: matchLabel(d) } : {}) })) };
 }
 
 const AMAZON_TAG = Deno.env.get('AMAZON_TAG') ?? 'moibeauty07-20';
