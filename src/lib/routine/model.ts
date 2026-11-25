@@ -248,6 +248,8 @@ export function setRoutine(fn: (s: RoutineState) => RoutineState) {
   saveT = setTimeout(() => { AsyncStorage.setItem(KEY, JSON.stringify(state.saved || state.testUnlock ? state : { v: 2, welcomed: state.welcomed, menuSeen: state.menuSeen })).catch(() => {}); }, 250);
 }
 export const resetRoutine = () => setRoutine(() => initial());
+/** The routine right now (outside React), e.g. just after an answer was saved. */
+export const getRoutine = () => state;
 export function useRoutine() {
   return useSyncExternalStore(f => { subs.add(f); return () => { subs.delete(f); }; }, () => state, () => state);
 }
