@@ -45,16 +45,16 @@ const CSS = `
 /* Action keys (reference: silver-glass keypad). A chrome bevel that runs dark → bright → grey on the left and right
    sides, a flat grey square face in the middle (::before), a thin black outline and a soft shadow underneath. */
 [data-fill="garnet"], [data-fill="lilac"], [data-fill="chrome-key"], [data-fill="chrome-key-on"] { position: relative; isolation: isolate; overflow: hidden; border: 1.5px solid #141414 !important; background-color: #D6D6D6 !important;
-  background-image: linear-gradient(90deg, #6A6A6A 0px, #F7F7F7 3px, #CDCDCD 7px, #D9D9D9 12px, #D9D9D9 calc(100% - 12px), #CDCDCD calc(100% - 7px), #F7F7F7 calc(100% - 3px), #6A6A6A 100%), linear-gradient(180deg, #F2F2F2 0px, #D9D9D9 6px, #D9D9D9 calc(100% - 6px), #A9A9A9 100%) !important;
+  background-image: linear-gradient(90deg, #3E3E3E 0px, #FFFFFF 2.5px, #9A9A9A 5px, #F4F4F4 7.5px, #C4C4C4 10px, #D9D9D9 13px, #D9D9D9 calc(100% - 13px), #C4C4C4 calc(100% - 10px), #F4F4F4 calc(100% - 7.5px), #9A9A9A calc(100% - 5px), #FFFFFF calc(100% - 2.5px), #3E3E3E 100%), linear-gradient(180deg, #FFFFFF 0px, #E4E4E4 3px, #D9D9D9 7px, #D9D9D9 calc(100% - 6px), #8E8E8E 100%) !important;
   background-blend-mode: multiply, normal;
   box-shadow: 0 14px 22px -12px rgba(0,0,0,0.45), 0 3px 5px -2px rgba(0,0,0,0.18) !important;
   transition: box-shadow .14s ease, transform .14s ease, filter .14s ease; }
 [data-fill="garnet"]::before, [data-fill="lilac"]::before, [data-fill="chrome-key"]::before, [data-fill="chrome-key-on"]::before { content: ""; position: absolute; z-index: -1; inset: 5px 7px; border-radius: inherit; pointer-events: none;
-  background: linear-gradient(180deg, #DEDEDE 0%, #D6D6D6 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(0,0,0,0.06), 0 0 0 0.5px rgba(0,0,0,0.08); transition: background .14s ease; }
+  background: linear-gradient(180deg, #F1F1F1 0%, #E2E2E2 46%, #D3D3D3 54%, #DCDCDC 100%); box-shadow: inset 0 1.5px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(0,0,0,0.10), 0 0 0 0.5px rgba(0,0,0,0.12); transition: background .14s ease; }
 [data-fill="garnet"]:hover, [data-fill="lilac"]:hover, [data-fill="chrome-key"]:hover { filter: brightness(1.03); box-shadow: 0 16px 24px -12px rgba(0,0,0,0.5), 0 3px 6px -2px rgba(0,0,0,0.2) !important; }
-[data-fill="garnet"]:hover::before, [data-fill="lilac"]:hover::before, [data-fill="chrome-key"]:hover::before { background: linear-gradient(180deg, #E6E6E6 0%, #DCDCDC 100%); }
+[data-fill="garnet"]:hover::before, [data-fill="lilac"]:hover::before, [data-fill="chrome-key"]:hover::before { background: linear-gradient(180deg, #F7F7F7 0%, #E8E8E8 46%, #DADADA 54%, #E3E3E3 100%); }
 [data-fill="garnet"]:active, [data-fill="lilac"]:active, [data-fill="chrome-key"]:active, [data-fill="chrome-key-on"] { transform: translateY(1.5px); box-shadow: 0 5px 8px -5px rgba(0,0,0,0.35) !important; }
-[data-fill="garnet"]:active::before, [data-fill="lilac"]:active::before, [data-fill="chrome-key"]:active::before, [data-fill="chrome-key-on"]::before { background: linear-gradient(180deg, #CFCFCF 0%, #D9D9D9 100%); box-shadow: inset 0 2px 4px rgba(0,0,0,0.14); }
+[data-fill="garnet"]:active::before, [data-fill="lilac"]:active::before, [data-fill="chrome-key"]:active::before, [data-fill="chrome-key-on"]::before { background: linear-gradient(180deg, #CBCBCB 0%, #D6D6D6 50%, #DEDEDE 100%); box-shadow: inset 0 2px 5px rgba(0,0,0,0.18); }
 [data-fill="garnet"]:focus-visible, [data-fill="lilac"]:focus-visible, [data-fill="chrome-key"]:focus-visible { outline: 2px solid #5F4FC4; outline-offset: 3px; }
 [data-fill="garnet"][aria-disabled="true"], [data-fill="chrome-key"][aria-disabled="true"] { filter: grayscale(1) opacity(.55); box-shadow: none !important; }
 [data-fill="garnet"] div, [data-fill="lilac"] div, [data-fill="chrome-key"] div { color: #111114 !important; text-shadow: none !important; }
