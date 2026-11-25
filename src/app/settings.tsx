@@ -68,7 +68,7 @@ function Sheet({ open, title, body, confirm, danger, busy, error, onConfirm, onC
   );
 }
 
-type SheetKind = 'delete' | 'subscription' | 'signout' | 'soon' | 'health' | null;
+type SheetKind = 'affiliate' | 'delete' | 'subscription' | 'signout' | 'soon' | 'health' | null;
 
 export default function Settings() {
   const { answers, name, reminders, setReminder, account, reset } = useStore();
@@ -103,7 +103,7 @@ export default function Settings() {
 
   const signedIn = account && !account.anonymous;
   const who = account?.email ?? account?.phone ?? '';
-  const version = Constants.expoConfig?.version ?? '4.27.0';
+  const version = Constants.expoConfig?.version ?? '4.28.0';
   const hairProfile = [answers.texture, answers.length, answers.porosity && `${answers.porosity} porosity`].filter(Boolean).join(' · ');
 
   const open = (url: string) => (url ? openLink(url) : setSheet('soon'));
@@ -182,6 +182,7 @@ export default function Settings() {
         <Row first title="Terms of Use" onPress={() => open(LINKS.terms)} />
         <Row title="Privacy Policy" onPress={() => open(LINKS.privacy)} />
         <Row title="Health disclaimer" sub={HEALTH_SHORT} onPress={() => setSheet('health')} />
+        <Row title="Affiliate disclosure" sub="Moi earns from qualifying Amazon purchases" onPress={() => setSheet('affiliate')} />
         <Row title="Contact us" onPress={() => open(LINKS.contact)} right={<CopyIcon />} />
       </Group>
 
@@ -205,6 +206,7 @@ export default function Settings() {
         title="Sign out?" confirm="Sign out"
         body="Your plan stays saved to your account. Sign back in any time with your email." />
       <Sheet open={sheet === 'subscription'} onClose={close} confirm="Got it" title={subMsg.title} body={subMsg.body} />
+      <Sheet open={sheet === 'affiliate'} onClose={close} confirm="Got it" title="Affiliate disclosure" body={'As an Amazon Associate, Moi earns from qualifying purchases. If you buy after tapping a store link, we may earn a commission at no extra cost to you. Picks are based on your routine and goals, not commissions. Prices are estimates; the store shows the current price. Product photos come from Open Beauty Facts, not Amazon.'} />
       <Sheet open={sheet === 'health'} onClose={close} confirm="Got it" title="Health disclaimer" body={HEALTH_FULL.join('\n\n')} />
       <Sheet open={sheet === 'soon'} onClose={close} confirm="Got it"
         title="Coming soon" body="This page isn’t published yet. It will be ready before Moi launches." />

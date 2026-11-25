@@ -958,6 +958,12 @@ export function NeedInfo({ goals }: { goals: boolean }) {
   );
 }
 
+/** Amazon Associates disclosure: shown wherever Moi shows store links (Amazon requires it next to the links). */
+export const AFFILIATE_NOTE = 'As an Amazon Associate, Moi earns from qualifying purchases. Prices are Moi’s estimates; the store shows the current price.';
+export function AffiliateNote({ center }: { center?: boolean }) {
+  return <Text style={{ fontFamily: F.regular, fontSize: 11, lineHeight: 15, color: '#8E9298', textAlign: center ? 'center' : 'left' }}>{AFFILIATE_NOTE}</Text>;
+}
+
 export function WhereToBuy({ item }: { item: Item }) {
   return (
     <View style={st.wtb}>
@@ -967,6 +973,7 @@ export function WhereToBuy({ item }: { item: Item }) {
           <Text style={[st.meta, { color: BLUE, fontFamily: F.semibold }]}>Check price ↗</Text>
         </Pressable>
       ))}
+      <View style={{ paddingHorizontal: 14, paddingVertical: 10 }}><AffiliateNote /></View>
     </View>
   );
 }

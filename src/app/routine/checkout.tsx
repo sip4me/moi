@@ -4,7 +4,7 @@ import { Linking, Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { celebrate } from '../../components/routine/Celebrate';
 import { ChromeButton, ChromeKey, LabelValue, SILVER, SilverCard } from '../../components/routine/Chrome';
-import { Bubble, money, NeedInfo, ScoreBar, Shell, SYS, useWide } from '../../components/routine/Kit';
+import { AFFILIATE_NOTE, Bubble, money, NeedInfo, ScoreBar, Shell, SYS, useWide } from '../../components/routine/Kit';
 import { amazonCart, HAS_AFFILIATE, storeLinks } from '../../lib/routine/affiliate';
 import { lookNote } from '../../lib/routine/looks';
 import { analyze } from '../../lib/routine/gaps';
@@ -138,7 +138,7 @@ export default function Picks() {
         {!wide ? summary : null}
         <ChromeButton label="Save to my routine" onPress={saveAll} disabled={!bag.length} />
         <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 12, lineHeight: 18, color: '#7A7A7A', textAlign: 'center' }}>
-          {`You buy from the store, at the store's price.${HAS_AFFILIATE ? ' Moi may earn a commission from store links. As an Amazon Associate, Moi earns from qualifying purchases.' : ''}`}
+          {`You buy from the store, at the store’s price. ${HAS_AFFILIATE ? AFFILIATE_NOTE : ''}`}
         </Text>
       </View>
     </Shell>

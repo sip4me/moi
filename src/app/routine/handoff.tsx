@@ -3,7 +3,7 @@ import React from 'react';
 import { Linking, Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { celebrate } from '../../components/routine/Celebrate';
-import { Btn, Bubble, money, Shell, SYS, useWide } from '../../components/routine/Kit';
+import { AffiliateNote, Btn, Bubble, money, Shell, SYS, useWide } from '../../components/routine/Kit';
 import { storeLinks } from '../../lib/routine/affiliate';
 import { lookNote } from '../../lib/routine/looks';
 import { findByKey, itemKey, placeItems, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
@@ -53,6 +53,7 @@ export default function Handoff() {
           <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 14, lineHeight: 20, color: '#4B3F99' }}>{items[0] && lookNote(items[0], s) ? `${lookNote(items[0], s)} Once you confirm, Moi adds it to your routine and updates your fit.` : 'Once you confirm, Moi adds it to your routine and updates your fit.'}</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>{lock}<Text style={[t, { fontSize: 13, flex: 1 }]}>{`Paid securely to ${where}. Moi never sees your card without permission.`}</Text></View>
+        <AffiliateNote />
       </View>
     </View>
   );

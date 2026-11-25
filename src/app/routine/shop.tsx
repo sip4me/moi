@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Linking, Pressable, ScrollView, Text, View } from 'react-native';
-import { BLUE, Btn, ChipBtn, Heading, iconFor, Label, money, MorePicks, NeedInfo, Pill, Bubble, Panel, ScoreBar, SYS, Shell, st, useWide } from '../../components/routine/Kit';
+import { AffiliateNote, BLUE, Btn, ChipBtn, Heading, iconFor, Label, money, MorePicks, NeedInfo, Pill, Bubble, Panel, ScoreBar, SYS, Shell, st, useWide } from '../../components/routine/Kit';
 import { useAccess } from '../../lib/routine/access';
 import { celebrate } from '../../components/routine/Celebrate';
 import { analyze, hasMorePicks, profileOf, rankPicks, retailerLinks } from '../../lib/routine/gaps';
@@ -68,7 +68,7 @@ export default function Shop() {
           </View>
           <View style={{ flexDirection: 'row' }}><Text style={[T.name, { flex: 1 }]}>Estimated total</Text><Text style={T.price}>{`about ${money(Math.round(total(bag) * 100) / 100)}`}</Text></View>
           <Btn label="Your picks" onPress={() => router.push('/routine/checkout')} />
-          <Text style={[st.meta, { fontSize: 12, textAlign: 'center' }]}>Prices are estimates. You buy from the store.</Text>
+          <Text style={[st.meta, { fontSize: 12, textAlign: 'center' }]}>Prices are estimates. You buy from the store. As an Amazon Associate, Moi earns from qualifying purchases.</Text>
         </>
       ) : null}
     </View>
@@ -170,6 +170,7 @@ export default function Shop() {
           </Panel>
         ))}
       </View>
+      <AffiliateNote />
       <Text style={[T.meta, { fontSize: 11 }]}>{`Product data: Moi, Open Beauty Facts contributors (ODbL), California Safe Cosmetics Program (CC-BY)`}</Text>
     </Shell>
   );
