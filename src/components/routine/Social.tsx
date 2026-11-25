@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { setRoutine, type Area, type Item } from '../../lib/routine/model';
+import { BEAUTY_ROUTINES, setRoutine, type Area, type Item, type RoutineState } from '../../lib/routine/model';
 import { stepCount, type Page, type SharedStep } from '../../lib/routine/social';
 import { F } from '../../theme';
 import { Bubble, SYS } from './Kit';
@@ -59,26 +59,41 @@ export const CATEGORIES: { key: string; label: string; area?: Area }[] = [
 ];
 const CHAT_TYPE: Record<string, string> = { fragrance: 'Fragrance', tools: 'Tools & devices', wellness: 'Wellness' };
 
+/** The routines someone is working on: areas with at least one product added. */
+export function workingAreas(s: RoutineState): Area[] {
+  const has = (steps?: { item?: unknown }[]) => (steps ?? []).some(x => !!x.item);
+  const out: Area[] = [];
+  if (has(s.wash) || has(s.every) || s.occasions.some(o => has(s.occ[o]))) out.push('hair');
+  for (const r of BEAUTY_ROUTINES) if (has(s.beauty?.[r.key]) && !out.includes(r.area)) out.push(r.area);
+  return out;
+}
+
 /** The category row. `mode` build: switches which routine you're building; list: filters the list (via the cat param). */
-export function CategoryTabs({ active, mode, tab }: { active: string; mode: 'build' | 'list'; tab?: RoutineTab }) {
+export function CategoryTabs({ active, mode, tab, working = [] }: { active: string; mode: 'build' | 'list'; tab?: RoutineTab; working?: Area[] }) {
   const go = (c: (typeof CATEGORIES)[number]) => {
     if (CHAT_TYPE[c.key]) { router.push({ pathname: '/routine/chat', params: { type: CHAT_TYPE[c.key] } } as any); return; }
     if (mode === 'build') {
-      if (!c.area) return;
-      setRoutine(r => ({ ...r, areas: [c.area!] }));
-      router.replace({ pathname: '/routine/build', params: { area: c.area } });
+      // All categories: every routine they're working on, switched with the pills below.
+      const areas = c.area ? [c.area] : working.length ? working : null;
+      if (!areas) return;
+      setRoutine(r => ({ ...r, areas }));
+      router.replace({ pathname: '/routine/build', params: { area: areas[0] } });
       return;
     }
     router.replace({ pathname: '/routine/routines', params: { tab: tab ?? 'saved', ...(c.key === 'all' ? {} : { cat: c.key }) } });
   };
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 18, paddingVertical: 2 }}>
-      {CATEGORIES.filter(c => mode === 'list' || c.key !== 'all').map(c => {
+      {CATEGORIES.map(c => {
         const on = c.key === active;
+        const busy = mode === 'build' && !!c.area && working.includes(c.area);
         return (
           <Pressable key={c.key} onPress={() => go(c)} accessibilityRole="tab" accessibilityState={{ selected: on }} hitSlop={6}
             style={{ paddingVertical: 6, borderBottomWidth: 2, borderBottomColor: on ? '#111114' : 'transparent' }}>
-            <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: on ? '700' : '500', fontSize: 14, color: on ? '#111114' : '#5B5F6B' }}>{c.label}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+              <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: on ? '700' : '500', fontSize: 14, color: on ? '#111114' : '#5B5F6B' }}>{c.label}</Text>
+              {busy ? <View accessibilityLabel="in progress" style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: '#8B7BD8' }} /> : null}
+            </View>
           </Pressable>
         );
       })}

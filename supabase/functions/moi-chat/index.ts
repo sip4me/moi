@@ -6,6 +6,7 @@
 // Limits per day: FREE_PER_DAY messages, ROYAL_PER_DAY for paying members (public.usage_counts, kind 'chat').
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import QUESTIONS from './questions.json' with { type: 'json' };
+import SHADES from './shades.json' with { type: 'json' };
 
 const KEY = Deno.env.get('ANTHROPIC_API_KEY');
 const MODEL = 'claude-sonnet-5-5';
@@ -25,7 +26,7 @@ const CATS = [
   'shampoo', 'clarifying', 'conditioner', 'deep_conditioner', 'leave_in', 'heat_protectant', 'styler', 'oil', 'scalp_treatment', 'bond_builder', 'dry_shampoo', 'anti_dandruff',
 ];
 
-// ── Colour (CIELAB, ΔE76 is plenty for ranking a shortlist) ──────────────────
+// ── Colour (CIELAB, CIEDE2000, hue families) ──────────────────
 function hexToLab(hex: string): [number, number, number] | null {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex); if (!m) return null;
   const n = parseInt(m[1], 16);
@@ -35,8 +36,56 @@ function hexToLab(hex: string): [number, number, number] | null {
   const x = f((r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047), y = f(r * 0.2126 + g * 0.7152 + b * 0.0722), z = f((r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883);
   return [116 * y - 16, 500 * (x - y), 200 * (y - z)];
 }
-const dE = (a: number[], b: number[]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
-const matchLabel = (d: number) => (d < 4 ? 'same shade' : d < 8 ? 'very close' : d < 15 ? 'close' : 'different');
+/** CIEDE2000: how different two colours look to the eye (about 1 = just noticeable). */
+function dE(l1: number[], l2: number[]): number {
+  const [L1, a1, b1] = l1, [L2, a2, b2] = l2, rad = Math.PI / 180;
+  const C1 = Math.hypot(a1, b1), C2 = Math.hypot(a2, b2), Cm = (C1 + C2) / 2;
+  const G = 0.5 * (1 - Math.sqrt(Cm ** 7 / (Cm ** 7 + 25 ** 7)));
+  const ap1 = a1 * (1 + G), ap2 = a2 * (1 + G);
+  const Cp1 = Math.hypot(ap1, b1), Cp2 = Math.hypot(ap2, b2);
+  const hp = (b: number, a: number) => (b === 0 && a === 0 ? 0 : (Math.atan2(b, a) / rad + 360) % 360);
+  const h1 = hp(b1, ap1), h2 = hp(b2, ap2);
+  const dL = L2 - L1, dC = Cp2 - Cp1;
+  let dh = Cp1 * Cp2 === 0 ? 0 : h2 - h1; if (dh > 180) dh -= 360; else if (dh < -180) dh += 360;
+  const dH = 2 * Math.sqrt(Cp1 * Cp2) * Math.sin((dh / 2) * rad);
+  const Lm = (L1 + L2) / 2, Cpm = (Cp1 + Cp2) / 2;
+  let hm = h1 + h2; if (Cp1 * Cp2 !== 0) hm = Math.abs(h1 - h2) > 180 ? (h1 + h2 + (h1 + h2 < 360 ? 360 : -360)) / 2 : (h1 + h2) / 2;
+  const T = 1 - 0.17 * Math.cos((hm - 30) * rad) + 0.24 * Math.cos(2 * hm * rad) + 0.32 * Math.cos((3 * hm + 6) * rad) - 0.2 * Math.cos((4 * hm - 63) * rad);
+  const SL = 1 + (0.015 * (Lm - 50) ** 2) / Math.sqrt(20 + (Lm - 50) ** 2), SC = 1 + 0.045 * Cpm, SH = 1 + 0.015 * Cpm * T;
+  const RT = -2 * Math.sqrt(Cpm ** 7 / (Cpm ** 7 + 25 ** 7)) * Math.sin(60 * Math.exp(-(((hm - 275) / 25) ** 2)) * rad);
+  return Math.sqrt((dL / SL) ** 2 + (dC / SC) ** 2 + (dH / SH) ** 2 + RT * (dC / SC) * (dH / SH));
+}
+const matchLabel = (d: number) => (d < 3 ? 'same shade' : d < 6 ? 'very close' : d < 10 ? 'close' : 'different');
+const hueOf = (l: number[]) => (Math.atan2(l[2], l[1]) * 180 / Math.PI + 360) % 360;
+const chromaOf = (l: number[]) => Math.hypot(l[1], l[2]);
+/** Two colourful shades whose hues sit far apart (a pink is not a terracotta, whatever its depth). */
+const otherHue = (a: number[], b: number[]) => {
+  if (chromaOf(a) < 14 || chromaOf(b) < 14) return false;
+  const d = Math.abs(hueOf(a) - hueOf(b)); return Math.min(d, 360 - d) > 30;
+};
+
+/** A colour in plain colour-theory words: hue family, depth, how muted, warm or cool. */
+function describe(l: number[]): string {
+  const [L] = l, C = chromaOf(l), h = hueOf(l);
+  const depth = L > 78 ? 'very light' : L > 64 ? 'light' : L > 48 ? 'medium' : L > 32 ? 'deep' : 'very deep';
+  if (C < 6) return `${depth} neutral ${L > 85 ? 'white' : L < 25 ? 'black' : 'grey-taupe'}`;
+  const fam = h < 8 || h >= 345 ? 'pink-red' : h < 22 ? 'rose-pink' : h < 35 ? 'coral (pink-orange)' : h < 44 ? 'red-orange' : h < 62 ? 'orange' : h < 80 ? 'golden' : h < 105 ? 'yellow' : h < 170 ? 'green' : h < 250 ? 'blue' : h < 300 ? 'violet' : 'magenta-berry';
+  const brownish = L < 62 && C < 55 && h >= 20 && h < 80;
+  const sat = C < 18 ? 'muted' : C < 35 ? 'soft' : C < 55 ? 'rich' : 'vivid';
+  const temp = h >= 25 && h < 110 ? 'warm' : h >= 250 || h < 10 ? 'cool' : 'neutral';
+  return `${depth} ${sat} ${fam}${brownish ? ' with brown' : ''}, ${temp}`;
+}
+
+// Moi's named shade palette (the same one the app uses): word → colour.
+const PALETTE = (SHADES as [string, string, string][]).map(([w, hex, tone]) => ({ w, hex, tone, lab: hexToLab(hex)! }));
+const PALETTE_BY_WORD = new Map(PALETTE.map(x => [x.w, x]));
+/** A shade word ("soft terracotta", "Terracotta blush") as Moi's palette colour; longest matching name wins. */
+function paletteHex(words?: string): string | null {
+  const t = (words ?? '').toLowerCase().trim(); if (!t) return null;
+  const exact = PALETTE_BY_WORD.get(t); if (exact) return exact.hex;
+  const hit = [...PALETTE].sort((a, b) => b.w.length - a.w.length).find(x => new RegExp(`\\b${x.w.replace(/ /g, '\\s+')}\\b`).test(t));
+  return hit?.hex ?? null;
+}
 
 // ── Tools ─────────────────────────────────────────────────────────────────────
 const TOOLS = [
@@ -48,7 +97,8 @@ const TOOLS = [
       properties: {
         category: { type: 'string', enum: CATS },
         query: { type: 'string', description: 'Optional brand or product words, e.g. "fenty gloss" or "brown liner".' },
-        shade_hex: { type: 'string', description: 'Optional target colour #RRGGBB for colour products.' },
+        shade: { type: 'string', description: 'Optional shade name from Moi\u2019s palette, e.g. "soft terracotta" or "deep berry". Preferred over guessing a hex.' },
+        shade_hex: { type: 'string', description: 'Optional exact target colour #RRGGBB (from the look or the photo). Wins over shade.' },
         finish: { type: 'string', enum: ['matte', 'satin', 'cream', 'dewy', 'natural', 'gloss', 'shimmer', 'metallic'] },
         max_price: { type: 'number', description: 'Optional maximum price in USD.' },
         fragrance_free: { type: 'boolean' },
@@ -104,13 +154,17 @@ const WEB_BRANDS: Record<string, string[]> = {
   stores: ['Sephora', 'Ulta Beauty', 'CurrentBody', 'FragranceNet.com', 'eCosmetics'],
 };
 
+const PALETTE_LIST = PALETTE.filter(x => chromaOf(x.lab) >= 6 || /nude|brown|taupe|black|grey|gray|clear/.test(x.w)).map(x => `${x.w} (${describe(x.lab)})`).join('; ');
+
 const system = (ctx: string) => `You are Moi, a warm, sharp beauty routine assistant inside the Moi app. You help people build a hair, skin or makeup routine that fits their habits, budget and the looks they love.
 
 How you work:
 - Learn their habits with tap-to-answer questions. Ask ONE at a time using reply.ask with a key from the question list. Never ask a question that is already answered. Never write the options in your text; the app shows them.
 - Narrow down with taps, broad to specific, in this order: (1) which routine it's for (hair_focus, skin_focus, makeup_when then makeup_focus, body_focus, fragrance_when, tools_focus or wellness_focus; for hair Occasions ask hair_occasion); (2) one or two follow-ups for that segment (e.g. hair_everyday, hair.texture, skin_type, skin_feel, mk_lip_look, fragrance_notes, body_scent, hair_tools or skin_tools, wellness_time); (3) their favourite brands so far (brands_makeup, brands_skin, brands_hair or brands_fragrance); (4) for pigmented makeup only, the shade question for that part (lip_shade, cheek_shade or eye_shade; for base products ask mk_tone and mk_undertone instead); (5) budget if unknown. Skip anything already answered. Keep it quick: at most 5 taps, then show 2 or 3 products. Never make them type.
 - Fill what's missing for the look they want: recommend for the steps in context.missing first (the look needs them and they don't own them), never something they already own (context.owned), unless they ask for it. Match the look's style: use each missing step's shade_hex and finish (or context.look_targets) in search_products, and pick products whose finish and colour fit that look. Say which missing step each pick fills (card.step).
-- Use their favourite brands as a search_products query first, and their shade answers as shade_hex targets.
+- Use their favourite brands as a search_products query first. For their shade answers, pass search_products a shade from Moi's palette (below) rather than guessing a hex; use shade_hex only for a colour given in the context or read from a photo.
+- Colour theory, so you can describe and match shades accurately: every shade has a hue (red, orange, pink, berry...), a depth (light to deep) and a saturation (muted to vivid), plus a temperature (warm leans orange/yellow, cool leans blue/pink). Brown is a deep, muted orange; terracotta is a muted, medium-deep orange with brown in it (baked clay), so it is warm, never pink; coral is a bright orange-pink; rose is a muted pink; berry is a deep blue-red; nude is a light, muted orange-pink close to skin. On deeper skin the same family needs more depth and saturation to show (e.g. deep terracotta, burnt orange), on fair skin a softer, lighter one (soft or light terracotta). Search results give each product's colour in these words; only call it a match when its hue family matches the target, and say "close" or "a lighter/deeper take" honestly when it isn't the same shade.
+- Moi's shade palette (name: colour description): ${PALETTE_LIST}
 - Prices: unless they gave a budget (price_range or hair.budget), show a spread, from an affordable pick (about $10) through mid-range to a splurge. Moi covers everything beauty: from tanning (self-tanner, bronzing drops) to supplements for hair, skin and nails.
 - Supplements: suggest only widely sold, reputable products, describe what they're for in plain words, never promise results or health benefits, and add "check with your doctor first, especially if pregnant or on medication" whenever you show one. If they chose "Explore with Moi", pick freely across brands and include at least one they may not know yet.
 - If they send a photo, read the look in it (shades, finishes, placement) and refine your picks to match it, using shade_hex in search_products.
@@ -129,7 +183,7 @@ ${BANK.map(q => `${q.key}: ${q.q} [${q.options.join(' | ')}]${q.max ? ` (up to $
 What Moi knows about them:
 ${ctx}`;
 
-async function searchProducts(input: { category: string; query?: string; shade_hex?: string; finish?: string; max_price?: number; fragrance_free?: boolean }) {
+async function searchProducts(input: { category: string; query?: string; shade?: string; shade_hex?: string; finish?: string; max_price?: number; fragrance_free?: boolean }) {
   if (!CATS.includes(input.category)) return { error: 'unknown category' };
   let q = db.from('kb_products').select('id,brand,name,step_cat,price_usd,asin,lab_l,lab_a,lab_b,shade_name,finish,shade_conf,tags').eq('step_cat', input.category).not('brand', 'is', null).limit(300);
   const words = (input.query ?? '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w.length > 2).slice(0, 3);
@@ -138,18 +192,23 @@ async function searchProducts(input: { category: string; query?: string; shade_h
   if (input.max_price) q = q.or(`price_usd.is.null,price_usd.lte.${Number(input.max_price)}`);
   const { data, error } = await q;
   if (error) return { error: 'search failed' };
-  const target = input.shade_hex ? hexToLab(input.shade_hex) : null;
+  const want = /^#?[0-9a-f]{6}$/i.test(input.shade_hex ?? '') ? input.shade_hex! : paletteHex(input.shade);
+  const target = want ? hexToLab(want) : null;
   const rows = (data ?? []).map(p => {
     const lab = p.lab_l != null ? [p.lab_l, p.lab_a, p.lab_b] : null;
     const d = target && lab && (p.shade_conf ?? 0) >= 0.5 ? dE(target, lab) : null;
-    const score = (d != null ? Math.max(0, 1 - d / 30) * 10 : 0) + (p.asin ? 4 : 0) + (input.finish && p.finish === input.finish ? 2 : 0) - (d != null && d > 20 ? (d - 20) / 3 : 0);
-    return { p, d, score };
+    const far = d != null && (d > 14 || otherHue(target!, lab!));
+    const score = (d != null ? Math.max(0, 1 - d / 20) * 10 : 0) + (p.asin ? 4 : 0) + (input.finish && p.finish === input.finish ? 2 : 0) - (d != null && d > 14 ? (d - 14) / 2 : 0) - (far ? 4 : 0);
+    return { p, d, far, lab, score };
   });
   // When a colour is asked for, clearly different shades are left out as long as closer ones exist.
-  const close = rows.filter(r => r.d == null || r.d < 20);
+  const close = rows.filter(r => r.d == null || !r.far);
   const pool = target && close.some(r => r.d != null) ? close : rows;
   const top = pool.sort((a, b) => b.score - a.score).slice(0, 6);
-  return { products: top.map(({ p, d }) => ({ id: p.id, brand: p.brand, name: p.name, shade: p.shade_name, finish: p.finish, price: p.price_usd, on_amazon: !!p.asin, ...(d != null ? { shade_match: matchLabel(d) } : {}) })) };
+  return {
+    ...(target ? { target: { hex: want, colour: describe(target) } } : {}),
+    products: top.map(({ p, d, far, lab }) => ({ id: p.id, brand: p.brand, name: p.name, shade: p.shade_name, finish: p.finish, price: p.price_usd, on_amazon: !!p.asin, ...(lab && (p.shade_conf ?? 0) >= 0.5 ? { colour: describe(lab) } : {}), ...(d != null ? { shade_match: far ? 'different' : matchLabel(d) } : {}) })),
+  };
 }
 
 const AMAZON_TAG = Deno.env.get('AMAZON_TAG') ?? 'moibeauty07-20';
