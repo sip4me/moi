@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Image, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Image, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { AffiliateNote, Bubble, Shell, SYS, useWide } from '../../components/routine/Kit';
+import { AffiliateNote, Bubble, Shell, SYS, TypingDots, useWide } from '../../components/routine/Kit';
 import { logClick, openStore, storeLinks, withUtm } from '../../lib/routine/affiliate';
 import { sendChat, type ChatMsg, type MoiCard } from '../../lib/routine/chat';
 import { getRoutine, itemKey, placeItems, setRoutine, type Area, type Item } from '../../lib/routine/model';
@@ -165,9 +165,11 @@ export default function Chat() {
           </View>
         ))}
         {busy ? (
-          <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', paddingLeft: 36 }}>
-            <ActivityIndicator color="#6C6A80" />
-            <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 13, color: '#4A4858' }}>Moi is thinking…</Text>
+          <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
+            <Image source={crown} style={{ width: 28, height: 28, marginTop: 4 }} resizeMode="contain" />
+            <View style={{ paddingVertical: 12, paddingHorizontal: 16, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.88)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
+              <TypingDots />
+            </View>
           </View>
         ) : null}
         {anyCards ? (
