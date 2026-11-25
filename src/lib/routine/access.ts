@@ -17,7 +17,7 @@ export const ROUTINE_PLANS: Record<RoutinePlan, { label: string; price: string; 
 };
 
 // ── Access ────────────────────────────────────────────────────────────────────
-type Access = { loading: boolean; paid: boolean; founder: boolean; spot?: number };
+type Access = { loading: boolean; paid: boolean; founder: boolean; spot?: number; declined?: boolean };
 let access: Access = { loading: true, paid: false, founder: false };
 const subs = new Set<() => void>();
 let loadP: Promise<void> | null = null;
@@ -34,7 +34,8 @@ export function refreshAccess(): Promise<void> {
       sb.from('founders').select('spot').eq('user_id', uid).maybeSingle(),
     ]);
     const st = (s.data as { status?: string } | null)?.status;
-    access = { loading: false, paid: st === 'active' || st === 'trialing', founder: !!f.data, spot: (f.data as { spot?: number } | null)?.spot };
+    // past_due / unpaid: a renewal charge failed (often not enough balance). Stripe retries; the app asks for a new card.
+    access = { loading: false, paid: st === 'active' || st === 'trialing', founder: !!f.data, spot: (f.data as { spot?: number } | null)?.spot, declined: st === 'past_due' || st === 'unpaid' || st === 'incomplete' };
   })().catch(() => { access = { ...access, loading: false }; }).finally(() => subs.forEach(f => f()));
   return loadP;
 }

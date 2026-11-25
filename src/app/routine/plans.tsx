@@ -65,6 +65,7 @@ export default function Plans() {
     setBusy(false);
   };
   const help = () => Linking.openURL(LINKS.contact);
+  const [skipDecline, setSkipDecline] = useState(false);
 
   const H = { fontFamily: SYS ?? F.bold, fontWeight: '700' as const, fontSize: wide ? 28 : 23, lineHeight: wide ? 33 : 28, letterSpacing: -0.6, color: '#111114', textAlign: 'center' as const };
   const G = { dataSet: { grad: 'title' } } as any; // the steel-to-ink title gradient used on every page
@@ -125,12 +126,22 @@ export default function Plans() {
     // Back from Stripe as paid, but the confirmation hasn't arrived yet.
     return result({ title: 'Your payment is processing', sub: 'Stripe is still confirming it. You won’t be charged twice.', main: { label: 'Check again', on: () => setRound(n => n + 1) }, alt: { label: 'Email us', on: help } });
   }
+  if ((a.declined || status === 'declined') && !failed && !skipDecline) {
+    // A charge was declined: usually not enough balance, or an expired card.
+    return result({
+      dim: true,
+      title: 'Your card was declined',
+      sub: 'Your bank turned down the payment. This usually means there wasn’t enough balance or the card expired. Update your card or use another one to keep Royal.',
+      main: { label: 'Update my card', on: async () => { try { const r = await openPortal(); if (r !== 'opened') buy(); } catch { setFailed('error'); } } },
+      alt: { label: 'See other plans', on: () => { setSkipDecline(true); router.setParams({ status: undefined as any }); } },
+    });
+  }
   if (failed) {
     const again = ROUTINE_PLANS[lastPlan as RoutinePlan] ? (lastPlan as RoutinePlan) : undefined;
     return result({
       dim: true,
       title: 'Payment didn’t go through',
-      sub: failed === 'error' ? 'Checkout couldn’t open. Check your connection and try again. No charge was made.' : 'No charge was made. Your routine and picks are saved.',
+      sub: failed === 'error' ? 'Checkout couldn’t open. Check your connection and try again. No charge was made.' : 'No charge was made. If your card was declined, try another card. Your routine and picks are saved.',
       main: { label: 'Try again', on: () => buy(again) },
       alt: { label: 'Back to plans', on: () => { setFailed(''); router.setParams({ status: undefined as any }); } },
     });
