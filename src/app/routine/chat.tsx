@@ -2,13 +2,14 @@ import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { Image, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { AffiliateNote, Bubble, Shell, SYS, TypingDots, useWide } from '../../components/routine/Kit';
+import { Bubble, Shell, SYS, TypingDots, useWide } from '../../components/routine/Kit';
 import { logClick, openStore, storeLinks, withUtm } from '../../lib/routine/affiliate';
 import { takeProductPhoto } from '../../lib/routine/capture';
 import { sendChat, type ChatMsg, type MoiCard } from '../../lib/routine/chat';
 import { shrink } from '../../lib/routine/readLook';
 import { getRoutine, itemKey, placeItems, setRoutine, type Area, type Item } from '../../lib/routine/model';
 import { applyAnswer, type Question } from '../../lib/routine/questions';
+import { shadeOf } from '../../lib/routine/shade';
 import { F } from '../../theme';
 
 const crown = require('../../../assets/crown-pink.png');
@@ -99,75 +100,96 @@ export default function Chat() {
   };
   const host = (url: string) => { try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return 'the brand’s site'; } };
 
+  const ring = (focused?: boolean) => (focused ? ({ outlineStyle: 'solid', outlineWidth: 2, outlineColor: '#5F4FC4', outlineOffset: 2 } as any) : null);
   const T = { fontFamily: SYS ?? F.medium, fontSize: 14, lineHeight: 20, color: '#1D1D22' };
   const chip = (label: string, on: boolean, onPress: () => void, dark?: boolean) => (
     <Pressable key={label} onPress={onPress} disabled={busy} accessibilityRole="button" accessibilityState={{ selected: on }}
-      style={({ hovered }: any) => ({ paddingHorizontal: 14, height: 34, borderRadius: 17, justifyContent: 'center', opacity: busy ? 0.5 : 1, backgroundColor: on || dark ? '#111114' : hovered ? '#fff' : 'rgba(255,255,255,0.8)', borderWidth: 1, borderColor: on || dark ? '#111114' : 'rgba(20,20,40,0.12)' })}>
+      style={({ hovered, pressed, focused }: any) => ({ paddingHorizontal: 14, height: 34, borderRadius: 17, justifyContent: 'center', opacity: busy ? 0.45 : 1, backgroundColor: on || dark ? (hovered && !busy ? '#2A2A30' : '#111114') : pressed ? '#E9E9EE' : hovered && !busy ? '#F4F4F6' : '#FFFFFF', borderWidth: 1, borderColor: on || dark ? '#111114' : hovered && !busy ? 'rgba(17,17,20,0.32)' : 'rgba(17,17,20,0.16)', transform: [{ scale: pressed ? 0.97 : 1 }], ...ring(focused) })}>
       <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 13, color: on || dark ? '#fff' : '#111114' }}>{label}</Text>
     </Pressable>
   );
   const small = (label: string, onPress: () => void, a11y?: string, done?: boolean) => (
-    <Pressable onPress={onPress} disabled={done} accessibilityRole="button" accessibilityLabel={a11y ?? label}
-      style={({ hovered }: any) => ({ paddingHorizontal: 12, height: 32, borderRadius: 16, justifyContent: 'center', backgroundColor: done ? '#E5F4EA' : hovered ? '#E6E8EB' : '#F1F3F5', borderWidth: 1, borderColor: done ? '#CDEBD6' : 'rgba(20,20,40,0.10)' })}>
+    <Pressable onPress={onPress} disabled={done} accessibilityRole="button" accessibilityLabel={a11y ?? label} accessibilityState={{ disabled: !!done }}
+      style={({ hovered, pressed, focused }: any) => ({ paddingHorizontal: 12, height: 32, borderRadius: 16, justifyContent: 'center', backgroundColor: done ? '#E5F4EA' : pressed ? '#DADDE2' : hovered ? '#E6E8EB' : '#F1F3F5', borderWidth: 1, borderColor: done ? '#CDEBD6' : hovered ? 'rgba(17,17,20,0.22)' : 'rgba(20,20,40,0.10)', transform: [{ scale: pressed ? 0.97 : 1 }], ...ring(focused) })}>
       <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 12, color: done ? '#1E7B45' : '#111114' }}>{label}</Text>
     </Pressable>
   );
 
+  // ── Recommendation card: swatch, step · shade match, name, why; a store link and an add button. ──
+  const COLOUR = ['lips', 'lip_gloss', 'blush', 'bronzer', 'highlighter', 'eyeshadow', 'eyeliner', 'brows', 'foundation', 'concealer', 'powder'];
+  const swatch = (hex: string | undefined, category: string, item?: any) => hex
+    ? <View accessibilityElementsHidden importantForAccessibility="no" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: hex, borderWidth: 1, borderColor: 'rgba(17,17,20,0.08)' }} />
+    : <Bubble category={category} item={item} size={40} />;
+  const linkBtn = (label: string, onPress: () => void) => (
+    <Pressable onPress={onPress} accessibilityRole="link" accessibilityLabel={label.replace(' ↗', '')} accessibilityHint="Opens in a new tab"
+      style={({ hovered, pressed, focused }: any) => ({ flex: 1, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12, backgroundColor: pressed ? '#EDEDF1' : hovered ? '#F6F6F8' : '#FFFFFF', borderWidth: 1, borderColor: hovered ? 'rgba(17,17,20,0.35)' : 'rgba(17,17,20,0.18)', transform: [{ scale: pressed ? 0.98 : 1 }], ...ring(focused) })}>
+      <Text numberOfLines={1} style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 13, color: '#111114' }}>{label}</Text>
+    </Pressable>
+  );
+  const addBtn = (done: boolean, onPress: () => void) => (
+    <Pressable onPress={onPress} disabled={done} accessibilityRole="button" accessibilityLabel={done ? 'Added to my routine' : 'Add to my routine'} accessibilityState={{ disabled: done }}
+      style={({ hovered, pressed, focused }: any) => ({ width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: done ? '#E5F4EA' : pressed ? '#EDEDF1' : hovered ? '#F6F6F8' : '#FFFFFF', borderWidth: 1, borderColor: done ? '#B9E2C6' : hovered ? 'rgba(17,17,20,0.35)' : 'rgba(17,17,20,0.18)', transform: [{ scale: pressed ? 0.95 : 1 }], ...ring(focused) })}>
+      <Svg width={16} height={16} viewBox="0 0 24 24">
+        {done ? <Path d="M5 12.5l4.5 4.5L19 7.5" stroke="#1E7B45" strokeWidth={2.4} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          : <Path d="M12 5v14M5 12h14" stroke="#111114" strokeWidth={2.2} strokeLinecap="round" />}
+      </Svg>
+    </Pressable>
+  );
+  const meta = (step?: string | null, match?: string | null, web?: boolean) => (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+      {step || match ? <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 12, color: '#5B5F6B' }}>{[step, match ? `Shade: ${match}` : null].filter(Boolean).join(' · ')}</Text> : null}
+      {web ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: '#F0F1F4' }}>
+          <Svg width={11} height={11} viewBox="0 0 24 24"><Path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm-9 9h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18" stroke="#5B5F6B" strokeWidth={1.8} fill="none" /></Svg>
+          <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 11, color: '#4A4E59' }}>From the web</Text>
+        </View>
+      ) : null}
+    </View>
+  );
   const card = (c: MoiCard, n: number) => {
-    if (c.source === 'moi') {
-      const link = storeLinks(c.item)[0];
-      const done = !!added[itemKey(c.item)];
-      return (
-        <View key={n} style={{ gap: 8, paddingTop: n ? 10 : 0, borderTopWidth: n ? 0.5 : 0, borderTopColor: 'rgba(20,20,40,0.10)' }}>
-          <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-            <Bubble category={c.item.category} item={c.item} size={36} />
-            <View style={{ flex: 1, gap: 1 }}>
-              {c.step ? <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 11, color: '#6C6A80' }}>{c.step}</Text> : null}
-              <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 13, lineHeight: 17, color: '#111114' }}>{c.item.name}</Text>
-              <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 12, lineHeight: 16, color: '#4A4858' }}>{c.why}</Text>
-            </View>
-          </View>
-          <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-            {link ? small(`Buy at ${link.name} ↗`, () => openStore(c.item, link, 'chat')) : null}
-            {small(done ? 'Added ✓' : '+ Add to my routine', () => add(c), undefined, done)}
-          </View>
-        </View>
-      );
+    const web = c.source === 'web';
+    const item = c.source === 'moi' ? c.item : null;
+    const category = item ? item.category : (c as any).category ?? 'other';
+    const hex = item ? (COLOUR.includes(item.category) ? shadeOf(item) : undefined) : (c as any).shade_hex ?? undefined;
+    const name = item ? item.name : `${(c as any).brand} ${(c as any).name}`;
+    const key = item ? itemKey(item) : (c as any).url;
+    const done = !!added[key];
+    let link: React.ReactElement | null = null;
+    if (item) {
+      const l = storeLinks(item)[0];
+      if (l) link = linkBtn(`Buy at ${l.name} ↗`, () => openStore(item, l, 'chat'));
+    } else if (c.source === 'web') {
+      link = c.amazon ? linkBtn('Buy at Amazon ↗', () => { logClick({ brand: c.brand, product: c.name, store: 'Amazon', source: 'chat', web: true, tagged: true }); Linking.openURL(c.url); })
+        : linkBtn(c.official ? 'See it at the brand’s site ↗' : `See it at ${host(c.url)} ↗`, () => { logClick({ brand: c.brand, product: c.name, store: host(c.url), source: 'chat', web: true }); Linking.openURL(withUtm(c.url)); });
     }
-    const done = !!added[c.url];
+    const canAdd = !!item || !!(c as any).category;
     return (
-      <View key={n} style={{ gap: 8, paddingTop: n ? 10 : 0, borderTopWidth: n ? 0.5 : 0, borderTopColor: 'rgba(20,20,40,0.10)' }}>
-        <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-          {c.shade_hex ? <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: c.shade_hex }} /> : <Bubble category={c.category ?? 'other'} size={36} />}
-          <View style={{ flex: 1, gap: 1 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              {c.step ? <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 11, color: '#6C6A80' }}>{c.step}</Text> : null}
-              <View style={{ paddingHorizontal: 7, paddingVertical: 2, borderRadius: 8, backgroundColor: '#EEF0F3' }}><Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 10, color: '#5B5F6B' }}>From the web</Text></View>
-            </View>
-            <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 13, lineHeight: 17, color: '#111114' }}>{`${c.brand} ${c.name}`}</Text>
-            <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 12, lineHeight: 16, color: '#4A4858' }}>{c.why}</Text>
+      <View key={n} style={{ gap: 10, paddingTop: n ? 14 : 2, borderTopWidth: n ? 1 : 0, borderTopColor: 'rgba(17,17,20,0.08)' }}>
+        <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+          {swatch(hex, category, item ?? undefined)}
+          <View style={{ flex: 1, gap: 2 }}>
+            {meta(c.step, c.shadeMatch, web)}
+            <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '700', fontSize: 14, lineHeight: 18, color: '#111114' }}>{name}</Text>
+            <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 13, lineHeight: 17, color: '#4A4858' }}>{c.why}</Text>
           </View>
         </View>
-        <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-          {c.amazon ? small('Buy at Amazon ↗', () => { logClick({ brand: c.brand, product: c.name, store: 'Amazon', source: 'chat', web: true, tagged: true }); Linking.openURL(c.url); })
-            : small(`See it at ${host(c.url)} ↗`, () => { logClick({ brand: c.brand, product: c.name, store: host(c.url), source: 'chat', web: true }); Linking.openURL(withUtm(c.url)); })}
-          {c.category ? small(done ? 'Added ✓' : '+ Add to my routine', () => add(c), undefined, done) : null}
-        </View>
+        {link || canAdd ? <View style={{ flexDirection: 'row', gap: 8 }}>{link ?? <View style={{ flex: 1 }} />}{canAdd ? addBtn(done, () => add(c)) : null}</View> : null}
       </View>
     );
   };
 
   const last = msgs[msgs.length - 1];
-  const anyCards = msgs.some(m => m.cards?.length);
   return (
     <Shell glass active="build"
       footer={<View style={{ width: wide ? 560 : '100%', flexDirection: 'row', alignItems: 'center', gap: 10, padding: 8, paddingLeft: 16, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.88)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.9)' }}>
-        <Pressable onPress={sendPhoto} accessibilityRole="button" accessibilityLabel="Send an inspiration photo" hitSlop={6} style={{ width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F1F3F5', marginLeft: -6 }}>
+        <Pressable onPress={sendPhoto} disabled={busy} accessibilityRole="button" accessibilityLabel="Send an inspiration photo" accessibilityState={{ disabled: busy }} hitSlop={6}
+          style={({ hovered, pressed, focused }: any) => ({ width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#DADDE2' : hovered && !busy ? '#E6E8EB' : '#F1F3F5', opacity: busy ? 0.45 : 1, marginLeft: -6, ...ring(focused) })}>
           <Svg width={18} height={18} viewBox="0 0 24 24"><Path d="M4 7h3l2-2h6l2 2h3v12H4z" stroke="#111114" strokeWidth={1.8} fill="none" strokeLinejoin="round" /><Path d="M12 16.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="#111114" strokeWidth={1.8} fill="none" /></Svg>
         </Pressable>
         <TextInput value={text} onChangeText={setText} onSubmitEditing={send} placeholder="Ask Moi anything about your routine" placeholderTextColor="#8A8DA0" accessibilityLabel="Message Moi"
           style={{ flex: 1, fontFamily: F.medium, fontSize: 15, color: '#1D1D22', paddingVertical: 8, ...({ outlineStyle: 'none' } as object) }} />
-        <Pressable onPress={send} accessibilityRole="button" accessibilityLabel="Send" style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#111114', alignItems: 'center', justifyContent: 'center', opacity: text.trim() && !busy ? 1 : 0.4 }}>
+        <Pressable onPress={send} disabled={!text.trim() || busy} accessibilityRole="button" accessibilityLabel="Send" accessibilityState={{ disabled: !text.trim() || busy }}
+          style={({ hovered, pressed, focused }: any) => ({ width: 38, height: 38, borderRadius: 19, backgroundColor: hovered && text.trim() && !busy ? '#2A2A30' : '#111114', alignItems: 'center', justifyContent: 'center', opacity: text.trim() && !busy ? 1 : 0.3, transform: [{ scale: pressed ? 0.94 : 1 }], ...ring(focused) })}>
           <Svg width={16} height={16} viewBox="0 0 24 24"><Path d="M12 19V5M6 11l6-6 6 6" stroke="#fff" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
         </Pressable>
       </View>}>
@@ -180,9 +202,9 @@ export default function Chat() {
         ) : (
           <View key={m.id} style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
             <Image source={crown} style={{ width: 28, height: 28, marginTop: 4 }} resizeMode="contain" />
-            <View style={{ flex: 1, gap: 10, padding: 14, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.88)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
+            <View style={{ flex: 1, gap: 12, padding: 16, borderRadius: 20, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: 'rgba(17,17,20,0.10)' }}>
               {m.text ? <Text style={T}>{m.text}</Text> : null}
-              {m.cards?.length ? <View style={{ gap: 10 }}>{m.cards.map(card)}</View> : null}
+              {m.cards?.length ? <View style={{ gap: 14 }}>{m.cards.map(card)}<Text style={{ fontFamily: F.regular, fontSize: 11, lineHeight: 15, color: '#6C6F7A' }}>{`${m.cards.some(x => x.source === 'moi' || (x as any).amazon) ? 'As an Amazon Associate, Moi earns from qualifying purchases. ' : ''}${m.cards.some(x => x.source === 'web') ? 'Web finds aren’t checked by Moi; the brand’s site has the current details.' : 'The store shows the current price.'}`}</Text></View> : null}
               {/* Tap answers: only on the latest message. */}
               {m.local === 'photo' ? <View style={{ flexDirection: 'row' }}>{chip('Upload inspiration', false, sendPhoto, true)}</View> : null}
               {m === last && m.local === 'area' ? (
@@ -215,12 +237,7 @@ export default function Chat() {
             </View>
           </View>
         ) : null}
-        {anyCards ? (
-          <View style={{ paddingVertical: 8, paddingHorizontal: 14, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.7)', gap: 2 }}>
-            <AffiliateNote center />
-            <Text style={{ fontFamily: F.regular, fontSize: 11, lineHeight: 15, color: '#8E9298', textAlign: 'center' }}>Web finds aren’t checked by Moi; the brand’s site has the current details.</Text>
-          </View>
-        ) : null}
+
       </ScrollView>
     </Shell>
   );

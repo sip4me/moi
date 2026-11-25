@@ -10,8 +10,8 @@ import { lookTargets } from './looks';
 import { allSteps, BEAUTY_ROUTINES, getCatalog, hasInfo, type Item, type RoutineState } from './model';
 
 export type MoiCard =
-  | { source: 'moi'; why: string; step?: string | null; item: Item }
-  | { source: 'web'; why: string; step?: string | null; brand: string; name: string; url: string; category: string | null; shade_hex: string | null; amazon?: boolean };
+  | { source: 'moi'; why: string; step?: string | null; shadeMatch?: string | null; item: Item }
+  | { source: 'web'; why: string; step?: string | null; shadeMatch?: string | null; brand: string; name: string; url: string; category: string | null; shade_hex: string | null; amazon?: boolean; official?: boolean };
 export type ChatMsg = { id: string; role: 'user' | 'moi'; text: string; ask?: Question | null; cards?: MoiCard[]; local?: 'area' | 'photo'; photo?: string };
 export type ChatResult = { ok: true; text: string; ask: Question | null; cards: MoiCard[]; save: { key: string; value: string }[]; left: number } | { ok: false; why: 'limit' | 'off' | 'error'; limit?: number };
 
@@ -56,6 +56,6 @@ export async function sendChat(history: { role: 'user' | 'assistant'; text: stri
   if (data.configured === false) return { ok: false, why: 'off' };
   if (data.limited) return { ok: false, why: 'limit', limit: data.limit };
   if (data.error) return { ok: false, why: 'error' };
-  const cards: MoiCard[] = (data.cards ?? []).map((c: any) => (c.source === 'moi' ? { source: 'moi', why: c.why, step: c.step, item: rowToItem(c.product) } : c));
+  const cards: MoiCard[] = (data.cards ?? []).map((c: any) => (c.source === 'moi' ? { source: 'moi', why: c.why, step: c.step, shadeMatch: c.shade_match, item: rowToItem(c.product) } : { ...c, shadeMatch: c.shade_match }));
   return { ok: true, text: data.text ?? '', ask: data.ask ?? null, cards, save: data.save ?? [], left: data.left ?? 0 };
 }

@@ -127,6 +127,7 @@ const TOOLS = [
               category: { type: 'string', enum: CATS },
               shade_hex: { type: 'string' },
               step: { type: 'string', description: 'The routine step it fills, e.g. "Lip liner".' },
+              shade_match: { type: 'string', enum: ['same', 'very close', 'close'], description: 'For colour products: how close it is to the shade they want, copied from search_products (shade_match). Omit when unknown or different.' },
               why: { type: 'string', description: 'One line in your own words, at most 14 words.' },
             },
             required: ['source', 'why'],
@@ -142,17 +143,28 @@ const TOOLS = [
   },
 ];
 
-// Beauty brands and stores Moi favours for web finds (picked from the partner brand list).
-const WEB_BRANDS: Record<string, string[]> = {
-  makeup: ['Charlotte Tilbury', 'e.l.f. Cosmetics', 'Haus Labs', 'MAC Cosmetics', 'Nars', 'Merit', 'rhode', 'Tower28 Beauty', 'Trish McEvoy', 'Chantecaille', 'Clé de Peau Beauté', 'Givenchy Beauty', 'Christian Dior', 'Vieve', 'Kulfi Beauty', 'KAHI Beauty', 'Sigma Beauty'],
-  skincare: ['Drunk Elephant', "Paula's Choice", 'Clinique', "Kiehl's", 'Elta MD', 'Supergoop', 'Medik8', 'Dr. Dennis Gross', 'Dr. Barbara Sturm', 'Shiseido', 'Peter Thomas Roth', 'RoC Skincare', 'Neostrata', 'Mario Badescu', 'Origins US', 'CLEARSTEM', 'INNBEAUTY PROJECT', 'ALPYN Beauty', 'Oneskin', 'Grown Alchemist', 'Naturopathica', 'Lancer', 'Ogee', 'Borghese', 'Bime Beauty', 'AP Beauty'],
-  haircare: ['Olaplex', 'Briogeo', 'amika', 'OUAI', 'Bumble and bumble', 'Kérastase', 'Living Proof', 'Oribe', 'Davines', 'Aveda', 'Prose'],
-  fragrance: ['Sol De Janeiro', 'Backhouse Fragrances', 'Christian Dior', 'Givenchy Beauty', 'Apotheke'],
-  bath_body: ['Sol De Janeiro', 'Supergoop', 'Grown Alchemist', 'Apotheke'],
-  tools_devices: ['FOREO', 'GHD', 'Solawave', 'CurrentBody', 'LED Esthetics', 'iRestore', 'Dashing Diva'],
-  wellness: ['ARMRA', 'Ancient Nutrition', 'Tru Niagen', 'Oura', 'Ultrahuman', 'LARQ', 'Goop'],
-  stores: ['Sephora', 'Ulta Beauty', 'CurrentBody', 'FragranceNet.com', 'eCosmetics'],
+// Beauty brands and stores Moi favours for web finds (picked from the partner brand list), with their official sites.
+const WEB_BRANDS: Record<string, [string, string][]> = {
+  makeup: [['Charlotte Tilbury', 'https://www.charlottetilbury.com'], ['e.l.f. Cosmetics', 'https://www.elfcosmetics.com'], ['Haus Labs', 'https://www.hauslabs.com'], ['ILIA', 'https://iliabeauty.com'], ['MAC Cosmetics', 'https://www.maccosmetics.com'], ['Nars', 'https://www.narscosmetics.com'], ['Merit', 'https://www.meritbeauty.com'], ['rhode', 'https://www.rhodeskin.com'], ['Tower28 Beauty', 'https://www.tower28beauty.com'], ['Trish McEvoy', 'https://www.trishmcevoy.com'], ['Chantecaille', 'https://www.chantecaille.com'], ['Clé de Peau Beauté', 'https://www.cledepeaubeaute.com'], ['Givenchy Beauty', 'https://www.givenchybeauty.com'], ['Christian Dior', 'https://www.dior.com'], ['Kulfi Beauty', 'https://kulfibeauty.com'], ['KAHI Beauty', 'https://kahicosmetics.com'], ['Sigma Beauty', 'https://www.sigmabeauty.com'], ['Prakti Beauty', 'https://praktibeauty.com']],
+  skincare: [['Drunk Elephant', 'https://www.drunkelephant.com'], ['Paula\'s Choice', 'https://www.paulaschoice.com'], ['Clinique', 'https://www.clinique.com'], ['Kiehl\'s', 'https://www.kiehls.com'], ['Elta MD', 'https://eltamd.com'], ['Supergoop', 'https://supergoop.com'], ['Medik8', 'https://www.medik8.com'], ['Dr. Dennis Gross', 'https://www.drdennisgross.com'], ['Dr. Barbara Sturm', 'https://www.drsturm.com'], ['Shiseido', 'https://www.shiseido.com'], ['Peter Thomas Roth', 'https://www.peterthomasroth.com'], ['RoC Skincare', 'https://www.rocskincare.com'], ['Neostrata', 'https://www.neostrata.com'], ['Mario Badescu', 'https://www.mariobadescu.com'], ['Origins US', 'https://www.origins.com'], ['CLEARSTEM', 'https://clearstemskincare.com'], ['INNBEAUTY PROJECT', 'https://innbeautyproject.com'], ['ALPYN Beauty', 'https://alpynbeauty.com'], ['Oneskin', 'https://www.oneskin.co'], ['Grown Alchemist', 'https://grownalchemist.com'], ['Naturopathica', 'https://naturopathica.com'], ['Lancer', 'https://www.lancerskincare.com'], ['Ogee', 'https://ogee.com'], ['Borghese', 'https://borghese.com'], ['Bime Beauty', 'https://bimebeauty.com'], ['AP Beauty', 'https://global.amoremall.com/collections/ap-beauty']],
+  haircare: [['Olaplex', 'https://olaplex.com'], ['Briogeo', 'https://briogeohair.com'], ['amika', 'https://loveamika.com'], ['OUAI', 'https://theouai.com'], ['Bumble and bumble', 'https://www.bumbleandbumble.com'], ['Kérastase', 'https://www.kerastase-usa.com'], ['Living Proof', 'https://www.livingproof.com'], ['Oribe', 'https://www.oribe.com'], ['Davines', 'https://us.davines.com'], ['Aveda', 'https://www.aveda.com'], ['Prose', 'https://prose.com']],
+  fragrance: [['Sol De Janeiro', 'https://soldejaneiro.com'], ['Backhouse Fragrances', 'https://backhousefragrances.com'], ['Christian Dior', 'https://www.dior.com'], ['Givenchy Beauty', 'https://www.givenchybeauty.com'], ['Apotheke', 'https://apothekeco.com']],
+  bath_body: [['Sol De Janeiro', 'https://soldejaneiro.com'], ['Supergoop', 'https://supergoop.com'], ['Grown Alchemist', 'https://grownalchemist.com'], ['Apotheke', 'https://apothekeco.com']],
+  tools_devices: [['FOREO', 'https://www.foreo.com'], ['GHD', 'https://www.ghdhair.com'], ['Solawave', 'https://solawave.co'], ['CurrentBody', 'https://www.currentbody.com'], ['LED Esthetics', 'https://ledesthetics.com'], ['iRestore', 'https://www.irestorelaser.com'], ['Dashing Diva', 'https://dashingdiva.com'], ['RAD Roller', 'https://radroller.com']],
+  wellness: [['ARMRA', 'https://tryarmra.com'], ['Ancient Nutrition', 'https://ancientnutrition.com'], ['Tru Niagen', 'https://www.truniagen.com'], ['Oura', 'https://ouraring.com'], ['Ultrahuman', 'https://www.ultrahuman.com'], ['LARQ', 'https://www.livelarq.com'], ['Goop', 'https://goop.com']],
+  stores: [['Sephora', 'https://www.sephora.com'], ['Ulta Beauty', 'https://www.ulta.com'], ['CurrentBody', 'https://www.currentbody.com'], ['FragranceNet.com', 'https://www.fragrancenet.com'], ['eCosmetics', 'https://www.ecosmetics.com']],
 };
+const host = (u: string) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
+const squash = (x: string) => x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+const BRAND_SITES = new Map<string, string>();
+for (const list of Object.values(WEB_BRANDS)) for (const [n, u] of list) BRAND_SITES.set(squash(n), u);
+/** A brand's official site when it's one of Moi's favoured brands ("NARS" and "Nars Cosmetics" both match). */
+function brandSite(brand?: string | null): string | null {
+  const b = squash(brand ?? ''); if (b.length < 2) return null;
+  if (BRAND_SITES.has(b)) return BRAND_SITES.get(b)!;
+  for (const [k, u] of BRAND_SITES) if (k.length >= 4 && (b.startsWith(k) || k.startsWith(b) && b.length >= 4)) return u;
+  return null;
+}
 
 const PALETTE_LIST = PALETTE.filter(x => chromaOf(x.lab) >= 6 || /nude|brown|taupe|black|grey|gray|clear/.test(x.w)).map(x => `${x.w} (${describe(x.lab)})`).join('; ');
 
@@ -161,7 +173,7 @@ const system = (ctx: string) => `You are Moi, a warm, sharp beauty routine assis
 How you work:
 - Learn their habits with tap-to-answer questions. Ask ONE at a time using reply.ask with a key from the question list. Never ask a question that is already answered. Never write the options in your text; the app shows them.
 - Narrow down with taps, broad to specific, in this order: (1) which routine it's for (hair_focus, skin_focus, makeup_when then makeup_focus, body_focus, fragrance_when, tools_focus or wellness_focus; for hair Occasions ask hair_occasion); (2) one or two follow-ups for that segment (e.g. hair_everyday, hair.texture, skin_type, skin_feel, mk_lip_look, fragrance_notes, body_scent, hair_tools or skin_tools, wellness_time); (3) their favourite brands so far (brands_makeup, brands_skin, brands_hair or brands_fragrance); (4) for pigmented makeup only, the shade question for that part (lip_shade, cheek_shade or eye_shade; for base products ask mk_tone and mk_undertone instead); (5) budget if unknown. Skip anything already answered. Keep it quick: at most 5 taps, then show 2 or 3 products. Never make them type.
-- Fill what's missing for the look they want: recommend for the steps in context.missing first (the look needs them and they don't own them), never something they already own (context.owned), unless they ask for it. Match the look's style: use each missing step's shade_hex and finish (or context.look_targets) in search_products, and pick products whose finish and colour fit that look. Say which missing step each pick fills (card.step).
+- Fill what's missing for the look they want: recommend for the steps in context.missing first (the look needs them and they don't own them), never something they already own (context.owned), unless they ask for it. Match the look's style: use each missing step's shade_hex and finish (or context.look_targets) in search_products, and pick products whose finish and colour fit that look. Say which missing step each pick fills (card.step), and copy each colour product's shade_match from the search into card.shade_match.
 - Use their favourite brands as a search_products query first. For their shade answers, pass search_products a shade from Moi's palette (below) rather than guessing a hex; use shade_hex only for a colour given in the context or read from a photo.
 - Colour theory, so you can describe and match shades accurately: every shade has a hue (red, orange, pink, berry...), a depth (light to deep) and a saturation (muted to vivid), plus a temperature (warm leans orange/yellow, cool leans blue/pink). Brown is a deep, muted orange; terracotta is a muted, medium-deep orange with brown in it (baked clay), so it is warm, never pink; coral is a bright orange-pink; rose is a muted pink; berry is a deep blue-red; nude is a light, muted orange-pink close to skin. On deeper skin the same family needs more depth and saturation to show (e.g. deep terracotta, burnt orange), on fair skin a softer, lighter one (soft or light terracotta). Search results give each product's colour in these words; only call it a match when its hue family matches the target, and say "close" or "a lighter/deeper take" honestly when it isn't the same shade.
 - Moi's shade palette (name: colour description): ${PALETTE_LIST}
@@ -170,7 +182,7 @@ How you work:
 - If they send a photo, read the look in it (shades, finishes, placement) and refine your picks to match it, using shade_hex in search_products.
 - Recommend only real products: call search_products first and use its ids in reply.cards with source "moi". Moi's products come first, and among them prefer ones with on_amazon true. Respect their budget and must-haves.
 - Moi's favourite brands for web finds (use them when picking from the web, best fit first, and include them in your picks when they suit the look and budget; their own site or one of the stores listed is the link, plain, no tag):
-${Object.entries(WEB_BRANDS).map(([k, v]) => `  ${k}: ${v.join(', ')}`).join('\n')}
+${Object.entries(WEB_BRANDS).map(([k, v]) => `  ${k}: ${v.map(([n, u]) => `${n} (${host(u)})`).join(', ')}`).join('\n')}
 - Only if search_products has nothing that fits (or they ask for a specific brand Moi doesn't have, or a splurge pick from a favourite brand above rounds out the price range), use web_search to find up to 3 products (spanning prices when no budget is set) on their product pages, and add each with source "web", its exact url, brand and name. Only mention products you include as cards. Never invent products or links; use only pages your search returned. Prefer Amazon product pages when the product is sold there. Never state prices for web products.
 - If they type an answer to a question in their own words, record it in reply.save with the matching option. Only save what they actually said; never guess or infer answers.
 - They may also want help with fragrance, tools and devices, or wellness (their interests are in the context). Moi's database has few of these, so for them use web finds, only real product pages. For wellness, keep to habits and products, never health or medical advice.
@@ -235,6 +247,7 @@ async function liveUrl(url: string): Promise<boolean> {
   } catch { return false; }
 }
 
+const MATCHES = ['same', 'very close', 'close'];
 async function checkCards(reply: any) {
     const raw = (Array.isArray(reply.cards) ? reply.cards : []).slice(0, 4);
   const ids = raw.filter((c: any) => c?.source === 'moi' && typeof c.id === 'string').map((c: any) => c.id);
@@ -242,14 +255,17 @@ async function checkCards(reply: any) {
   return (await Promise.all(raw.map(async (c: any) => {
     if (c?.source === 'moi') {
       const p = (prods ?? []).find(x => x.id === c.id);
-      return p ? { source: 'moi', why: String(c.why ?? '').slice(0, 120), step: c.step ?? null, product: p } : null;
+      return p ? { source: 'moi', why: String(c.why ?? '').slice(0, 120), step: c.step ?? null, shade_match: MATCHES.includes(c.shade_match) ? c.shade_match : null, product: p, brand_site: brandSite(p.brand) } : null;
     }
     const amz = c?.source === 'web' && typeof c.url === 'string' ? amazonLink(c.url) : null;
     if (amz && c.name && c.brand) {
-      return { source: 'web', amazon: true, why: String(c.why ?? '').slice(0, 120), step: c.step ?? null, brand: String(c.brand).slice(0, 60), name: String(c.name).slice(0, 120), url: amz, category: CATS.includes(c.category) ? c.category : null, shade_hex: /^#[0-9a-f]{6}$/i.test(c.shade_hex ?? '') ? c.shade_hex : null };
+      return { source: 'web', amazon: true, why: String(c.why ?? '').slice(0, 120), step: c.step ?? null, shade_match: MATCHES.includes(c.shade_match) ? c.shade_match : null, brand: String(c.brand).slice(0, 60), name: String(c.name).slice(0, 120), url: amz, brand_site: brandSite(c.brand), category: CATS.includes(c.category) ? c.category : null, shade_hex: /^#[0-9a-f]{6}$/i.test(c.shade_hex ?? '') ? c.shade_hex : null };
     }
-    if (c?.source === 'web' && typeof c.url === 'string' && c.name && c.brand && await liveUrl(c.url)) {
-      return { source: 'web', why: String(c.why ?? '').slice(0, 120), step: c.step ?? null, brand: String(c.brand).slice(0, 60), name: String(c.name).slice(0, 120), url: c.url, category: CATS.includes(c.category) ? c.category : null, shade_hex: /^#[0-9a-f]{6}$/i.test(c.shade_hex ?? '') ? c.shade_hex : null };
+    if (c?.source === 'web' && c.name && c.brand) {
+      const site = brandSite(c.brand);
+      // A product page that won't load falls back to the brand's own site, for favoured brands.
+      const url = typeof c.url === 'string' && await liveUrl(c.url) ? c.url : site;
+      if (url) return { source: 'web', why: String(c.why ?? '').slice(0, 120), step: c.step ?? null, shade_match: MATCHES.includes(c.shade_match) ? c.shade_match : null, brand: String(c.brand).slice(0, 60), name: String(c.name).slice(0, 120), url, official: !!site && host(site) === host(url), category: CATS.includes(c.category) ? c.category : null, shade_hex: /^#[0-9a-f]{6}$/i.test(c.shade_hex ?? '') ? c.shade_hex : null };
     }
     return null;
   }))).filter(Boolean);

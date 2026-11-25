@@ -155,7 +155,8 @@ export default function Build() {
           <Text style={{ fontFamily: F.semibold, fontSize: 13, color: '#5F55A3' }}>See it</Text>
         </Pressable>
       ) : null}
-      {areas.length > 1 ? (
+      {/* The category row above already switches routines; these pills only show when it's hidden. */}
+      {areas.length > 1 && !(s.started || s.saved) ? (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {AREAS.filter(x => areas.includes(x.key)).map(x => <Pill key={x.key} label={x.label} on={area === x.key} onPress={() => router.setParams({ area: x.key })} />)}
         </View>

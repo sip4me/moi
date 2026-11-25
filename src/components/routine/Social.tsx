@@ -6,6 +6,9 @@ import { stepCount, type Page, type SharedStep } from '../../lib/routine/social'
 import { F } from '../../theme';
 import { Bubble, SYS } from './Kit';
 
+/** Keyboard focus ring shared by the Routine section controls. */
+const ring = (focused?: boolean) => (focused ? ({ outlineStyle: 'solid', outlineWidth: 2, outlineColor: '#5F4FC4', outlineOffset: 2 } as any) : null);
+
 export type RoutineTab = 'mine' | 'saved' | 'moi' | 'trending';
 const TABS: { key: RoutineTab; label: string }[] = [
   { key: 'mine', label: 'My routine' }, { key: 'saved', label: 'Saved' }, { key: 'moi', label: 'Moi routines' }, { key: 'trending', label: 'Trending' },
@@ -20,7 +23,7 @@ export function RoutineTabs({ active }: { active: RoutineTab }) {
         return (
           <Pressable key={t.key} accessibilityRole="tab" accessibilityState={{ selected: on }}
             onPress={() => (on ? null : t.key === 'mine' ? router.replace('/routine/build') : router.replace({ pathname: '/routine/routines', params: { tab: t.key } }))}
-            style={({ hovered }: any) => ({ paddingHorizontal: 14, height: 34, borderRadius: 17, justifyContent: 'center', backgroundColor: on ? '#111114' : hovered ? '#F4F4F6' : '#FFFFFF', borderWidth: 1, borderColor: on ? '#111114' : 'rgba(17,17,20,0.16)' })}>
+            style={({ hovered, pressed, focused }: any) => ({ paddingHorizontal: 14, height: 34, borderRadius: 17, justifyContent: 'center', backgroundColor: on ? '#111114' : pressed ? '#E9E9EE' : hovered ? '#F4F4F6' : '#FFFFFF', borderWidth: 1, borderColor: on ? '#111114' : hovered ? 'rgba(17,17,20,0.32)' : 'rgba(17,17,20,0.16)', transform: [{ scale: pressed && !on ? 0.97 : 1 }], ...ring(focused) })}>
             <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 13, color: on ? '#fff' : '#111114' }}>{t.label}</Text>
           </Pressable>
         );
@@ -37,7 +40,7 @@ export function RoutineCard({ page, onPress }: { page: Page; onPress?: () => voi
   const steps = page.routine?.groups?.flatMap(g => g.steps) ?? [];
   return (
     <Pressable onPress={onPress ?? (() => router.push(`/u/${page.handle}` as any))} accessibilityRole="link" accessibilityLabel={`${page.name ?? page.handle}'s routine`}
-      style={({ hovered }: any) => ({ gap: 10, padding: 16, borderRadius: 24, backgroundColor: hovered ? '#F7F7F9' : '#FFFFFF', borderWidth: 1, borderColor: 'rgba(17,17,20,0.10)' })}>
+      style={({ hovered, pressed, focused }: any) => ({ gap: 10, padding: 16, borderRadius: 24, backgroundColor: pressed ? '#F0F0F3' : hovered ? '#F7F7F9' : '#FFFFFF', borderWidth: 1, borderColor: hovered ? 'rgba(17,17,20,0.22)' : 'rgba(17,17,20,0.10)', transform: [{ scale: pressed ? 0.99 : 1 }], ...ring(focused) })}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '700', fontSize: 15, color: '#111114' }}>{page.name || `@${page.handle}`}</Text>
@@ -87,12 +90,12 @@ export function CategoryTabs({ active, mode, tab, working = [] }: { active: stri
         const on = c.key === active;
         const busy = mode === 'build' && !!c.area && working.includes(c.area);
         return (
-          <Pressable key={c.key} onPress={() => go(c)} accessibilityRole="tab" accessibilityState={{ selected: on }} hitSlop={6}
-            style={{ paddingVertical: 10, borderBottomWidth: 2.5, borderBottomColor: on ? '#111114' : 'transparent' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-              <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: on ? '700' : '600', fontSize: 14, color: on ? '#111114' : '#3A3C45' }}>{c.label}</Text>
-              {busy ? <View accessibilityLabel="in progress" style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: '#5F4FC4' }} /> : null}
-            </View>
+          <Pressable key={c.key} onPress={() => go(c)} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={busy ? `${c.label}, in progress` : c.label} hitSlop={6}
+            style={({ hovered, pressed, focused }: any) => ({ paddingVertical: 10, borderBottomWidth: 2.5, borderBottomColor: on ? '#111114' : hovered ? 'rgba(17,17,20,0.25)' : 'transparent', opacity: pressed ? 0.6 : 1, ...ring(focused) })}>
+            {({ hovered }: any) => <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+              <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: on ? '700' : '600', fontSize: 14, color: on || hovered ? '#111114' : '#3A3C45' }}>{c.label}</Text>
+              {busy ? <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: '#5F4FC4' }} /> : null}
+            </View>}
           </Pressable>
         );
       })}
