@@ -7,7 +7,6 @@ import { analyze, profileOf, rankPicks, tailoredBeauty, type Gap } from '../../l
 import { lookFromText, lookNote } from '../../lib/routine/looks';
 import { BEAUTY_ROUTINES, CATEGORY_LABEL, pref, session, setRoutine, useCatalog, useRoutine, type Item, type RoutineState } from '../../lib/routine/model';
 import { F } from '../../theme';
-import { ModelFace } from '../../components/routine/ModelFace';
 
 const crown = require('../../../assets/crown-pink.png');
 
@@ -49,7 +48,6 @@ export default function Look() {
   const s = useRoutine();
   const cat = useCatalog();
   const wide = useWide();
-  const [after, setAfter] = useState(true);
   const [more, setMore] = useState('');
   const [swap, setSwap] = useState(false);
   const choose = (step: string, id?: string) => { if (id) setRoutine(r => ({ ...r, lookPicks: { ...(r.lookPicks ?? {}), [step]: id } })); };
@@ -86,17 +84,6 @@ export default function Look() {
           <Image source={crown} style={{ width: 30, height: 30, marginTop: 6 }} resizeMode="contain" />
           <View style={[bubble, { flex: 1, backgroundColor: 'rgba(255,255,255,0.85)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }]}>
             <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.bold, fontWeight: '700', fontSize: 17, lineHeight: 22, color: '#1D1D22' }}>You can achieve this look:</Text>
-            {isMakeup && list.length ? (
-              <View style={{ alignItems: 'center', gap: 8 }}>
-                <ModelFace tone={pref(s, 'mk_tone')[0]} items={items} on={after} width={wide ? 240 : 190} />
-                <View style={{ flexDirection: 'row', borderRadius: 999, backgroundColor: '#F1F1F4', padding: 3 }}>
-                  {(['Without', 'With these'] as const).map(l => { const on = (l === 'With these') === after; return (
-                    <Pressable key={l} onPress={() => setAfter(l === 'With these')} accessibilityRole="tab" accessibilityState={{ selected: on }} style={{ paddingHorizontal: 14, height: 30, borderRadius: 15, justifyContent: 'center', backgroundColor: on ? '#fff' : 'transparent' }}>
-                      <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 13, color: on ? '#111114' : '#6C6A80' }}>{l}</Text>
-                    </Pressable>); })}
-                </View>
-              </View>
-            ) : null}
             {list.length ? list.map(({ step, pick, alts }) => (
               <View key={step} style={{ gap: 6 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
