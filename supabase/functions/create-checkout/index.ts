@@ -87,12 +87,13 @@ Deno.serve(async req => {
       ...(hadTrial || routine ? {} : { 'subscription_data[trial_period_days]': String(TRIAL_DAYS) }),
       'subscription_data[metadata][user_id]': user.id,
       'subscription_data[metadata][plan]': plan,
+      'metadata[plan]': plan,
       payment_method_collection: 'always',
       success_url: routine ? `${SITE}/routine/plans?status=success` : `${SITE}/checkout?status=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: routine ? `${SITE}/routine/plans?status=cancel` : `${SITE}/checkout?status=cancel`,
+      cancel_url: routine ? `${SITE}/routine/plans?status=cancel&plan=${plan}` : `${SITE}/checkout?status=cancel`,
     });
     return json({ configured: true, url: session.url, plan, note });
   } catch (e) {
-    return json({ error: String(e instanceof Error ? e.message : e) }, 500);
+    return new Response(JSON.stringify({ error: String(e instanceof Error ? e.message : e) }), { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } });
   }
 });

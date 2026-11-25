@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, Image, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, Image, Linking, Pressable, Text, View } from 'react-native';
 import { Confetti } from '../../components/routine/Confetti';
 import { celebrate } from '../../components/routine/Celebrate';
 import { openPortal } from '../../lib/billing';
@@ -13,13 +13,14 @@ import { shouldLine } from '../../lib/routine/looks';
 import { hasInfo, useCatalog, useRoutine } from '../../lib/routine/model';
 import { fill } from '../../lib/routine/shine';
 import { useStore } from '../../state/store';
+import { LINKS } from '../../config';
 import { C, F } from '../../theme';
 
 const crown = require('../../../assets/crown-pink.png');
 
 /** Moi Routine paywall: the full product database and picks. Yearly $24 (first 1,000 keep database access for life) or monthly $4. */
 export default function Plans() {
-  const { status } = useLocalSearchParams<{ status?: string }>();
+  const { status, plan: lastPlan } = useLocalSearchParams<{ status?: string; plan?: string }>();
   const s = useRoutine();
   const cat = useCatalog();
   const wide = useWide();
@@ -42,23 +43,28 @@ export default function Plans() {
 
   // Back from Stripe: wait for the webhook to mark the subscription, then go to the report.
   const [waiting, setWaiting] = useState(status === 'success');
+  const [round, setRound] = useState(0); // "Check again" starts another round of polling
   useEffect(() => {
     if (status !== 'success') return;
     let alive = true, tries = 0;
+    setWaiting(true);
     const poll = async () => { await refreshAccess(); if (!alive) return; if (++tries < 15) setTimeout(poll, 1500); else setWaiting(false); };
     poll();
     return () => { alive = false; };
-  }, [status]);
+  }, [status, round]);
   useEffect(() => { if (a.ok && waiting) { setWaiting(false); haptic('success'); } }, [a.ok, waiting]);
 
-  const buy = async () => {
-    setBusy(true); setErr('');
+  // Payment didn't go through: back from Stripe without paying, or checkout couldn't open.
+  const [failed, setFailed] = useState<'' | 'cancel' | 'error'>(status === 'cancel' ? 'cancel' : '');
+  const buy = async (plan?: RoutinePlan) => {
+    setBusy(true); setErr(''); setFailed('');
     try {
-      const r = await checkoutRoutine(offer.open ? pick : 'routine_standard');
+      const r = await checkoutRoutine(plan ?? (offer.open ? pick : 'routine_standard'));
       if (r === 'test') { haptic('success'); setJustPaid(true); }
-    } catch { setErr('Checkout couldn’t open. Check your connection and try again.'); }
+    } catch { setFailed('error'); haptic('tap'); }
     setBusy(false);
   };
+  const help = () => Linking.openURL(LINKS.contact);
 
   const H = { fontFamily: SYS ?? F.bold, fontWeight: '700' as const, fontSize: wide ? 28 : 23, lineHeight: wide ? 33 : 28, letterSpacing: -0.6, color: '#111114', textAlign: 'center' as const };
   const G = { dataSet: { grad: 'title' } } as any; // the steel-to-ink title gradient used on every page
@@ -98,8 +104,36 @@ export default function Plans() {
       </Shell>
     );
   }
-  if (waiting) {
-    return <Shell glass active="plans"><View style={{ gap: 12, alignItems: 'flex-start' }}><ActivityIndicator color={C.gray} /><Heading title="Finishing up" sub="Confirming your payment." /></View></Shell>;
+  // Result screens: confirming, still processing, didn't go through. Same layout as the celebration.
+  const result = (o: { dim?: boolean; spin?: boolean; title: string; sub: string; main?: { label: string; on: () => void }; alt?: { label: string; on: () => void } }) => (
+    <Shell active="plans" glass
+      footer={o.main ? <View style={{ width: wide ? 420 : '100%', gap: 12, alignItems: 'center' }}>
+        <View style={{ width: '100%' }}><Btn label={busy ? 'Opening checkout…' : o.main.label} onPress={busy ? undefined : o.main.on} /></View>
+        {o.alt ? <Pressable onPress={o.alt.on} accessibilityRole="button" hitSlop={8}><Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 15, color: '#111114' }}>{o.alt.label}</Text></Pressable> : null}
+      </View> : undefined}>
+      <View style={{ alignItems: 'center', gap: 14, maxWidth: 420, alignSelf: 'center', width: '100%', marginTop: 28, paddingVertical: 28, paddingHorizontal: 22, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.38)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.65)', ...({ backdropFilter: 'blur(22px) saturate(140%)', WebkitBackdropFilter: 'blur(22px) saturate(140%)' } as any) }}>
+        <Image source={crown} resizeMode="contain" style={{ width: 84, height: 84, transform: [{ rotate: '-14deg' }], opacity: o.dim ? 0.35 : 1 }} />
+        {o.spin ? <ActivityIndicator color={C.gray} /> : null}
+        <Text {...G} style={[H, { fontSize: 23, lineHeight: 28 }]}>{o.title}</Text>
+        <Text style={[small, { fontSize: 14, lineHeight: 20, color: '#4A4858' }]}>{o.sub}</Text>
+        {o.main && o.alt?.on !== help ? <Pressable onPress={help} accessibilityRole="link" hitSlop={8}><Text style={[small, { textDecorationLine: 'underline' }]}>Need help? hello@usemoi.com</Text></Pressable> : null}
+      </View>
+    </Shell>
+  );
+  if (waiting) return result({ spin: true, title: 'Confirming your payment', sub: 'This takes a few seconds. Keep this page open.' });
+  if (status === 'success') {
+    // Back from Stripe as paid, but the confirmation hasn't arrived yet.
+    return result({ title: 'Your payment is processing', sub: 'Stripe is still confirming it. You won’t be charged twice.', main: { label: 'Check again', on: () => setRound(n => n + 1) }, alt: { label: 'Email us', on: help } });
+  }
+  if (failed) {
+    const again = ROUTINE_PLANS[lastPlan as RoutinePlan] ? (lastPlan as RoutinePlan) : undefined;
+    return result({
+      dim: true,
+      title: 'Payment didn’t go through',
+      sub: failed === 'error' ? 'Checkout couldn’t open. Check your connection and try again. No charge was made.' : 'No charge was made. Your routine and picks are saved.',
+      main: { label: 'Try again', on: () => buy(again) },
+      alt: { label: 'Back to plans', on: () => { setFailed(''); router.setParams({ status: undefined as any }); } },
+    });
   }
 
   // Figma "34 · Paywall": one headline, a phone showing their own plan, one button, one price line.
@@ -119,7 +153,7 @@ export default function Plans() {
     <Shell active="plans"
       footer={<View style={{ width: wide ? 420 : '100%', gap: 10, alignItems: 'center' }}>
         <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 16, color: '#111114' }}>{`✓  ${!offerOn ? 'Unlimited searches · Cancel anytime' : yearly && founding ? 'Lifetime database access' : 'Cancel anytime'}`}</Text>
-        <View style={{ width: '100%' }}><Btn label={busy ? 'Opening checkout…' : 'Continue'} onPress={busy ? undefined : buy} /></View>
+        <View style={{ width: '100%' }}><Btn label={busy ? 'Opening checkout…' : 'Continue'} onPress={busy ? undefined : () => buy()} /></View>
       </View>}>
       <View style={{ alignItems: 'center', gap: 18, maxWidth: 520, alignSelf: 'center', width: '100%' }}>
         <Pressable onPress={() => router.push({ pathname: '/sign-in', params: { mode: 'signin', next: '/routine/plans' } })} accessibilityRole="button" style={{ alignSelf: 'flex-end' }} hitSlop={8}>
@@ -184,7 +218,6 @@ export default function Plans() {
         </View>
         {f && founding && yearly && offerOn ? <Text style={small}>{`${(f.left ?? FOUNDING_CAP).toLocaleString()} of ${FOUNDING_CAP.toLocaleString()} founding spots left`}</Text> : null}
         {err ? <Text style={{ fontFamily: F.semibold, fontSize: 14, color: '#A8576A' }}>{err}</Text> : null}
-        {status === 'cancel' ? <Text style={small}>No charge made.</Text> : null}
       </View>
     </Shell>
   );
