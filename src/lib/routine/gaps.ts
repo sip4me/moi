@@ -213,7 +213,9 @@ function rankAll(g: Gap, s: RoutineState, cat: Catalog, score: number, keep: (i:
       const shade = dE != null ? Math.max(0, 1 - dE / 30) * (p.item.shadeConf ?? 0.5) : 0;
       const finish = t?.finish && p.item.finish ? (t.finish === p.item.finish ? 1 : 0) : 0;
       const clash = mine && p.item.undertone && ((mine === 'Cool' && p.item.undertone === 'warm') || ((mine === 'Warm' || mine === 'Olive') && p.item.undertone === 'cool')) ? 1 : 0;
-      const rank = gain + 12 * shade + 4 * finish - 3 * clash;
+      // A clearly wrong colour (a red for a brown target) loses even when its finish matches.
+      const far = dE != null && dE > 20 && (p.item.shadeConf ?? 0.5) >= 0.5 ? Math.min(10, (dE - 20) / 3) : 0;
+      const rank = gain + 12 * shade + 4 * finish - 3 * clash - far;
       // How likely this product is to give the look: shade closeness (when the look sets a shade) and finish.
       const look = t ? Math.round(100 * (0.8 * (dE != null ? Math.max(0, 1 - dE / 30) : 0.45) + 0.2 * (t.finish ? finish : 0.6))) : null;
       return { ...p, gain, dE, look, match: dE != null && (p.item.shadeConf ?? 0) >= 0.5 ? matchLabel(dE) : null, rank };

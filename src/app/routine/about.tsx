@@ -23,9 +23,9 @@ export default function About() {
 
   const [warn, setWarn] = useState(false);
   const group = (key: string, label: string, opts: string[], has: (o: string) => boolean, press: (o: string) => void) => (
-    <View key={key} style={{ gap: 10 }}>
+    <View key={key} style={{ gap: 8 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><Label>{label}</Label>{warn && !opts.some(has) ? <Text style={{ fontFamily: F.semibold, fontSize: 12, color: '#B42318' }}>Pick one</Text> : null}</View>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{opts.map(o => <Pill key={o} label={o} on={has(o)} onPress={() => press(o)} />)}</View>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{opts.map(o => <Pill small key={o} label={o} on={has(o)} onPress={() => press(o)} />)}</View>
     </View>
   );
   const setPref = (key: string, o: string, max = 1) => setRoutine(r => {
@@ -39,10 +39,10 @@ export default function About() {
   const hairQ = (key: keyof typeof s.hair, label: string, opts: string[]) => group(`h_${key}`, label, opts, o => s.hair[key] === o, o => setRoutine(r => ({ ...r, hair: { ...r.hair, [key]: r.hair[key] === o ? undefined : o } })));
 
   const section = (a: (typeof AREAS)[number]) => (
-    <GlassCard solid key={a.key} style={{ gap: 20 }}>
+    <GlassCard solid key={a.key} style={{ gap: 16 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <Image source={icon3d(a.icon)} style={{ width: 30, height: 30 }} />
-        <Text style={{ fontFamily: F.semibold, fontSize: 17, color: C.ink }}>{a.label}</Text>
+        <Text style={{ fontFamily: F.semibold, fontSize: 15, color: C.ink }}>{a.label}</Text>
       </View>
       {a.key === 'hair' ? (
         <>
@@ -80,7 +80,7 @@ export default function About() {
         <Btn label={label} onPress={next} glow={ready} />
       </View>}>
       <GlassCard solid style={{ gap: 18, maxWidth: 800 }}>
-      <Heading title="Make a routine for" sub="Pick one. Then a few quick questions." />
+      <Heading small title="Make a routine for" sub="Pick one. Then a few quick questions." />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
         {AREAS.map(a => {
           const sel = on(a.key);
@@ -91,7 +91,7 @@ export default function About() {
                 {sel ? <Text style={{ color: '#fff', fontSize: 12, fontFamily: F.semibold, lineHeight: 14 }}>{'✓'}</Text> : null}
               </View>
               <Image source={icon3d(a.icon)} style={{ width: 56, height: 56 }} />
-              <Text style={{ fontFamily: F.semibold, fontSize: 16, color: C.ink }}>{a.label}</Text>
+              <Text style={{ fontFamily: F.semibold, fontSize: 14, color: C.ink }}>{a.label}</Text>
             </Pressable>
           );
         })}

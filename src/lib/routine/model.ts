@@ -48,6 +48,8 @@ export type RoutineState = {
   /** Picks paging per gap: how many refreshes used, whether they asked for cheaper, and why nothing fit. */
   /** The look they described on the first screen, if they started there. */
   lookText?: string;
+  /** What Claude read from their inspiration photo: the look's name and, per product, shade, colour, finish and how to apply it. */
+  lookRead?: LookRead;
   /** Products they swapped in for a look step ("Substitute recommended products"), by step label. */
   lookPicks?: Record<string, string>;
   refresh?: Record<string, { n: number; cheap?: boolean; why?: string }>;
@@ -102,6 +104,11 @@ export const BEAUTY_ROUTINES: { key: string; area: Area; label: string }[] = [
   { key: 'makeupFace', area: 'makeup', label: 'Contour' }, { key: 'makeupEyes', area: 'makeup', label: 'Eyes' }, { key: 'makeupLips', area: 'makeup', label: 'Lips' },
   { key: 'body', area: 'body', label: 'Body' },
 ];
+export type LookRead = {
+  name: string; area: 'makeup' | 'hair' | 'skin'; summary: string;
+  steps: { category: string; shade: string; hex: string; finish: string; how: string }[];
+  hair_notes?: string;
+};
 export const pref = (s: RoutineState, key: string) => s.prefs?.[key] ?? [];
 export const prefHas = (s: RoutineState, key: string, v: string) => pref(s, key).includes(v);
 
@@ -390,7 +397,7 @@ export async function searchRemote(q: string, hint?: string, areaOverride?: Area
 }
 
 /** Per app-open flags (reset on every load): the start choice and the goals page open empty the first time through. */
-export const session: { started: boolean; chose: boolean; lookPhoto?: string } = { started: false, chose: false };
+export const session: { started: boolean; chose: boolean; lookPhoto?: string; lookReadFor?: string } = { started: false, chose: false };
 
 /** True once the person has told us enough to judge: goals, plus a routine (entered or built). */
 /** Puts bag items into the person's routines: an empty matching step first, else a new step in the right routine. */

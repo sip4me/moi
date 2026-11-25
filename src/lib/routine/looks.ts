@@ -119,6 +119,15 @@ export function lookTargets(s: RoutineState): Record<string, { lab: Lab; finish?
   const out: Record<string, { lab: Lab; finish?: string }> = {};
   const put = (cat: string, w: string, finish?: string) => { const l = lab(w); if (l && !out[cat]) out[cat] = { lab: l, finish }; };
   const warm = pref(s, 'mk_undertone')[0] === 'Warm' || pref(s, 'mk_undertone')[0] === 'Olive';
+  // 0. Colours read from their inspiration photo. Base products (foundation, concealer, powder) keep
+  //    only the finish: their shade comes from the person's own skin below.
+  const BASE = ['foundation', 'concealer', 'powder', 'primer', 'setting_spray'];
+  for (const st of s.lookRead?.steps ?? []) {
+    if (out[st.category]) continue;
+    if (BASE.includes(st.category)) continue;
+    try { out[st.category] = { lab: hexToLab(st.hex), finish: st.finish }; } catch { /* bad colour: skip */ }
+  }
+  const baseFinish = s.lookRead?.steps.find(x => x.category === 'foundation')?.finish;
   // 1. Colours they typed, matched to the nearest product word after or before them.
   const text = (s.lookText ?? '').toLowerCase();
   for (const c of shadeWords(text)) {
@@ -143,7 +152,7 @@ export function lookTargets(s: RoutineState): Record<string, { lab: Lab; finish?
   if (face === 'Skin first') put('blush', warm ? 'peach' : 'pink nude');
   // 3. Base products match their own skin, not the look.
   const tone = ({ Fair: 'fair', Light: 'light', Medium: 'medium', Tan: 'tan', Deep: 'deep', Rich: 'rich' } as Record<string, string>)[pref(s, 'mk_tone')[0] ?? ''];
-  if (tone) for (const c of ['foundation', 'concealer', 'powder']) put(c, tone, out.foundation?.finish);
+  if (tone) for (const c of ['foundation', 'concealer', 'powder']) put(c, tone, out.foundation?.finish ?? baseFinish);
   return out;
 }
 

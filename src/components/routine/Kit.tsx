@@ -161,13 +161,14 @@ export function Shell({ active, children, side, footer, step, hideNav, glass, si
   );
 }
 
-export function Heading({ title, sub, right }: { title: string; sub?: string; right?: React.ReactNode }) {
+export function Heading({ title, sub, right, small }: { title: string; sub?: string; right?: React.ReactNode; small?: boolean }) {
   const wide = useWide();
+  const size = small ? (wide ? 28 : 23) : wide ? 36 : 28;
   return (
-    <View style={{ gap: 16, maxWidth: 720 }}>
-      <View style={{ gap: 10 }}>
-        <Text {...({ dataSet: { grad: 'title' } } as any)} style={[st.h1, { fontSize: wide ? 36 : 28, lineHeight: wide ? 42 : 33 }]}>{title}</Text>
-        {sub ? <Text style={st.sub}>{sub}</Text> : null}
+    <View style={{ gap: small ? 10 : 16, maxWidth: 720 }}>
+      <View style={{ gap: small ? 6 : 10 }}>
+        <Text {...({ dataSet: { grad: 'title' } } as any)} style={[st.h1, { fontSize: size, lineHeight: Math.round(size * 1.18) }]}>{title}</Text>
+        {sub ? <Text style={[st.sub, small && { fontSize: 13, lineHeight: 19 }]}>{sub}</Text> : null}
       </View>
       {right}
     </View>
@@ -176,11 +177,11 @@ export function Heading({ title, sub, right }: { title: string; sub?: string; ri
 
 export const Label = ({ children }: { children: string }) => <Text style={st.label}>{children.toUpperCase()}</Text>;
 
-export function Pill({ label, on, onPress }: { label: string; on?: boolean; onPress?: () => void }) {
+export function Pill({ label, on, onPress, small }: { label: string; on?: boolean; onPress?: () => void; small?: boolean }) {
   return (
     <Pressable {...fill(on ? 'garnet' : 'pearl')} onPress={onPress ? () => { haptic('select'); onPress(); } : undefined} accessibilityRole="button" accessibilityState={{ selected: !!on }}
-      style={({ pressed, hovered }: PS) => [st.pill, on && st.pillOn, hovered && { ...HOVER_RIM, backgroundColor: on ? PALETTE.garnetDeep : '#ECEDEF' }, pressed && { opacity: 0.8 }]}>
-      <Text style={[st.pillText, on && { color: '#fff' }]}>{label}</Text>
+      style={({ pressed, hovered }: PS) => [st.pill, small && { height: 34, paddingHorizontal: 13, borderRadius: 17 }, on && st.pillOn, hovered && { ...HOVER_RIM, backgroundColor: on ? PALETTE.garnetDeep : '#ECEDEF' }, pressed && { opacity: 0.8 }]}>
+      <Text style={[st.pillText, small && { fontSize: 13 }, on && { color: '#fff' }]}>{label}</Text>
     </Pressable>
   );
 }
