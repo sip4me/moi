@@ -32,7 +32,7 @@ export default function Handoff() {
     router.replace('/routine/build');
   };
 
-  const t = { fontFamily: SYS ?? F.medium, fontSize: 15, lineHeight: 21, color: '#4A4858' };
+  const t = { fontFamily: SYS ?? F.medium, fontSize: 14, lineHeight: 20, color: '#4A4858' };
   const lock = <Svg width={16} height={16} viewBox="0 0 24 24"><Path d="M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3" stroke="#6C6A80" strokeWidth={1.8} fill="none" strokeLinejoin="round" /></Svg>;
 
   const summary = (
@@ -42,13 +42,13 @@ export default function Handoff() {
           <Bubble category={i.category} item={i} size={56} />
           <View style={{ flex: 1, gap: 2 }}>
             <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 12, letterSpacing: 1, color: '#8E8E93', textTransform: 'uppercase' }}>{i.brand}</Text>
-            <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 16, lineHeight: 21, color: '#1D1D22' }}>{i.name}</Text>
+            <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 14, lineHeight: 19, color: '#1D1D22' }}>{i.name}</Text>
             {i.price != null ? <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 13, color: '#6C6A80' }}>{`about ${money(i.price)}`}</Text> : null}
           </View>
         </View>
       ))}
       <View style={{ gap: 12, padding: 18, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.8)', borderWidth: 1, borderColor: '#C9C1EC' }}>
-        <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '700', fontSize: 17, color: '#1D1D22' }}>Goes straight to your routine</Text>
+        <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '700', fontSize: 15, color: '#1D1D22' }}>Goes straight to your routine</Text>
         <View style={{ padding: 14, borderRadius: 16, backgroundColor: '#EEEAFB' }}>
           <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 14, lineHeight: 20, color: '#4B3F99' }}>{items[0] && lookNote(items[0], s) ? `${lookNote(items[0], s)} Once you confirm, Moi adds it to your routine and updates your fit.` : 'Once you confirm, Moi adds it to your routine and updates your fit.'}</Text>
         </View>
@@ -61,7 +61,7 @@ export default function Handoff() {
     <Shell active="shop" side={wide ? summary : undefined}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>{lock}<Text style={[t, { fontSize: 14 }]}>{`Secure checkout · ${where}`}</Text></View>
       <View style={{ alignItems: 'center', gap: 14, paddingVertical: wide ? 60 : 24 }}>
-        <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.bold, fontWeight: '700', fontSize: wide ? 30 : 26, lineHeight: wide ? 36 : 31, letterSpacing: -0.6, color: '#1D1D22', textAlign: 'center' }}>{`Your ${where} checkout is open`}</Text>
+        <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.bold, fontWeight: '700', fontSize: wide ? 24 : 21, lineHeight: wide ? 29 : 25, letterSpacing: -0.6, color: '#1D1D22', textAlign: 'center' }}>{`Your ${where} checkout is open`}</Text>
         <Text style={[t, { textAlign: 'center', maxWidth: 420 }]}>{`Finish paying at ${where} in the other tab, then come back and confirm your order here.`}</Text>
         <View style={{ width: '100%', maxWidth: 360, gap: 12, alignItems: 'center', paddingTop: 6 }}>
           <View style={{ width: '100%' }}><Btn label="I placed my order" onPress={placed} /></View>

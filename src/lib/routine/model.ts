@@ -48,6 +48,8 @@ export type RoutineState = {
   /** Picks paging per gap: how many refreshes used, whether they asked for cheaper, and why nothing fit. */
   /** The look they described on the first screen, if they started there. */
   lookText?: string;
+  /** Products they swapped in for a look step ("Substitute recommended products"), by step label. */
+  lookPicks?: Record<string, string>;
   refresh?: Record<string, { n: number; cheap?: boolean; why?: string }>;
   /** Picks whose store page was opened from Your picks, so Moi can ask "Did you buy it?" next time. */
   opened?: Record<string, { store: string; at: number }>;

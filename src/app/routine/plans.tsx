@@ -60,9 +60,9 @@ export default function Plans() {
     setBusy(false);
   };
 
-  const H = { fontFamily: SYS ?? F.bold, fontWeight: '700' as const, fontSize: wide ? 34 : 28, lineHeight: wide ? 40 : 34, letterSpacing: -0.8, color: '#111114', textAlign: 'center' as const };
+  const H = { fontFamily: SYS ?? F.bold, fontWeight: '700' as const, fontSize: wide ? 28 : 23, lineHeight: wide ? 33 : 28, letterSpacing: -0.6, color: '#111114', textAlign: 'center' as const };
   const G = { dataSet: { grad: 'title' } } as any; // the steel-to-ink title gradient used on every page
-  const small = { fontFamily: SYS ?? F.medium, fontSize: 14, color: '#6C6A80', textAlign: 'center' as const };
+  const small = { fontFamily: SYS ?? F.medium, fontSize: 13, color: '#6C6A80', textAlign: 'center' as const };
   if (a.ok) {
     // Just paid (back from Stripe, or a test unlock): the celebration. Later visits: a calm "your plan" page.
     const fresh = status === 'success' || justPaid;
@@ -77,14 +77,14 @@ export default function Plans() {
         </View>}>
         {fresh ? <Confetti /> : null}
         <View style={{ alignItems: 'center', gap: 16, maxWidth: 460, alignSelf: 'center', width: '100%', paddingTop: 12 }}>
-          <Animated.Image source={crown} resizeMode="contain" style={{ width: 120, height: 120, transform: [{ rotate: '-14deg' }, { scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) }], opacity: pop }} />
-          <Text {...G} style={[H, { fontSize: 32, lineHeight: 38 }]}>{a.founder ? `Founding Royal #${a.spot}` : fresh ? 'You’re Royal!' : 'Your plan is active'}</Text>
-          <Text style={[small, { fontSize: 16, lineHeight: 22, color: '#4A4858' }]}>{a.test ? 'Test mode: payments aren’t on yet, so this device is unlocked.' : a.founder ? 'Payment done. Database access is yours for life, even if you cancel.' : 'Payment done. Everything is unlocked.'}</Text>
+          <Animated.Image source={crown} resizeMode="contain" style={{ width: 96, height: 96, transform: [{ rotate: '-14deg' }, { scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) }], opacity: pop }} />
+          <Text {...G} style={[H, { fontSize: 26, lineHeight: 31 }]}>{a.founder ? `Founding Royal #${a.spot}` : fresh ? 'You’re Royal!' : 'Your plan is active'}</Text>
+          <Text style={[small, { fontSize: 14, lineHeight: 20, color: '#4A4858' }]}>{a.test ? 'Test mode: payments aren’t on yet, so this device is unlocked.' : a.founder ? 'Payment done. Database access is yours for life, even if you cancel.' : 'Payment done. Everything is unlocked.'}</Text>
           <View style={{ alignSelf: 'stretch', gap: 10, padding: 18, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.75)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
             {unlocked.map(x => (
               <View key={x} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                 <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#111114', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>✓</Text></View>
-                <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 16, color: '#111114' }}>{x}</Text>
+                <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 14, color: '#111114' }}>{x}</Text>
               </View>
             ))}
           </View>
@@ -127,9 +127,9 @@ export default function Plans() {
         </Pressable>
         {offerOn && !offer.loading ? (
           <View style={{ alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 18, backgroundColor: '#111114' }}>
-            <View style={{ paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, backgroundColor: '#F0A6BE' }}><Text style={{ fontFamily: SYS ?? F.bold, fontWeight: '800', fontSize: 16, color: '#111114' }}>{`${off}% OFF`}</Text></View>
+            <View style={{ paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, backgroundColor: '#F0A6BE' }}><Text style={{ fontFamily: SYS ?? F.bold, fontWeight: '800', fontSize: 14, color: '#111114' }}>{`${off}% OFF`}</Text></View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '700', fontSize: 15, color: '#fff' }}>{`Ends in ${countdown(offer.left)}`}</Text>
+              <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '700', fontSize: 14, color: '#fff' }}>{`Ends in ${countdown(offer.left)}`}</Text>
               <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>Then $10/month with unlimited searches.</Text>
             </View>
           </View>
@@ -138,7 +138,7 @@ export default function Plans() {
         {should ? (
           <View style={{ alignSelf: 'stretch', alignItems: 'center', gap: 6, paddingVertical: 14, paddingHorizontal: 16, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.75)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
             <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 13, letterSpacing: 0.6, color: '#6C6A80', textTransform: 'uppercase' }}>You should:</Text>
-            <Text style={{ fontFamily: SYS ?? F.bold, fontWeight: '700', fontSize: 19, lineHeight: 25, color: '#111114', textAlign: 'center' }}>{should}</Text>
+            <Text style={{ fontFamily: SYS ?? F.bold, fontWeight: '700', fontSize: 16, lineHeight: 21, color: '#111114', textAlign: 'center' }}>{should}</Text>
           </View>
         ) : null}
         <View style={{ alignItems: 'center' }}>

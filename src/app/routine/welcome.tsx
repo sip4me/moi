@@ -76,6 +76,8 @@ export default function Welcome() {
   // "Upload inspiration": describe a look or add a photo, then sign up and the routine starts from it.
   const [look, setLook] = useState('');
   const [photo, setPhoto] = useState<string | null>(null);
+  const [offer, setOffer] = useState(false); // after "Build a beauty routine": offer to match products to a style too
+  const inputRef = useRef<any>(null);
   const { account } = useStore();
   // On a computer, a photo can also be dropped onto the prompt box.
   const dropRef = useRef<View>(null);
@@ -149,8 +151,9 @@ export default function Welcome() {
             </View>
             {/* Lovable-style prompt: describe a look or add a photo, then go. */}
             <Animated.View style={[{ gap: 10 }, rise(arrow)]}>
+              <Text style={{ fontFamily: F.medium, fontSize: 12, color: '#4A4F63', textAlign: 'center' }}>Moi does best with an inspiration look.</Text>
               <View ref={dropRef} {...fill('glass-bar')} style={{ borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.75)', backgroundColor: 'rgba(255,255,255,0.72)', padding: 12, gap: 10 }}>
-                <TextInput value={look} onChangeText={setLook} placeholder="Describe a look you love, or upload inspiration" placeholderTextColor="#8A8DA0" multiline
+                <TextInput ref={inputRef} value={look} onChangeText={setLook} placeholder="Describe a look you love, or upload inspiration" placeholderTextColor="#8A8DA0" multiline
                   accessibilityLabel="Describe a look you love" onSubmitEditing={start} blurOnSubmit
                   style={{ minHeight: 52, fontFamily: F.medium, fontSize: 16, lineHeight: 22, color: C.ink, paddingHorizontal: 4, paddingTop: 2, ...({ outlineStyle: 'none' } as object) }} />
                 {photo ? (
@@ -175,12 +178,28 @@ export default function Welcome() {
                   </Pressable>
                 </View>
               </View>
-              <Pressable onPress={go} accessibilityRole="button" accessibilityLabel="Or start with a few questions" hitSlop={8} style={{ alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Text style={{ fontFamily: F.semibold, fontSize: 13, letterSpacing: 0.4, color: '#2A2F45' }}>Or answer a few questions</Text>
-                <Animated.View style={{ transform: [{ translateX: nudge.interpolate({ inputRange: [0, 1], outputRange: [-2, 2] }) }] }}>
-                  <Svg width={14} height={14} viewBox="0 0 24 24"><Path d="M5 12h13M13 6l6 6-6 6" stroke="#2A2F45" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
-                </Animated.View>
-              </Pressable>
+              {offer ? (
+                <View style={{ gap: 8, padding: 12, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.8)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.9)' }}>
+                  <Text style={{ fontFamily: F.semibold, fontSize: 14, color: '#2A2F45' }}>Match your products to a style too?</Text>
+                  <Text style={{ fontFamily: F.medium, fontSize: 12, lineHeight: 17, color: '#4A4F63' }}>Add a look you love and Moi lines up your product goals with it.</Text>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <Pressable {...fill('chrome-key')} onPress={() => { setOffer(false); inputRef.current?.focus(); }} accessibilityRole="button"
+                      style={{ flex: 1, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#DADADA', borderWidth: 1.5, borderColor: '#161616' }}>
+                      <Text style={{ fontFamily: F.semibold, fontSize: 13, color: '#111114' }}>Add a style</Text>
+                    </Pressable>
+                    <Pressable onPress={go} accessibilityRole="button" style={{ flex: 1, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: 'rgba(20,20,40,0.14)' }}>
+                      <Text style={{ fontFamily: F.semibold, fontSize: 13, color: '#2A2F45' }}>Just my routine</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              ) : (
+                <Pressable onPress={() => { haptic('select'); setOffer(true); }} accessibilityRole="button" accessibilityLabel="Build a beauty routine" hitSlop={8} style={{ alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={{ fontFamily: F.semibold, fontSize: 13, letterSpacing: 0.4, color: '#2A2F45' }}>Build a beauty routine</Text>
+                  <Animated.View style={{ transform: [{ translateX: nudge.interpolate({ inputRange: [0, 1], outputRange: [-2, 2] }) }] }}>
+                    <Svg width={14} height={14} viewBox="0 0 24 24"><Path d="M5 12h13M13 6l6 6-6 6" stroke="#2A2F45" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
+                  </Animated.View>
+                </Pressable>
+              )}
             </Animated.View>
           </Animated.View>
         </View>

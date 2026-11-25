@@ -11,7 +11,7 @@ import { ModelFace } from '../../components/routine/ModelFace';
 
 const crown = require('../../../assets/crown-pink.png');
 
-/** The steps a look needs (makeup: its face, eye and lip routines), each with the best product in budget. */
+/** The steps a look needs (makeup: its face, eye and lip routines): the best product in budget for each, plus the next-best for swapping. */
 function routineFor(s: RoutineState, cat: ReturnType<typeof useCatalog>) {
   const { score } = analyze(s, cat);
   const max = profileOf(s).budgetMax;
@@ -19,17 +19,24 @@ function routineFor(s: RoutineState, cat: ReturnType<typeof useCatalog>) {
   const keys = BEAUTY_ROUTINES.filter(r => (s.areas ?? []).includes(r.area)).map(r => r.key);
   const steps = keys.flatMap(k => tailoredBeauty(s, k));
   const seen = new Set<string>();
-  const out: { step: string; pick: ReturnType<typeof rankPicks>[number] }[] = [];
+  type Pick = ReturnType<typeof rankPicks>[number];
+  const out: { step: string; pick: Pick; alts: Pick[] }[] = [];
+  const used = new Set<string>();
+  const add = (step: string, g: Gap) => {
+    const all = rankPicks(g, s, cat, score, i => keep(i) && !used.has(i.id ?? ''), 5);
+    if (!all.length) return;
+    const chosen = all.find(p => p.item.id === s.lookPicks?.[step]) ?? all[0];
+    used.add(chosen.item.id ?? '');
+    out.push({ step, pick: chosen, alts: all.filter(p => p !== chosen).sort((x, y) => (y.look ?? 0) - (x.look ?? 0)).slice(0, 3) });
+  };
   for (const st of steps) {
     const c = st.hint ?? '';
     if (!c || seen.has(`${c}:${st.label}`)) continue;
     seen.add(`${c}:${st.label}`);
-    const g: Gap = { id: `look_${c}_${st.label}`, kind: 'step', title: st.label, why: '', fills: [c], weight: 1 } as Gap;
-    const pick = rankPicks(g, s, cat, score, i => keep(i) && !out.some(o => o.pick.item.id === i.id), 1)[0];
-    if (pick) out.push({ step: st.label, pick });
+    add(st.label, { id: `look_${c}_${st.label}`, kind: 'step', title: st.label, why: '', fills: [c], weight: 1 } as Gap);
   }
   // Hair (or anything without look steps): their gaps, best pick each.
-  if (!out.length) for (const g of analyze(s, cat).gaps.slice(0, 5)) { const p = rankPicks(g, s, cat, score, keep, 1)[0]; if (p) out.push({ step: g.title, pick: p }); }
+  if (!out.length) for (const g of analyze(s, cat).gaps.slice(0, 5)) add(g.title, g);
   return out;
 }
 
@@ -44,6 +51,8 @@ export default function Look() {
   const wide = useWide();
   const [after, setAfter] = useState(true);
   const [more, setMore] = useState('');
+  const [swap, setSwap] = useState(false);
+  const choose = (step: string, id?: string) => { if (id) setRoutine(r => ({ ...r, lookPicks: { ...(r.lookPicks ?? {}), [step]: id } })); };
   const list = useMemo(() => routineFor(s, cat), [s, cat]);
   const items = list.map(x => x.pick.item);
   const total = items.reduce((a, i) => a + (i.price ?? 0), 0);
@@ -54,8 +63,8 @@ export default function Look() {
     setRoutine(r => ({ ...r, lookText: `${r.lookText ?? ''} ${t}`.trim(), prefs: { ...(r.prefs ?? {}), ...r0.prefs }, goals: Array.from(new Set([...(r.goals ?? []), ...r0.goals])), areas: r.areas?.length ? r.areas : r0.area ? [r0.area] : [] }));
     setMore('');
   };
-  const bubble = { maxWidth: 560, padding: 16, borderRadius: 22, gap: 10 };
-  const T = { fontFamily: SYS ?? F.medium, fontSize: 15, lineHeight: 21, color: '#1D1D22' };
+  const bubble = { maxWidth: 520, padding: 14, borderRadius: 20, gap: 9 };
+  const T = { fontFamily: SYS ?? F.medium, fontSize: 14, lineHeight: 20, color: '#1D1D22' };
 
   return (
     <Shell active="build"
@@ -76,10 +85,10 @@ export default function Look() {
         <View style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
           <Image source={crown} style={{ width: 30, height: 30, marginTop: 6 }} resizeMode="contain" />
           <View style={[bubble, { flex: 1, backgroundColor: 'rgba(255,255,255,0.85)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }]}>
-            <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.bold, fontWeight: '700', fontSize: 20, lineHeight: 25, color: '#1D1D22' }}>You can achieve this look:</Text>
+            <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.bold, fontWeight: '700', fontSize: 17, lineHeight: 22, color: '#1D1D22' }}>You can achieve this look:</Text>
             {isMakeup && list.length ? (
               <View style={{ alignItems: 'center', gap: 8 }}>
-                <ModelFace tone={pref(s, 'mk_tone')[0]} items={items} on={after} width={wide ? 280 : 230} />
+                <ModelFace tone={pref(s, 'mk_tone')[0]} items={items} on={after} width={wide ? 240 : 190} />
                 <View style={{ flexDirection: 'row', borderRadius: 999, backgroundColor: '#F1F1F4', padding: 3 }}>
                   {(['Without', 'With these'] as const).map(l => { const on = (l === 'With these') === after; return (
                     <Pressable key={l} onPress={() => setAfter(l === 'With these')} accessibilityRole="tab" accessibilityState={{ selected: on }} style={{ paddingHorizontal: 14, height: 30, borderRadius: 15, justifyContent: 'center', backgroundColor: on ? '#fff' : 'transparent' }}>
@@ -88,18 +97,40 @@ export default function Look() {
                 </View>
               </View>
             ) : null}
-            {list.length ? list.map(({ step, pick }) => (
-              <View key={pick.item.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <Bubble category={pick.item.category} item={pick.item} size={40} />
-                <View style={{ flex: 1, gap: 1 }}>
-                  <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 12, color: '#6C6A80' }}>{[step || CATEGORY_LABEL[pick.item.category], pick.match].filter(Boolean).join(' · ')}</Text>
-                  <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 14, lineHeight: 19, color: '#1D1D22' }}>{pick.item.name}</Text>
-                  {lookNote(pick.item, s) ? <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 12, lineHeight: 17, color: '#4A4858' }}>{lookNote(pick.item, s)}</Text> : null}
+            {list.length ? list.map(({ step, pick, alts }) => (
+              <View key={step} style={{ gap: 6 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <Bubble category={pick.item.category} item={pick.item} size={34} />
+                  <View style={{ flex: 1, gap: 1 }}>
+                    <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 11, color: '#6C6A80' }}>{[step || CATEGORY_LABEL[pick.item.category], pick.match].filter(Boolean).join(' · ')}</Text>
+                    <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 13, lineHeight: 17, color: '#1D1D22' }}>{pick.item.name}</Text>
+                    {!swap && lookNote(pick.item, s) ? <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 11, lineHeight: 15, color: '#4A4858' }}>{lookNote(pick.item, s)}</Text> : null}
+                  </View>
+                  <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 13, color: '#1D1D22' }}>{pick.item.price != null ? money(pick.item.price) : ''}</Text>
                 </View>
-                <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 14, color: '#1D1D22' }}>{pick.item.price != null ? money(pick.item.price) : ''}</Text>
+                {/* Substitutes: the next products most likely to give the look, best first; tap to swap. */}
+                {swap && alts.length ? (
+                  <View style={{ marginLeft: 44, gap: 4 }}>
+                    {alts.map(a => (
+                      <Pressable key={a.item.id} onPress={() => choose(step, a.item.id)} accessibilityRole="button" accessibilityLabel={`Use ${a.item.name} instead`}
+                        style={({ hovered }: any) => ({ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6, paddingHorizontal: 8, borderRadius: 12, backgroundColor: hovered ? '#F1F1F4' : '#F7F7F9' })}>
+                        <Bubble category={a.item.category} item={a.item} size={24} />
+                        <Text numberOfLines={2} style={{ flex: 1, fontFamily: SYS ?? F.medium, fontSize: 12, lineHeight: 16, color: '#1D1D22' }}>{a.item.name}</Text>
+                        {a.look != null ? <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 11, color: a.look >= 80 ? '#1E7B45' : '#6C6A80' }}>{`${a.look}% look match`}</Text> : null}
+                        <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 12, color: '#6C6A80' }}>{a.item.price != null ? money(a.item.price) : ''}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                ) : null}
               </View>
             )) : <Text style={T}>Tell me a little more, like the lip, eye or skin you want, and I’ll build it.</Text>}
-            {total ? <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 14, color: '#1D1D22' }}>{`About ${money(Math.round(total))} for the full routine`}</Text> : null}
+            {total ? <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 13, color: '#1D1D22' }}>{`About ${money(Math.round(total))} for the full routine`}</Text> : null}
+            {list.some(x => x.alts.length) ? (
+              <Pressable onPress={() => setSwap(v => !v)} accessibilityRole="button" hitSlop={6} style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 7, paddingHorizontal: 12, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(20,20,40,0.14)', backgroundColor: '#fff' }}>
+                <Svg width={14} height={14} viewBox="0 0 24 24"><Path d="M7 7h11l-3-3M17 17H6l3 3" stroke="#2A2F45" strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
+                <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 12, color: '#2A2F45' }}>{swap ? 'Done substituting' : 'Substitute recommended products'}</Text>
+              </Pressable>
+            ) : null}
           </View>
         </View>
         {/* The ask */}

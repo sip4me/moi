@@ -40,17 +40,17 @@ export default function Setup() {
   return (
     <Shell active="gaps" step="3 of 3">
       <View style={{ alignItems: 'center', gap: 18, paddingVertical: 28, maxWidth: 420, alignSelf: 'center', width: '100%' }}>
-        <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.bold, fontWeight: '800', fontSize: 64, lineHeight: 70, letterSpacing: -2, color: '#1D1D22' }}>{`${pct}%`}</Text>
-        <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.bold, fontWeight: '700', fontSize: 26, lineHeight: 31, letterSpacing: -0.5, color: '#1D1D22', textAlign: 'center' }}>We’re setting everything{'\n'}up for you</Text>
+        <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.bold, fontWeight: '800', fontSize: 46, lineHeight: 52, letterSpacing: -1.5, color: '#1D1D22' }}>{`${pct}%`}</Text>
+        <Text {...({ dataSet: { grad: 'title' } } as any)} style={{ fontFamily: SYS ?? F.bold, fontWeight: '700', fontSize: 20, lineHeight: 25, letterSpacing: -0.4, color: '#1D1D22', textAlign: 'center' }}>We’re setting everything{'\n'}up for you</Text>
         <View style={{ alignSelf: 'stretch', height: 8, borderRadius: 4, backgroundColor: 'rgba(20,20,40,0.08)', overflow: 'hidden' }}>
           <Animated.View {...({ dataSet: { fill: 'progress-grad' } } as any)} style={{ height: 8, borderRadius: 4, backgroundColor: '#8F86C6', width: t.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }} />
         </View>
-        <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 15, color: '#6C6A80', textAlign: 'center' }}>{lines[Math.min(lines.length - 1, Math.floor(pct / 26))]}</Text>
+        <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 13, color: '#6C6A80', textAlign: 'center' }}>{lines[Math.min(lines.length - 1, Math.floor(pct / 26))]}</Text>
         <View style={{ alignSelf: 'stretch', gap: 12, padding: 18, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.75)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
-          <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 15, color: '#1D1D22' }}>Building your plan</Text>
+          <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 14, color: '#1D1D22' }}>Building your plan</Text>
           {steps.map((x, k) => (
             <View key={x} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <Text style={{ flex: 1, fontFamily: SYS ?? F.medium, fontSize: 15, color: done(k) ? '#1D1D22' : '#8E8E93' }}>{`·  ${x}`}</Text>
+              <Text style={{ flex: 1, fontFamily: SYS ?? F.medium, fontSize: 13, color: done(k) ? '#1D1D22' : '#8E8E93' }}>{`·  ${x}`}</Text>
               <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: done(k) ? '#111114' : 'transparent', borderWidth: done(k) ? 0 : 1.5, borderColor: '#D5D8DE', alignItems: 'center', justifyContent: 'center' }}>
                 {done(k) ? <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>✓</Text> : null}
               </View>
