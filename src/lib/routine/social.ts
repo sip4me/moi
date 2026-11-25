@@ -13,6 +13,22 @@ export type Page = { user_id: string; handle: string; name: string | null; bio: 
 export const HANDLE_RE = /^[a-z0-9_]{3,20}$/;
 export const pageUrl = (handle: string) => `https://usemoi.com/u/${handle}`;
 
+/** Share a link: the phone's share sheet where there is one, otherwise copy it. */
+export async function shareLink(url: string, title: string): Promise<'shared' | 'copied' | 'closed' | 'failed'> {
+  try {
+    const nav: any = typeof navigator !== 'undefined' ? navigator : null;
+    if (nav?.share) { await nav.share({ title: 'Moi', text: title, url }); return 'shared'; }
+    if (nav?.clipboard) { await nav.clipboard.writeText(`${title} ${url}`); return 'copied'; }
+    return 'failed';
+  } catch (e: any) { return e?.name === 'AbortError' ? 'closed' : 'failed'; }
+}
+
+/** A link name from a display name or email: lowercase letters, numbers and underscores. */
+export const suggestHandle = (from?: string | null) => {
+  const base = (from ?? '').split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 16);
+  return base.length >= 3 ? base : '';
+};
+
 const WHERE: Record<string, string> = Object.fromEntries(BEAUTY_ROUTINES.map(r => [r.key, `${r.area === 'makeup' ? 'Makeup' : r.area === 'skin' ? 'Skin' : 'Body'} · ${r.label}`]));
 
 /** The routine as it is now, with products only (skipped and empty steps left out). */
@@ -30,6 +46,23 @@ export function snapshot(s: RoutineState): Snapshot {
 }
 
 export const stepCount = (r?: Snapshot) => (r?.groups ?? []).reduce((a, g) => a + g.steps.length, 0);
+
+// Share copy, in Moi's voice: whose routine, its style or category, and how many picks.
+const AREA_WORDS: Record<string, [string, string]> = {
+  makeup: ['makeup', '💄'], skin: ['skincare', '🧴'], hair: ['hair', '💇‍♀️'], body: ['bath & body', '🛁'], fragrance: ['fragrance', '🌸'],
+};
+/** e.g. "Sipara’s 90s brown lip makeup routine 💄✨ Peek at my 7 picks on Moi". No em dashes, short and sweet. */
+export function shareText(name: string | null | undefined, r: Snapshot | undefined, mine: boolean): string {
+  const who = name?.trim() ? `${name.trim().split(/\s+/)[0]}’s` : mine ? 'My' : 'A';
+  const areas = (r?.areas ?? []).filter(a => AREA_WORDS[a]);
+  const [word, emoji] = AREA_WORDS[areas[0]] ?? ['beauty', '💖'];
+  const raw = r?.look?.name?.trim().replace(/\s*(look|routine)$/i, '');
+  const style = raw ? raw[0].toLowerCase() + raw.slice(1) : raw;
+  const what = `${style ? `${style} ` : ''}${style && style.toLowerCase().includes(word) ? '' : `${word} `}routine`;
+  const n = stepCount(r);
+  const tail = n ? (mine ? `Peek at my ${n} pick${n === 1 ? '' : 's'} on Moi` : `${n} pick${n === 1 ? '' : 's'} to try on Moi`) : (mine ? 'Come build yours with me on Moi' : 'Take a peek on Moi');
+  return `${who} ${what} ${emoji}✨ ${tail}`;
+}
 
 export async function myPage(): Promise<Page | null> {
   const sb = supabase(); if (!sb) return null;

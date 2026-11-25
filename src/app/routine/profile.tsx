@@ -7,7 +7,7 @@ import { SectionCard } from '../../components/ui';
 import { AREA_Q, AREAS, DAYS, allSteps, hasInfo, pref, useCatalog, useRoutine } from '../../lib/routine/model';
 import { useAccess } from '../../lib/routine/access';
 import { analyze } from '../../lib/routine/gaps';
-import { myPage, pageUrl, savePage, stepCount, snapshot, type Page } from '../../lib/routine/social';
+import { myPage, pageUrl, savePage, shareLink, shareText, stepCount, snapshot, type Page } from '../../lib/routine/social';
 import { useStore } from '../../state/store';
 import { C, F } from '../../theme';
 
@@ -49,7 +49,8 @@ function ShareCard({ suggested, s, display }: { suggested: string; s: ReturnType
   const copy = async () => {
     if (!page) return;
     const url = pageUrl(page.handle);
-    try { if (Platform.OS === 'web' && (navigator as any).share) await (navigator as any).share({ title: 'My routine on Moi', url }); else { await navigator.clipboard.writeText(url); setMsg('Link copied.'); } } catch { /* closed */ }
+    const out = await shareLink(url, shareText(display, page.routine, true));
+    if (out === 'copied') setMsg('Link copied.');
   };
   const input = { fontFamily: F.medium, fontSize: 15, color: C.ink, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 12, backgroundColor: '#F4F4F6', ...({ outlineStyle: 'none' } as object) };
   const changed = !!page && stepCount(page.routine) !== stepCount(snapshot(s));
@@ -68,7 +69,7 @@ function ShareCard({ suggested, s, display }: { suggested: string; s: ReturnType
       <Btn label={busy ? 'Saving…' : page ? (changed ? 'Update with my latest routine' : 'Save changes') : 'Create my routine link'} onPress={busy ? undefined : save} />
       {page ? (
         <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
-          <Btn kind="small" label="Copy link" onPress={copy} />
+          <Btn kind="small" label="Share link" onPress={copy} />
           <Btn kind="small" label="View my page" onPress={() => router.push(`/u/${page.handle}` as any)} />
         </View>
       ) : null}

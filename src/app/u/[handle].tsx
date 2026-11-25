@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Platform, Pressable, Text, View } from 'react-native';
 import { AffiliateNote, Btn, Bubble, Shell, SYS } from '../../components/routine/Kit';
-import { asItem } from '../../components/routine/Social';
+import { asItem, sharePage } from '../../components/routine/Social';
 import { openStore, storeLinks } from '../../lib/routine/affiliate';
 import { getPage, isFollowing, pageUrl, setFollow, stepCount, type Page } from '../../lib/routine/social';
 import { ensureUser } from '../../lib/supabase';
@@ -42,11 +42,9 @@ export default function RoutinePage() {
   };
   const share = async () => {
     if (!page) return;
-    const url = pageUrl(page.handle);
-    try {
-      if (Platform.OS === 'web' && (navigator as any).share) { await (navigator as any).share({ title: `${page.name ?? page.handle}'s routine on Moi`, url }); return; }
-      await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 1800);
-    } catch { /* closed */ }
+    // Cute, on-brand share copy: whose routine, its style or category, and how many picks.
+    const out = await sharePage(page, mine);
+    if (out === 'copied') { setCopied(true); setTimeout(() => setCopied(false), 1800); }
   };
 
   const T = { fontFamily: SYS ?? F.medium, fontSize: 13, lineHeight: 18, color: '#4A4858' };
