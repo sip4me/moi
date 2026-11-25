@@ -11,7 +11,7 @@ import { F } from '../../theme';
 /** Routine section: Saved (routines they follow), Moi routines (curated looks) and Trending. */
 export default function Routines() {
   const { tab: t, cat: c } = useLocalSearchParams<{ tab?: string; cat?: string }>();
-  const cat = CATEGORIES.find(x => x.key === c) ?? CATEGORIES[0];
+  const cat = CATEGORIES.find(x => x.key === c) ?? null;
   const tab: RoutineTab = t === 'moi' || t === 'trending' ? t : 'saved';
   const { account } = useStore();
   const signedIn = !!account && !account.anonymous;
@@ -25,8 +25,8 @@ export default function Routines() {
     return () => { alive = false; };
   }, [tab, signedIn]);
 
-  const shown = (list ?? []).filter(p => cat.key === 'all' || (p.routine?.areas ?? []).includes(cat.area ?? cat.key));
-  const moiShown = cat.key === 'all' || cat.key === 'makeup' ? MOI_ROUTINES : [];
+  const shown = (list ?? []).filter(p => !cat || (p.routine?.areas ?? []).includes(cat.area ?? cat.key));
+  const moiShown = !cat || cat.key === 'makeup' ? MOI_ROUTINES : [];
   // Moi routines open in the look chat, built from Moi's database (no photo read needed).
   const tryMoi = (r: (typeof MOI_ROUTINES)[number]) => {
     session.lookPhoto = undefined;
@@ -48,13 +48,13 @@ export default function Routines() {
     <Shell glass active="build">
       <View style={{ gap: 14, maxWidth: 640, width: '100%' }}>
         <RoutineTabs active={tab} />
-        <CategoryTabs mode="list" tab={tab} active={cat.key} />
+        <CategoryTabs mode="list" tab={tab} active={cat?.key ?? ''} />
         <View style={{ gap: 4 }}>
           <Text {...({ dataSet: { grad: 'title' } } as any)} style={title}>{tab === 'saved' ? 'Saved routines' : tab === 'moi' ? 'Moi routines' : 'Trending routines'}</Text>
           <Text style={sub}>{tab === 'saved' ? 'Routines you follow, from people with looks you love.' : tab === 'moi' ? 'Trending looks, built from products that fit your budget.' : 'The routines people are following most this week.'}</Text>
         </View>
 
-        {tab === 'moi' && !moiShown.length ? empty(`Moi’s ${cat.label.toLowerCase()} routines are coming. Build one with Moi in the meantime.`, { label: 'Explore with Moi', on: () => router.push({ pathname: '/routine/chat', params: { type: cat.label === 'Haircare' ? 'Haircare' : cat.label === 'Skincare' ? 'Skincare' : cat.label === 'Bath & Body' ? 'Bath & body' : cat.label } } as any) }) : null}
+        {tab === 'moi' && cat && !moiShown.length ? empty(`Moi’s ${cat.label.toLowerCase()} routines are coming. Build one with Moi in the meantime.`, { label: 'Explore with Moi', on: () => router.push({ pathname: '/routine/chat', params: { type: cat.label === 'Haircare' ? 'Haircare' : cat.label === 'Skincare' ? 'Skincare' : cat.label === 'Bath & Body' ? 'Bath & body' : cat.label } } as any) }) : null}
         {tab === 'moi' ? moiShown.map(r => (
           <Pressable key={r.key} onPress={() => tryMoi(r)} accessibilityRole="button" accessibilityLabel={`Try ${r.name}`}
             style={({ hovered }: any) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: 24, backgroundColor: hovered ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.75)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.9)' })}>

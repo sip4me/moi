@@ -20,7 +20,7 @@ export function RoutineTabs({ active }: { active: RoutineTab }) {
         return (
           <Pressable key={t.key} accessibilityRole="tab" accessibilityState={{ selected: on }}
             onPress={() => (on ? null : t.key === 'mine' ? router.replace('/routine/build') : router.replace({ pathname: '/routine/routines', params: { tab: t.key } }))}
-            style={({ hovered }: any) => ({ paddingHorizontal: 14, height: 34, borderRadius: 17, justifyContent: 'center', backgroundColor: on ? '#111114' : hovered ? '#fff' : 'rgba(255,255,255,0.6)', borderWidth: 1, borderColor: on ? '#111114' : 'rgba(255,255,255,0.85)' })}>
+            style={({ hovered }: any) => ({ paddingHorizontal: 14, height: 34, borderRadius: 17, justifyContent: 'center', backgroundColor: on ? '#111114' : hovered ? '#F4F4F6' : '#FFFFFF', borderWidth: 1, borderColor: on ? '#111114' : 'rgba(17,17,20,0.16)' })}>
             <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 13, color: on ? '#fff' : '#111114' }}>{t.label}</Text>
           </Pressable>
         );
@@ -37,7 +37,7 @@ export function RoutineCard({ page, onPress }: { page: Page; onPress?: () => voi
   const steps = page.routine?.groups?.flatMap(g => g.steps) ?? [];
   return (
     <Pressable onPress={onPress ?? (() => router.push(`/u/${page.handle}` as any))} accessibilityRole="link" accessibilityLabel={`${page.name ?? page.handle}'s routine`}
-      style={({ hovered }: any) => ({ gap: 10, padding: 16, borderRadius: 24, backgroundColor: hovered ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.75)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.9)' })}>
+      style={({ hovered }: any) => ({ gap: 10, padding: 16, borderRadius: 24, backgroundColor: hovered ? '#F7F7F9' : '#FFFFFF', borderWidth: 1, borderColor: 'rgba(17,17,20,0.10)' })}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '700', fontSize: 15, color: '#111114' }}>{page.name || `@${page.handle}`}</Text>
@@ -53,7 +53,7 @@ export function RoutineCard({ page, onPress }: { page: Page; onPress?: () => voi
 
 /** Beauty categories under the Routine tab. Four are routine builders; the rest open the Moi chat with that type picked. */
 export const CATEGORIES: { key: string; label: string; area?: Area }[] = [
-  { key: 'all', label: 'All categories' }, { key: 'skin', label: 'Skincare', area: 'skin' }, { key: 'makeup', label: 'Makeup', area: 'makeup' },
+  { key: 'skin', label: 'Skincare', area: 'skin' }, { key: 'makeup', label: 'Makeup', area: 'makeup' },
   { key: 'hair', label: 'Haircare', area: 'hair' }, { key: 'fragrance', label: 'Fragrance' }, { key: 'body', label: 'Bath & Body', area: 'body' },
   { key: 'tools', label: 'Tools & Devices' }, { key: 'wellness', label: 'Wellness' },
 ];
@@ -73,30 +73,30 @@ export function CategoryTabs({ active, mode, tab, working = [] }: { active: stri
   const go = (c: (typeof CATEGORIES)[number]) => {
     if (CHAT_TYPE[c.key]) { router.push({ pathname: '/routine/chat', params: { type: CHAT_TYPE[c.key] } } as any); return; }
     if (mode === 'build') {
-      // All categories: every routine they're working on, switched with the pills below.
-      const areas = c.area ? [c.area] : working.length ? working : null;
-      if (!areas) return;
-      setRoutine(r => ({ ...r, areas }));
-      router.replace({ pathname: '/routine/build', params: { area: areas[0] } });
+      if (!c.area) return;
+      setRoutine(r => ({ ...r, areas: [c.area!] }));
+      router.replace({ pathname: '/routine/build', params: { area: c.area } });
       return;
     }
-    router.replace({ pathname: '/routine/routines', params: { tab: tab ?? 'saved', ...(c.key === 'all' ? {} : { cat: c.key }) } });
+    router.replace({ pathname: '/routine/routines', params: { tab: tab ?? 'saved', ...(c.key === active ? {} : { cat: c.key }) } });
   };
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 18, paddingVertical: 2 }}>
+    <View style={{ backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(17,17,20,0.10)' }}>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 18, paddingHorizontal: 14 }}>
       {CATEGORIES.map(c => {
         const on = c.key === active;
         const busy = mode === 'build' && !!c.area && working.includes(c.area);
         return (
           <Pressable key={c.key} onPress={() => go(c)} accessibilityRole="tab" accessibilityState={{ selected: on }} hitSlop={6}
-            style={{ paddingVertical: 6, borderBottomWidth: 2, borderBottomColor: on ? '#111114' : 'transparent' }}>
+            style={{ paddingVertical: 10, borderBottomWidth: 2.5, borderBottomColor: on ? '#111114' : 'transparent' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-              <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: on ? '700' : '500', fontSize: 14, color: on ? '#111114' : '#5B5F6B' }}>{c.label}</Text>
-              {busy ? <View accessibilityLabel="in progress" style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: '#8B7BD8' }} /> : null}
+              <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: on ? '700' : '600', fontSize: 14, color: on ? '#111114' : '#3A3C45' }}>{c.label}</Text>
+              {busy ? <View accessibilityLabel="in progress" style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: '#5F4FC4' }} /> : null}
             </View>
           </Pressable>
         );
       })}
     </ScrollView>
+    </View>
   );
 }
