@@ -149,7 +149,8 @@ export default function Chat() {
           </View>
         </View>
         <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-          {small(`See it at ${host(c.url)} ↗`, () => { logClick({ brand: c.brand, product: c.name, store: host(c.url), source: 'chat', web: true }); Linking.openURL(withUtm(c.url)); })}
+          {c.amazon ? small('Buy at Amazon ↗', () => { logClick({ brand: c.brand, product: c.name, store: 'Amazon', source: 'chat', web: true, tagged: true }); Linking.openURL(c.url); })
+            : small(`See it at ${host(c.url)} ↗`, () => { logClick({ brand: c.brand, product: c.name, store: host(c.url), source: 'chat', web: true }); Linking.openURL(withUtm(c.url)); })}
           {c.category ? small(done ? 'Added ✓' : '+ Add to my routine', () => add(c), undefined, done) : null}
         </View>
       </View>

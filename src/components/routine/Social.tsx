@@ -53,7 +53,7 @@ export function RoutineCard({ page, onPress }: { page: Page; onPress?: () => voi
 
 /** Beauty categories under the Routine tab. Four are routine builders; the rest open the Moi chat with that type picked. */
 export const CATEGORIES: { key: string; label: string; area?: Area }[] = [
-  { key: 'all', label: 'All' }, { key: 'skin', label: 'Skincare', area: 'skin' }, { key: 'makeup', label: 'Makeup', area: 'makeup' },
+  { key: 'all', label: 'All categories' }, { key: 'skin', label: 'Skincare', area: 'skin' }, { key: 'makeup', label: 'Makeup', area: 'makeup' },
   { key: 'hair', label: 'Haircare', area: 'hair' }, { key: 'fragrance', label: 'Fragrance' }, { key: 'body', label: 'Bath & Body', area: 'body' },
   { key: 'tools', label: 'Tools & Devices' }, { key: 'wellness', label: 'Wellness' },
 ];

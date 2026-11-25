@@ -8,7 +8,7 @@ import { allSteps, type Item, type RoutineState } from './model';
 
 export type MoiCard =
   | { source: 'moi'; why: string; step?: string | null; item: Item }
-  | { source: 'web'; why: string; step?: string | null; brand: string; name: string; url: string; category: string | null; shade_hex: string | null };
+  | { source: 'web'; why: string; step?: string | null; brand: string; name: string; url: string; category: string | null; shade_hex: string | null; amazon?: boolean };
 export type ChatMsg = { id: string; role: 'user' | 'moi'; text: string; ask?: Question | null; cards?: MoiCard[]; local?: 'area' | 'photo'; photo?: string };
 export type ChatResult = { ok: true; text: string; ask: Question | null; cards: MoiCard[]; save: { key: string; value: string }[]; left: number } | { ok: false; why: 'limit' | 'off' | 'error'; limit?: number };
 

@@ -36,6 +36,10 @@ export const QUESTIONS: Question[] = [
   { key: 'hair_tools', area: 'tools', q: 'Which hair tool?', options: ['Dryer', 'Straightener', 'Curler or wand', 'Diffuser', 'Brush'] },
   { key: 'skin_tools', area: 'tools', q: 'Which skin tool?', options: ['Cleansing brush', 'Gua sha or roller', 'LED mask', 'Pore vacuum'] },
   { key: 'wellness_time', area: 'wellness', q: 'How much time do you have for it?', options: ['5 minutes', '15 minutes', '30 minutes or more'] },
+  { key: 'tan_type', area: 'body', q: 'What kind of tan?', options: ['Self-tanner', 'Gradual tan lotion', 'Bronzing drops', 'Tan remover', 'SPF for real sun'] },
+  { key: 'tan_depth', area: 'body', q: 'How deep a glow?', options: ['Light', 'Medium', 'Dark'] },
+  { key: 'supplement_focus', area: 'wellness', q: 'Which supplements are you curious about?', options: ['Hair', 'Skin', 'Nails', 'Sleep', 'General wellness'] },
+  { key: 'price_range', area: 'makeup', q: 'What price range should I show?', options: ['Under $15', '$15–40', '$40–100', 'Splurge $100+', 'Show me a range'] },
   // Shades, for pigmented makeup.
   { key: 'lip_shade', area: 'makeup', q: 'Which lip shades do you reach for?', options: ['Nude', 'Pink', 'Rose', 'Berry', 'Red', 'Brown', 'Coral'], max: 2 },
   { key: 'cheek_shade', area: 'makeup', q: 'And for cheeks?', options: ['Peach', 'Pink', 'Rose', 'Terracotta', 'Berry', 'Bronze'], max: 2 },
