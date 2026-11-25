@@ -66,20 +66,16 @@ function MenuButton({ onPress, hint }: { onPress: () => void; hint: boolean }) {
   }, [hint]);
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      {/* The menu button: a dark glass circle with three lines. */}
       <View style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
         {hint ? <Animated.View pointerEvents="none" style={{ position: 'absolute', width: 44, height: 44, borderRadius: 22, backgroundColor: BLUE, opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0] }), transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.9] }) }] }} /> : null}
-        <Pressable {...fill('pearl')} onPress={() => { haptic('select'); onPress(); }} accessibilityRole="button" accessibilityLabel="Open menu"
-          style={({ pressed, hovered }: PS) => [st.menuBtn, hovered && { ...HOVER_RIM, backgroundColor: '#E9EAEC' }, pressed && { transform: [{ scale: 0.94 }] }]}>
-          <Image source={crownImg} style={{ width: 24, height: 24 }} />
+        <Pressable onPress={() => { haptic('select'); onPress(); }} accessibilityRole="button" accessibilityLabel="Open menu"
+          style={({ pressed, hovered }: PS) => ({ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: hovered ? 'rgba(58,58,62,0.92)' : 'rgba(44,44,48,0.86)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)', shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, transform: [{ scale: pressed ? 0.94 : 1 }], ...({ backdropFilter: 'blur(14px)' } as object) })}>
+          <View style={{ width: 20, gap: 4 }}>
+            {[20, 20, 12].map((w, i) => <View key={i} style={{ width: w, height: 2.5, borderRadius: 2, backgroundColor: '#F2F2F4' }} />)}
+          </View>
         </Pressable>
       </View>
-      {/* Menu button beside the crown: a dark glass circle with three lines, so it's clear the nav opens here. */}
-      <Pressable onPress={() => { haptic('select'); onPress(); }} accessibilityRole="button" accessibilityLabel="Open navigation"
-        style={({ pressed, hovered }: PS) => ({ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: hovered ? 'rgba(58,58,62,0.92)' : 'rgba(44,44,48,0.86)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)', shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, transform: [{ scale: pressed ? 0.94 : 1 }], ...({ backdropFilter: 'blur(14px)' } as object) })}>
-        <View style={{ width: 20, gap: 4 }}>
-          {[20, 20, 12].map((w, i) => <View key={i} style={{ width: w, height: 2.5, borderRadius: 2, backgroundColor: '#F2F2F4' }} />)}
-        </View>
-      </Pressable>
       {hint ? (
         <Animated.View pointerEvents="none" style={[st.tip, { opacity: tip, transform: [{ translateX: tip.interpolate({ inputRange: [0, 1], outputRange: [-6, 0] }) }] }]}>
           <View style={st.tipArrow} />
