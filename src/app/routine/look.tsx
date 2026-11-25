@@ -1,8 +1,8 @@
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { Btn, Bubble, money, Shell, SYS, useWide } from '../../components/routine/Kit';
+import { Btn, Bubble, money, Shell, SYS, TypingDots, useWide } from '../../components/routine/Kit';
 import { analyze, profileOf, rankPicks, tailoredBeauty, type Gap } from '../../lib/routine/gaps';
 import { lookFromText, lookNote } from '../../lib/routine/looks';
 import { BEAUTY_ROUTINES, CATEGORY_LABEL, pref, session, setRoutine, useCatalog, useRoutine, type Item, type RoutineState } from '../../lib/routine/model';
@@ -122,9 +122,9 @@ export default function Look() {
             ) : null}
             {note ? <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 12, lineHeight: 17, color: '#6C6A80' }}>{note}</Text> : null}
             {reading ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 }}>
-                <ActivityIndicator color="#6C6A80" />
-                <Text style={T}>{session.lookPhoto ? 'Reading your photo: colours, finishes and steps…' : 'Reading your look…'}</Text>
+              <View style={{ gap: 6, paddingVertical: 6 }}>
+                <TypingDots />
+                <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 12, color: '#6C6A80' }}>{session.lookPhoto ? 'Reading your photo: colours, finishes and steps' : 'Reading your look'}</Text>
               </View>
             ) : list.length ? list.map(({ step, pick, alts }) => (
               <View key={step} style={{ gap: 6 }}>
