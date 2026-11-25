@@ -56,7 +56,7 @@ const TOOLS = [
       required: ['category'],
     },
   },
-  { type: 'web_search_20250305', name: 'web_search', max_uses: 2 },
+  { type: 'web_search_20250305', name: 'web_search', max_uses: 3 },
   {
     name: 'reply',
     description: 'Your answer to show in the app. Always finish every turn by calling this exactly once.',
@@ -97,14 +97,15 @@ const system = (ctx: string) => `You are Moi, a warm, sharp beauty routine assis
 How you work:
 - Learn their habits with tap-to-answer questions. Ask ONE at a time using reply.ask with a key from the question list. Never ask a question that is already answered. Never write the options in your text; the app shows them.
 - Narrow down with taps, broad to specific, in this order: (1) which routine it's for (hair_focus, skin_focus, makeup_when then makeup_focus, body_focus, fragrance_when, tools_focus or wellness_focus; for hair Occasions ask hair_occasion); (2) one or two follow-ups for that segment (e.g. hair_everyday, hair.texture, skin_type, skin_feel, mk_lip_look, fragrance_notes, body_scent, hair_tools or skin_tools, wellness_time); (3) their favourite brands so far (brands_makeup, brands_skin, brands_hair or brands_fragrance); (4) for pigmented makeup only, the shade question for that part (lip_shade, cheek_shade or eye_shade; for base products ask mk_tone and mk_undertone instead); (5) budget if unknown. Skip anything already answered. Keep it quick: at most 5 taps, then show 2 or 3 products. Never make them type.
+- Fill what's missing for the look they want: recommend for the steps in context.missing first (the look needs them and they don't own them), never something they already own (context.owned), unless they ask for it. Match the look's style: use each missing step's shade_hex and finish (or context.look_targets) in search_products, and pick products whose finish and colour fit that look. Say which missing step each pick fills (card.step).
 - Use their favourite brands as a search_products query first, and their shade answers as shade_hex targets.
 - Prices: unless they gave a budget (price_range or hair.budget), show a spread, from an affordable pick (about $10) through mid-range to a splurge. Moi covers everything beauty: from tanning (self-tanner, bronzing drops) to supplements for hair, skin and nails.
 - Supplements: suggest only widely sold, reputable products, describe what they're for in plain words, never promise results or health benefits, and add "check with your doctor first, especially if pregnant or on medication" whenever you show one. If they chose "Explore with Moi", pick freely across brands and include at least one they may not know yet.
 - If they send a photo, read the look in it (shades, finishes, placement) and refine your picks to match it, using shade_hex in search_products.
 - Recommend only real products: call search_products first and use its ids in reply.cards with source "moi". Moi's products come first, and among them prefer ones with on_amazon true. Respect their budget and must-haves.
-- Only if search_products has nothing that fits (or they ask for a specific brand Moi doesn't have), you may use web_search once to find ONE product on the brand's or a store's own product page, and add it with source "web", its exact url, brand and name. Never invent products or links; use only pages your search returned. Prefer Amazon product pages when the product is sold there. Never state prices for web products.
+- Only if search_products has nothing that fits (or they ask for a specific brand Moi doesn't have), use web_search to find up to 3 products (spanning prices when no budget is set) on their product pages, and add each with source "web", its exact url, brand and name. Only mention products you include as cards. Never invent products or links; use only pages your search returned. Prefer Amazon product pages when the product is sold there. Never state prices for web products.
 - If they type an answer to a question in their own words, record it in reply.save with the matching option. Only save what they actually said; never guess or infer answers.
-- They may also want help with fragrance, tools and devices, or wellness (their interests are in the context). Moi's database has few of these, so for them you may use web finds, still one product at a time and only real product pages. For wellness, keep to habits and products, never health or medical advice.
+- They may also want help with fragrance, tools and devices, or wellness (their interests are in the context). Moi's database has few of these, so for them use web finds, only real product pages. For wellness, keep to habits and products, never health or medical advice.
 - Talk about the look and the routine, never about the person's identity or body. No medical claims.
 - Keep text to 60 words or less. Always end by calling reply.
 
@@ -152,8 +153,29 @@ async function liveUrl(url: string): Promise<boolean> {
     const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 5000);
     const r = await fetch(u, { redirect: 'follow', signal: ctl.signal, headers: { 'user-agent': 'Mozilla/5.0 (compatible; MoiLinkCheck/1.0)' } });
     clearTimeout(t);
-    return r.status < 400 && /html/i.test(r.headers.get('content-type') ?? 'text/html');
+    // Many shops block automated checks (401/403/429); only clear "not found" answers drop a link.
+    return (r.status < 400 && /html/i.test(r.headers.get('content-type') ?? 'text/html')) || [401, 403, 429, 503].includes(r.status);
   } catch { return false; }
+}
+
+async function checkCards(reply: any) {
+    const raw = (Array.isArray(reply.cards) ? reply.cards : []).slice(0, 4);
+  const ids = raw.filter((c: any) => c?.source === 'moi' && typeof c.id === 'string').map((c: any) => c.id);
+  const { data: prods } = ids.length ? await db.from('kb_products').select('id,brand,name,step_cat,price_usd,code,asin,lab_l,lab_a,lab_b,shade_name,finish,shade_conf,tags').in('id', ids) : { data: [] as any[] };
+  return (await Promise.all(raw.map(async (c: any) => {
+    if (c?.source === 'moi') {
+      const p = (prods ?? []).find(x => x.id === c.id);
+      return p ? { source: 'moi', why: String(c.why ?? '').slice(0, 120), step: c.step ?? null, product: p } : null;
+    }
+    const amz = c?.source === 'web' && typeof c.url === 'string' ? amazonLink(c.url) : null;
+    if (amz && c.name && c.brand) {
+      return { source: 'web', amazon: true, why: String(c.why ?? '').slice(0, 120), step: c.step ?? null, brand: String(c.brand).slice(0, 60), name: String(c.name).slice(0, 120), url: amz, category: CATS.includes(c.category) ? c.category : null, shade_hex: /^#[0-9a-f]{6}$/i.test(c.shade_hex ?? '') ? c.shade_hex : null };
+    }
+    if (c?.source === 'web' && typeof c.url === 'string' && c.name && c.brand && await liveUrl(c.url)) {
+      return { source: 'web', why: String(c.why ?? '').slice(0, 120), step: c.step ?? null, brand: String(c.brand).slice(0, 60), name: String(c.name).slice(0, 120), url: c.url, category: CATS.includes(c.category) ? c.category : null, shade_hex: /^#[0-9a-f]{6}$/i.test(c.shade_hex ?? '') ? c.shade_hex : null };
+    }
+    return null;
+  }))).filter(Boolean);
 }
 
 async function claude(messages: unknown[], sys: string) {
@@ -219,26 +241,24 @@ Deno.serve(async req => {
     }
     if (!reply) reply = { text: 'Tell me a bit more about what you want.' };
 
-    // Check everything before it reaches the app.
+    // Check everything before it reaches the app. If every product was dropped, ask Claude once for others.
+    let checked = await checkCards(reply);
+    if (Array.isArray(reply.cards) && reply.cards.length && !checked.length) {
+      messages.push({ role: 'user', content: 'None of those product links could be confirmed, so they were not shown. Find different real products (search again) and reply again.' });
+      for (let turn = 0; turn < 4; turn++) {
+        const out = await claude(messages, sys);
+        messages.push({ role: 'assistant', content: out.content });
+        const r2 = out.content.find(c => c.type === 'tool_use' && c.name === 'reply')?.input ?? null;
+        if (r2) { reply = r2; break; }
+        const calls = out.content.filter(c => c.type === 'tool_use' && c.name === 'search_products');
+        if (calls.length) { messages.push({ role: 'user', content: await Promise.all(calls.map(async c => ({ type: 'tool_result', tool_use_id: c.id, content: JSON.stringify(await searchProducts(c.input ?? {})) }))) }); continue; }
+        if (out.stop_reason !== 'pause_turn') break;
+      }
+      checked = await checkCards(reply);
+    }
+    const cards = checked;
     const ask = typeof reply.ask === 'string' ? BANK.find(q => q.key === reply.ask) ?? null : null;
     const save = (Array.isArray(reply.save) ? reply.save : []).filter((x: any) => BANK.some(q => q.key === x?.key && q.options.includes(x?.value))).slice(0, 4);
-    const raw = (Array.isArray(reply.cards) ? reply.cards : []).slice(0, 4);
-    const ids = raw.filter((c: any) => c?.source === 'moi' && typeof c.id === 'string').map((c: any) => c.id);
-    const { data: prods } = ids.length ? await db.from('kb_products').select('id,brand,name,step_cat,price_usd,code,asin,lab_l,lab_a,lab_b,shade_name,finish,shade_conf,tags').in('id', ids) : { data: [] as any[] };
-    const cards = (await Promise.all(raw.map(async (c: any) => {
-      if (c?.source === 'moi') {
-        const p = (prods ?? []).find(x => x.id === c.id);
-        return p ? { source: 'moi', why: String(c.why ?? '').slice(0, 120), step: c.step ?? null, product: p } : null;
-      }
-      const amz = c?.source === 'web' && typeof c.url === 'string' ? amazonLink(c.url) : null;
-      if (amz && c.name && c.brand) {
-        return { source: 'web', amazon: true, why: String(c.why ?? '').slice(0, 120), step: c.step ?? null, brand: String(c.brand).slice(0, 60), name: String(c.name).slice(0, 120), url: amz, category: CATS.includes(c.category) ? c.category : null, shade_hex: /^#[0-9a-f]{6}$/i.test(c.shade_hex ?? '') ? c.shade_hex : null };
-      }
-      if (c?.source === 'web' && typeof c.url === 'string' && c.name && c.brand && await liveUrl(c.url)) {
-        return { source: 'web', why: String(c.why ?? '').slice(0, 120), step: c.step ?? null, brand: String(c.brand).slice(0, 60), name: String(c.name).slice(0, 120), url: c.url, category: CATS.includes(c.category) ? c.category : null, shade_hex: /^#[0-9a-f]{6}$/i.test(c.shade_hex ?? '') ? c.shade_hex : null };
-      }
-      return null;
-    }))).filter(Boolean);
 
     return json({ configured: true, text: String(reply.text ?? '').slice(0, 600), ask, save, cards, left: limit - (used as number), royal });
   } catch (e) {

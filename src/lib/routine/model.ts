@@ -317,6 +317,8 @@ export function goalCounts(): Promise<Record<string, number>> {
 }
 let catalog: Catalog = { products: [], tools: [] };
 let catalogP: Promise<Catalog> | null = null;
+/** The product catalogue right now (outside React). */
+export const getCatalog = () => catalog;
 const csubs = new Set<() => void>();
 export function loadCatalog(): Promise<Catalog> {
   catalogP ??= (async () => {
