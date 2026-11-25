@@ -73,6 +73,13 @@ function MenuButton({ onPress, hint }: { onPress: () => void; hint: boolean }) {
           <Image source={crownImg} style={{ width: 24, height: 24 }} />
         </Pressable>
       </View>
+      {/* Menu button beside the crown: a dark glass circle with three lines, so it's clear the nav opens here. */}
+      <Pressable onPress={() => { haptic('select'); onPress(); }} accessibilityRole="button" accessibilityLabel="Open navigation"
+        style={({ pressed, hovered }: PS) => ({ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: hovered ? 'rgba(58,58,62,0.92)' : 'rgba(44,44,48,0.86)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)', shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, transform: [{ scale: pressed ? 0.94 : 1 }], ...({ backdropFilter: 'blur(14px)' } as object) })}>
+        <View style={{ width: 20, gap: 4 }}>
+          {[20, 20, 12].map((w, i) => <View key={i} style={{ width: w, height: 2.5, borderRadius: 2, backgroundColor: '#F2F2F4' }} />)}
+        </View>
+      </Pressable>
       {hint ? (
         <Animated.View pointerEvents="none" style={[st.tip, { opacity: tip, transform: [{ translateX: tip.interpolate({ inputRange: [0, 1], outputRange: [-6, 0] }) }] }]}>
           <View style={st.tipArrow} />
@@ -964,6 +971,28 @@ export function NeedInfo({ goals }: { goals: boolean }) {
 export const AFFILIATE_NOTE = 'As an Amazon Associate, Moi earns from qualifying purchases. Prices are Moi’s estimates; the store shows the current price.';
 export function AffiliateNote({ center }: { center?: boolean }) {
   return <Text style={{ fontFamily: F.regular, fontSize: 11, lineHeight: 15, color: '#8E9298', textAlign: center ? 'center' : 'left' }}>{AFFILIATE_NOTE}</Text>;
+}
+
+/** Moi is thinking: three dots that rise and fade in turn, inside a chat bubble. */
+export function TypingDots({ label = 'Moi is thinking' }: { label?: string }) {
+  const v = useRef([0, 1, 2].map(() => new Animated.Value(0))).current;
+  useEffect(() => {
+    const loops = v.map((d, i) => Animated.loop(Animated.sequence([
+      Animated.delay(i * 160),
+      Animated.timing(d, { toValue: 1, duration: 320, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+      Animated.timing(d, { toValue: 0, duration: 320, easing: Easing.in(Easing.quad), useNativeDriver: true }),
+      Animated.delay((2 - i) * 160 + 200),
+    ])));
+    loops.forEach(l => l.start());
+    return () => loops.forEach(l => l.stop());
+  }, [v]);
+  return (
+    <View accessibilityRole="progressbar" accessibilityLabel={label} style={{ flexDirection: 'row', gap: 5, alignItems: 'center', height: 20 }}>
+      {v.map((d, i) => (
+        <Animated.View key={i} style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#6C6A80', opacity: d.interpolate({ inputRange: [0, 1], outputRange: [0.35, 1] }), transform: [{ translateY: d.interpolate({ inputRange: [0, 1], outputRange: [0, -4] }) }] }} />
+      ))}
+    </View>
+  );
 }
 
 export function WhereToBuy({ item }: { item: Item }) {
