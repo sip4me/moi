@@ -5,7 +5,7 @@ import Svg, { Path } from 'react-native-svg';
 import { celebrate } from '../../components/routine/Celebrate';
 import { ChromeButton, ChromeKey, LabelValue, SILVER, SilverCard } from '../../components/routine/Chrome';
 import { AFFILIATE_NOTE, Bubble, money, NeedInfo, ScoreBar, Shell, SYS, useWide } from '../../components/routine/Kit';
-import { amazonCart, HAS_AFFILIATE, storeLinks } from '../../lib/routine/affiliate';
+import { amazonCart, HAS_AFFILIATE, logClick, storeLinks } from '../../lib/routine/affiliate';
 import { lookNote } from '../../lib/routine/looks';
 import { analyze } from '../../lib/routine/gaps';
 import { AREA_Q, AREAS, findByKey, GOALS, hasInfo, HAIR_Q, itemKey, placeItems, pref, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
@@ -41,6 +41,7 @@ export default function Picks() {
 
   const open = (i: Item, store: string, url: string) => {
     setRoutine(r => ({ ...r, opened: { ...(r.opened ?? {}), [itemKey(i)]: { store, at: Date.now() } } }));
+    logClick({ brand: i.brand, product: i.name, productId: i.id, store, source: 'picks', tagged: store === 'Amazon' });
     Linking.openURL(url);
     // Moi's tab waits on the handoff page until they confirm the order.
     router.push({ pathname: '/routine/handoff', params: { k: itemKey(i), store, url } });
@@ -78,7 +79,7 @@ export default function Picks() {
       <View style={{ maxWidth: 600, gap: 18 }}>
         {/* Every pick has an Amazon ID: one key drops them all into the Amazon cart, ready for checkout. */}
         {cartAll ? (
-          <ChromeKey onPress={() => { bag.forEach(i => setRoutine(r => ({ ...r, opened: { ...(r.opened ?? {}), [itemKey(i)]: { store: 'Amazon', at: Date.now() } } }))); Linking.openURL(cartAll); router.push({ pathname: '/routine/handoff', params: { k: bag.map(itemKey).join(','), store: 'Amazon', url: cartAll } }); }} a11y="Add all to Amazon cart" style={{ minHeight: 52 }}>
+          <ChromeKey onPress={() => { bag.forEach(i => { setRoutine(r => ({ ...r, opened: { ...(r.opened ?? {}), [itemKey(i)]: { store: 'Amazon', at: Date.now() } } })); logClick({ brand: i.brand, product: i.name, productId: i.id, store: 'Amazon', source: 'picks', tagged: true }); }); Linking.openURL(cartAll); router.push({ pathname: '/routine/handoff', params: { k: bag.map(itemKey).join(','), store: 'Amazon', url: cartAll } }); }} a11y="Add all to Amazon cart" style={{ minHeight: 52 }}>
             <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 16, color: SILVER.ink }}>{`Add ${bag.length} to Amazon cart ↗`}</Text>
           </ChromeKey>
         ) : null}

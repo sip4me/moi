@@ -1,9 +1,9 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, Linking, Platform, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Platform, Pressable, Text, View } from 'react-native';
 import { AffiliateNote, Btn, Bubble, Shell, SYS } from '../../components/routine/Kit';
 import { asItem } from '../../components/routine/Social';
-import { storeLinks } from '../../lib/routine/affiliate';
+import { openStore, storeLinks } from '../../lib/routine/affiliate';
 import { getPage, isFollowing, pageUrl, setFollow, stepCount, type Page } from '../../lib/routine/social';
 import { ensureUser } from '../../lib/supabase';
 import { useStore } from '../../state/store';
@@ -99,7 +99,7 @@ export default function RoutinePage() {
                     <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 13, lineHeight: 17, color: '#111114' }}>{x.name}</Text>
                   </View>
                   {link ? (
-                    <Pressable onPress={() => Linking.openURL(link.url)} accessibilityRole="link" accessibilityLabel={`Shop ${x.name} at ${link.name}`} hitSlop={6}
+                    <Pressable onPress={() => openStore(asItem(x), link, 'page')} accessibilityRole="link" accessibilityLabel={`Shop ${x.name} at ${link.name}`} hitSlop={6}
                       style={{ paddingHorizontal: 10, height: 28, borderRadius: 14, justifyContent: 'center', backgroundColor: '#F1F3F5' }}>
                       <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 12, color: '#111114' }}>Shop ↗</Text>
                     </Pressable>

@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { icon3d } from '../../data/icons3d';
 import { haptic } from '../../lib/haptics';
 import { ingredientsFromPhoto, itemFromPhoto, submitTyped, takeProductPhoto } from '../../lib/routine/capture';
+import { openStore } from '../../lib/routine/affiliate';
 import { KIND_COLOR, KIND_LABEL, MAX_REFRESH, retailerLinks, type Gap } from '../../lib/routine/gaps';
 import { allSteps, AREA_OF, CATEGORY_ICON, CATEGORY_LABEL, classify, DAYS, isHydrated, searchCatalogLocal, searchRemote, setRoutine, useRoutine, TOOL_KINDS, useCatalog, type Item, type RoutineState, type Step } from '../../lib/routine/model';
 import { C, F } from '../../theme';
@@ -969,7 +970,7 @@ export function WhereToBuy({ item }: { item: Item }) {
   return (
     <View style={st.wtb}>
       {retailerLinks(item).map((r, i) => (
-        <Pressable key={r.name} onPress={() => Linking.openURL(r.url)} style={({ pressed, hovered }: PS) => [st.wtbRow, i > 0 && st.wtbDiv, hovered && { backgroundColor: '#ECEDEF' }, pressed && { backgroundColor: C.pressed }]}>
+        <Pressable key={r.name} onPress={() => openStore(item, r, 'gaps')} style={({ pressed, hovered }: PS) => [st.wtbRow, i > 0 && st.wtbDiv, hovered && { backgroundColor: '#ECEDEF' }, pressed && { backgroundColor: C.pressed }]}>
           <Text style={[st.cardTitle, { flex: 1, fontFamily: F.medium }]}>{r.name}</Text>
           <Text style={[st.meta, { color: BLUE, fontFamily: F.semibold }]}>Check price ↗</Text>
         </Pressable>

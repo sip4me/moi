@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Image, Linking, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { AffiliateNote, BLUE, Btn, ChipBtn, Heading, iconFor, Label, money, MorePicks, NeedInfo, Pill, Bubble, Panel, ScoreBar, SYS, Shell, st, useWide } from '../../components/routine/Kit';
 import { useAccess } from '../../lib/routine/access';
 import { celebrate } from '../../components/routine/Celebrate';
+import { openStore } from '../../lib/routine/affiliate';
 import { analyze, hasMorePicks, profileOf, rankPicks, retailerLinks } from '../../lib/routine/gaps';
 import { allSteps, findByKey, hasInfo, hasInput, itemKey, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
 import { C, F } from '../../theme';
@@ -55,7 +56,7 @@ export default function Shop() {
             <Text style={T.price}>{money(i.price)}</Text>
           </View>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingLeft: 64 }}>
-            {retailerLinks(i).slice(0, 3).map(r => <Pressable key={r.name} onPress={() => Linking.openURL(r.url)} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: '#F1F3F5' }}><Text style={{ fontFamily: F.medium, fontSize: 12, color: C.gray2 }}>{`${r.name} ↗`}</Text></Pressable>)}
+            {retailerLinks(i).slice(0, 3).map(r => <Pressable key={r.name} onPress={() => openStore(i, r, 'shop')} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: '#F1F3F5' }}><Text style={{ fontFamily: F.medium, fontSize: 12, color: C.gray2 }}>{`${r.name} ↗`}</Text></Pressable>)}
             <ChipBtn label="Remove from bag" tone="danger" icon="trash" iconOnly onPress={() => toggle(itemKey(i))} />
           </View>
         </View>
@@ -82,7 +83,7 @@ export default function Shop() {
   const buyAgain = (i: Item) => {
     const link = retailerLinks(i)[0]; if (!link) return;
     setRoutine(r => ({ ...r, opened: { ...(r.opened ?? {}), [itemKey(i)]: { store: link.name, at: Date.now() } } }));
-    Linking.openURL(link.url);
+    openStore(i, link, 'shop');
     router.push({ pathname: '/routine/handoff', params: { k: itemKey(i), store: link.name, url: link.url } });
   };
   return (

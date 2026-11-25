@@ -4,7 +4,7 @@ import { Linking, Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { celebrate } from '../../components/routine/Celebrate';
 import { AffiliateNote, Btn, Bubble, money, Shell, SYS, useWide } from '../../components/routine/Kit';
-import { storeLinks } from '../../lib/routine/affiliate';
+import { logClick, storeLinks } from '../../lib/routine/affiliate';
 import { lookNote } from '../../lib/routine/looks';
 import { findByKey, itemKey, placeItems, setRoutine, useCatalog, useRoutine, type Item } from '../../lib/routine/model';
 import { F } from '../../theme';
@@ -66,7 +66,7 @@ export default function Handoff() {
         <Text style={[t, { textAlign: 'center', maxWidth: 420 }]}>{`Finish paying at ${where} in the other tab, then come back and confirm your order here.`}</Text>
         <View style={{ width: '100%', maxWidth: 360, gap: 12, alignItems: 'center', paddingTop: 6 }}>
           <View style={{ width: '100%' }}><Btn label="I placed my order" onPress={placed} /></View>
-          {again ? <Pressable onPress={() => Linking.openURL(again)} accessibilityRole="link" hitSlop={8}><Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 15, color: '#111114', textDecorationLine: 'underline' }}>Open checkout again</Text></Pressable> : null}
+          {again ? <Pressable onPress={() => { items.forEach(i => logClick({ brand: i.brand, product: i.name, productId: i.id, store: where, source: 'handoff', tagged: where === 'Amazon' })); Linking.openURL(again); }} accessibilityRole="link" hitSlop={8}><Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 15, color: '#111114', textDecorationLine: 'underline' }}>Open checkout again</Text></Pressable> : null}
           <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/routine/checkout'))} accessibilityRole="button" hitSlop={8}><Text style={[t, { fontSize: 14 }]}>Not yet, back to my picks</Text></Pressable>
         </View>
       </View>

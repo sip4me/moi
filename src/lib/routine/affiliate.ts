@@ -12,6 +12,8 @@
  * - Prices: Amazon only allows showing its prices from its own API or Amazon-served links, so Moi never shows a
  *   price next to an Amazon link unless it came from there; unknown prices say "See price".
  */
+import { Linking } from 'react-native';
+import { supabase } from '../supabase';
 import type { Item } from './model';
 
 const env = (k: string) => (process.env as Record<string, string | undefined>)[k]?.trim() || '';
@@ -59,8 +61,32 @@ export function storeLinks(i: Item & { code?: string | null }): StoreLink[] {
   ];
   return raw.map(([name, url]) => ({
     name,
-    url: name === 'Amazon' ? url : wrap(name, url),
+    url: name === 'Amazon' ? url : TEMPLATES[name] ? wrap(name, url) : withUtm(url),
     exact: (name === 'Amazon' && !!i.asin) || (exact && (name === 'Amazon' || name === 'Target')),
     tagged: name === 'Amazon' ? !!AMAZON_TAG : !!TEMPLATES[name],
   }));
+}
+
+/** Plain (untagged) links say where the visitor came from, so brands see "usemoi" in their own analytics. */
+export function withUtm(url: string, medium = 'referral'): string {
+  try {
+    const u = new URL(url);
+    if (!u.searchParams.has('utm_source')) { u.searchParams.set('utm_source', 'usemoi'); u.searchParams.set('utm_medium', medium); }
+    return u.toString();
+  } catch { return url; }
+}
+
+export type ClickSource = 'chat' | 'picks' | 'shop' | 'page' | 'handoff' | 'gaps' | 'look';
+/** Counts a store-link tap: brand, product, store, where in Moi. Anonymous (no user id). Never blocks the tap. */
+export function logClick(c: { brand?: string; product?: string; productId?: string; store: string; source: ClickSource; web?: boolean; tagged?: boolean }) {
+  const sb = supabase(); if (!sb) return;
+  const id = c.productId && /^[0-9a-f-]{36}$/i.test(c.productId) ? c.productId : null;
+  sb.from('link_clicks').insert({ brand: c.brand?.slice(0, 80) ?? null, product: c.product?.slice(0, 160) ?? null, product_id: id, store: c.store.slice(0, 40), source: c.source, web: !!c.web, tagged: !!c.tagged })
+    .then(() => undefined, () => undefined);
+}
+
+/** Opens a store link for a product and counts the tap. */
+export function openStore(i: Pick<Item, 'brand' | 'name' | 'id'>, link: { name: string; url: string; tagged?: boolean }, source: ClickSource) {
+  logClick({ brand: i.brand, product: i.name, productId: i.id, store: link.name, source, tagged: link.tagged });
+  Linking.openURL(link.url);
 }
