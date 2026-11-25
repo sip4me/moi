@@ -10,6 +10,13 @@ const STRIPE = Deno.env.get('STRIPE_SECRET_KEY');
 const SITE = Deno.env.get('SITE_URL') ?? 'https://usemoi.com';
 const PLANS = new Set(['moi_monthly', 'moi_yearly', 'moi_yearly_offer', 'routine_monthly', 'routine_founder', 'routine_yearly', 'routine_standard']);
 const TRIAL_DAYS = 3;
+const TAX_CODE = 'txcd_10103000'; // Software as a Service (SaaS) - personal use
+const ROUTINE_PRICES: Record<string, { cents: number; interval: 'month' | 'year'; name: string }> = {
+  routine_monthly: { cents: 400, interval: 'month', name: 'Moi Royal · Monthly' },
+  routine_founder: { cents: 2400, interval: 'year', name: 'Moi Royal · Founding yearly' },
+  routine_yearly: { cents: 2400, interval: 'year', name: 'Moi Royal · Yearly' },
+  routine_standard: { cents: 1000, interval: 'month', name: 'Moi Royal · Unlimited monthly' },
+};
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' };
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
@@ -44,8 +51,21 @@ Deno.serve(async req => {
     }
 
     const prices = await stripe(`prices?lookup_keys[]=${plan}&active=true&limit=1`);
-    const price = prices.data?.[0];
+    let price = prices.data?.[0];
+    // Routine prices are created on first use, so nothing has to be set up by hand in Stripe.
+    if (!price && ROUTINE_PRICES[plan]) {
+      const p = ROUTINE_PRICES[plan];
+      price = await stripe('prices', {
+        currency: 'usd', unit_amount: String(p.cents), 'recurring[interval]': p.interval,
+        lookup_key: plan, transfer_lookup_key: 'true', 'product_data[name]': p.name, 'product_data[tax_code]': TAX_CODE,
+      });
+    }
     if (!price) return json({ error: `No Stripe price with lookup key ${plan}` }, 500);
+    // Managed Payments needs a tax code on every product; add it if the product has none.
+    if (routine && typeof price.product === 'string') {
+      const prod = await stripe(`products/${price.product}`);
+      if (!prod.tax_code) await stripe(`products/${price.product}`, { tax_code: TAX_CODE });
+    }
 
     // One Stripe customer per Moi account; reuse it so trials and portal history stay together.
     const { data: row } = await db.from('subscriptions').select('stripe_customer_id, status').eq('user_id', user.id).maybeSingle();
