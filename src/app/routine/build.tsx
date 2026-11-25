@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { celebrate } from '../../components/routine/Celebrate';
 import { Image, Pressable, Text, View } from 'react-native';
+import { RoutineTabs } from '../../components/routine/Social';
 import { BLUE, Btn, ChipBtn, Heading, InputsPanel, Panel, PlusDot, iconFor, Label, PickerSheet, Pill, ScoreBar, Segmented, Shell, st, Timeline, useWide } from '../../components/routine/Kit';
 import { icon3d } from '../../data/icons3d';
 import { ShelfSheet } from '../../components/routine/ShelfSheet';
@@ -144,6 +145,8 @@ export default function Build() {
   return (
     <Shell active="build" step={areas.length > 1 ? `Routine ${idx + 1} of ${areas.length}` : '2 of 3'} side={wide ? <View style={{ gap: 12 }}><InputsPanel compact s={s} /></View> : undefined}
       footer={<View style={{ gap: 8, width: wide ? undefined : '100%', alignItems: wide ? 'flex-end' : 'stretch' }}>{warn && !hasInput(s) ? <View accessibilityRole="alert" style={{ paddingVertical: 10, paddingHorizontal: 14, borderRadius: 14, backgroundColor: '#FEF3F2', borderWidth: 1, borderColor: '#FECDCA' }}><Text style={{ fontFamily: F.semibold, fontSize: 13, color: '#B42318' }}>Add at least one product you use, or skip the steps you don’t do.</Text></View> : null}<Btn glow={allDone} label={nextArea ? `Next: ${areaLabel(nextArea).toLowerCase()} routine` : 'Optimize my routine'} onPress={() => (nextArea ? router.push({ pathname: '/routine/build', params: { area: nextArea } }) : (!hasInput(s) ? (setWarn(true), undefined) : router.push('/routine/setup')))} /></View>}>
+      {/* Routine section: my routine, saved ones, Moi's and trending. Shown once they've started. */}
+      {s.started || s.saved ? <RoutineTabs active="mine" /> : null}
       <Heading title={`${s.mode === 'new' ? 'Your new' : 'Your'} ${area === 'hair' ? 'hair' : areaLabel(area).toLowerCase()} routine`} sub={s.mode === 'new' ? 'Steps your answers need. Add or skip each.' : 'Add what you use, in order. Skip any step.'} />
       {/* Building toward a look: keep it in view, one tap back to Moi's answer. */}
       {s.lookText ? (

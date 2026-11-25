@@ -1,12 +1,13 @@
 import { router } from 'expo-router';
-import React, { useMemo } from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Image, Platform, Pressable, Switch, Text, TextInput, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { Btn, Shell, useWide } from '../../components/routine/Kit';
 import { SectionCard } from '../../components/ui';
 import { AREA_Q, AREAS, DAYS, allSteps, hasInfo, pref, useCatalog, useRoutine } from '../../lib/routine/model';
 import { useAccess } from '../../lib/routine/access';
 import { analyze } from '../../lib/routine/gaps';
+import { myPage, pageUrl, savePage, stepCount, snapshot, type Page } from '../../lib/routine/social';
 import { useStore } from '../../state/store';
 import { C, F } from '../../theme';
 
@@ -26,6 +27,53 @@ function Row({ k, v, onPress, first }: { k: string; v?: string; onPress?: () => 
         {onPress ? <Chev /> : null}
       </View>
     </Pressable>
+  );
+}
+
+/** "My routine page": a public link (usemoi.com/u/<handle>) to show their routine, e.g. in a bio. Off until they publish. */
+function ShareCard({ suggested, s, display }: { suggested: string; s: ReturnType<typeof useRoutine>; display?: string }) {
+  const [page, setPage] = useState<Page | null | undefined>(undefined);
+  const [handle, setHandle] = useState('');
+  const [bio, setBio] = useState('');
+  const [pub, setPub] = useState(true);
+  const [msg, setMsg] = useState('');
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { myPage().then(p => { setPage(p); setHandle(p?.handle ?? suggested); setBio(p?.bio ?? ''); setPub(p ? p.is_public : true); }).catch(() => setPage(null)); }, [suggested]);
+  const save = async () => {
+    setBusy(true); setMsg('');
+    const r = await savePage({ handle, bio, is_public: pub, name: display }, s);
+    setBusy(false);
+    if (!r.ok) { setMsg(r.why); return; }
+    const p = await myPage(); setPage(p); setMsg(pub ? 'Your routine page is live.' : 'Saved. Only you can see it.');
+  };
+  const copy = async () => {
+    if (!page) return;
+    const url = pageUrl(page.handle);
+    try { if (Platform.OS === 'web' && (navigator as any).share) await (navigator as any).share({ title: 'My routine on Moi', url }); else { await navigator.clipboard.writeText(url); setMsg('Link copied.'); } } catch { /* closed */ }
+  };
+  const input = { fontFamily: F.medium, fontSize: 15, color: C.ink, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 12, backgroundColor: '#F4F4F6', ...({ outlineStyle: 'none' } as object) };
+  const changed = !!page && stepCount(page.routine) !== stepCount(snapshot(s));
+  return (
+    <View style={{ gap: 12, paddingVertical: 14 }}>
+      <Text style={{ fontFamily: F.regular, fontSize: 14, lineHeight: 20, color: C.gray }}>Get a link to your routine for your bio. People can see your products and follow your routine.</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <Text style={{ fontFamily: F.medium, fontSize: 15, color: C.gray }}>usemoi.com/u/</Text>
+        <TextInput value={handle} onChangeText={t => setHandle(t.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20))} placeholder="yourname" autoCapitalize="none" accessibilityLabel="Your link name" style={[input, { flex: 1, minWidth: 0 }]} />
+      </View>
+      <TextInput value={bio} onChangeText={t => setBio(t.slice(0, 140))} placeholder="A line about your routine (optional)" accessibilityLabel="About your routine" style={input} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Text style={{ fontFamily: F.medium, fontSize: 15, color: C.ink }}>Public</Text>
+        <Switch value={pub} onValueChange={setPub} accessibilityLabel="Make my routine page public" />
+      </View>
+      <Btn label={busy ? 'Saving…' : page ? (changed ? 'Update with my latest routine' : 'Save changes') : 'Create my routine link'} onPress={busy ? undefined : save} />
+      {page ? (
+        <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
+          <Btn kind="small" label="Copy link" onPress={copy} />
+          <Btn kind="small" label="View my page" onPress={() => router.push(`/u/${page.handle}` as any)} />
+        </View>
+      ) : null}
+      {msg ? <Text style={{ fontFamily: F.medium, fontSize: 13, color: /taken|first|Use|Couldn/.test(msg) ? '#A8576A' : C.gray }}>{msg}</Text> : null}
+    </View>
   );
 }
 
@@ -101,6 +149,11 @@ export default function RoutineProfile() {
           <Row k="Routine fit" v={fit ? String(fit.score) : undefined} onPress={() => router.push('/routine/gaps')} />
           <Row k="Gaps to fill" v={fit ? String(fit.gaps.length) : undefined} onPress={() => router.push('/routine/gaps')} />
         </View>
+      </SectionCard>
+
+      <SectionCard label="MY ROUTINE LINK" style={card}>
+        {signedIn ? <ShareCard s={s} display={name && name !== 'Your name' ? name : undefined} suggested={(name && name !== 'Your name' ? name : who.split('@')[0] ?? '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20)} />
+          : <View style={{ paddingVertical: 14 }}><Text style={{ fontFamily: F.regular, fontSize: 14, lineHeight: 20, color: C.gray }}>Create your account to get a link that shows off your routine.</Text></View>}
       </SectionCard>
 
       <SectionCard label="ACCOUNT" style={card}>

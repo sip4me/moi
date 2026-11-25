@@ -30,7 +30,9 @@ export default function Gaps() {
   if (!hasInfo(s)) return <Shell active="gaps"><NeedInfo goals={s.goals.length > 0} /></Shell>;
   if (!hasInput(s)) return <Shell active="gaps"><NeedInfo goals /></Shell>;
   // Paywall: the gaps themselves are shown, the fixes and product picks need a plan.
-  if (!access.ok && !access.loading) {
+  // Teaser and the prompt to pay until a plan is confirmed (also while access is still loading,
+  // so the paid view never flashes up empty).
+  if (!access.ok) {
     const top = [...gaps].sort((x, y) => y.weight - x.weight).slice(0, 3);
     return (
       <Shell glass active="gaps" step="3 of 3">
@@ -82,6 +84,13 @@ export default function Gaps() {
       </View>
       {kinds.length > 2 ? <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{kinds.map(f => <Pill key={f.key} label={f.label} on={filter === f.key} onPress={() => setFilter(f.key)} />)}</View> : null}
       <View style={{ gap: 28, maxWidth: 720 }}>
+        {!groups.length ? (
+          <View style={{ gap: 12, padding: 18, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.7)', maxWidth: 520 }}>
+            <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 16, color: '#1D1D22' }}>{gaps.length ? 'Nothing in this filter' : 'No gaps found'}</Text>
+            <Text style={st.sub}>{gaps.length ? 'Pick another filter to see the rest of your report.' : 'Your routine already covers your goals. Add more of what you use to check it again.'}</Text>
+            {!gaps.length ? <Btn label="Add to my routine" onPress={() => router.push('/routine/build')} style={{ alignSelf: 'flex-start' }} /> : null}
+          </View>
+        ) : null}
         {groups.map(grp => {
           const sel = grp.gaps.find(g => g.id === open);
           const p = sel ? rankPicks(sel, s, cat, score) : [];
