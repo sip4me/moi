@@ -1,3 +1,5 @@
+import { deltaE, matchLabel } from './color';
+import { lookTargets } from './looks';
 import { storeLinks } from './affiliate';
 import { allSteps, AREA_OF, areaOf, CATEGORY_LABEL, defaultBeauty, pref, type Area, type Catalog, type Item, type RoutineState, type Step } from './model';
 import { planFor, planMatch, planSteps } from './plan';
@@ -200,11 +202,24 @@ export function picksFor(g: Gap, s: RoutineState, cat: Catalog, n = 3): { item: 
 /** Up to 3 refreshes, 3 picks each: the 12 best matches for a gap, ranked by how much they lift the fit score. */
 export const MAX_REFRESH = 3;
 function rankAll(g: Gap, s: RoutineState, cat: Catalog, score: number, keep: (i: Item) => boolean, cheap?: boolean) {
-  const all = picksFor(g, s, cat, (MAX_REFRESH + 1) * 3).filter(p => keep(p.item))
-    .map(p => ({ ...p, gain: Math.max(0, analyze(s, cat, [p.item]).score - score) }));
-  // "It's the price": cheapest first (priced ones before unpriced), fit as the tie-breaker.
-  return cheap ? all.sort((a, b) => (a.item.price ?? 999) - (b.item.price ?? 999) || b.gain - a.gain)
-    : all.sort((a, b) => b.gain - a.gain || b.fit - a.fit || (a.item.price ?? 999) - (b.item.price ?? 999));
+  const targets = lookTargets(s);
+  const mine = pref(s, 'mk_undertone')[0];
+  const all = picksFor(g, s, cat, (MAX_REFRESH + 1) * 3 * 2).filter(p => keep(p.item))
+    .map(p => {
+      const gain = Math.max(0, analyze(s, cat, [p.item]).score - score);
+      // Colour: how close the product's shade is to the shade the look needs (ΔE), weighted by how sure we are of it.
+      const t = targets[p.item.category];
+      const dE = t && p.item.lab ? deltaE(t.lab, p.item.lab) : undefined;
+      const shade = dE != null ? Math.max(0, 1 - dE / 30) * (p.item.shadeConf ?? 0.5) : 0;
+      const finish = t?.finish && p.item.finish ? (t.finish === p.item.finish ? 1 : 0) : 0;
+      const clash = mine && p.item.undertone && ((mine === 'Cool' && p.item.undertone === 'warm') || ((mine === 'Warm' || mine === 'Olive') && p.item.undertone === 'cool')) ? 1 : 0;
+      const rank = gain + 12 * shade + 4 * finish - 3 * clash;
+      return { ...p, gain, dE, match: dE != null && (p.item.shadeConf ?? 0) >= 0.5 ? matchLabel(dE) : null, rank };
+    });
+  // "It's the price": cheapest first (priced ones before unpriced), best match as the tie-breaker.
+  const sorted = cheap ? all.sort((a, b) => (a.item.price ?? 999) - (b.item.price ?? 999) || b.rank - a.rank)
+    : all.sort((a, b) => b.rank - a.rank || b.fit - a.fit || (a.item.price ?? 999) - (b.item.price ?? 999));
+  return sorted.slice(0, (MAX_REFRESH + 1) * 3);
 }
 /** The 3 picks on screen for a gap: page 0 is the best 3, each refresh shows the next 3. */
 export function rankPicks(g: Gap, s: RoutineState, cat: Catalog, score: number, keep: (i: Item) => boolean = () => true, n = 3) {

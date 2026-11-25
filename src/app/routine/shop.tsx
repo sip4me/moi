@@ -152,7 +152,7 @@ export default function Shop() {
                     <Bubble category={p.item.category} item={p.item} size={40} />
                     <View style={{ flex: 1, gap: 2 }}>
                       <Text style={T.name}>{p.item.name}</Text>
-                      <Text style={T.meta}>{[p.badge === 'best' ? 'Best' : p.badge === 'value' ? 'Best value' : null, p.gain ? `+${p.gain} fit` : null].filter(Boolean).join(' · ')}</Text>
+                      <Text style={T.meta}>{[p.badge === 'best' ? 'Best' : p.badge === 'value' ? 'Best value' : null, p.match, p.gain ? `+${p.gain} fit` : null].filter(Boolean).join(' · ')}</Text>
                       {lookNote(p.item, s) ? <Text style={[T.meta, { color: '#4A4858' }]}>{lookNote(p.item, s)}</Text> : null}
                     </View>
                     <View style={{ alignItems: 'flex-end', gap: 6 }}>

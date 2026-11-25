@@ -858,13 +858,13 @@ export function LinearTeaser({ area = 'hair' }: { area?: string }) {
  * A gap's picks, focused like Spotify's "Great picks!": the 3 products overlapping, one title, one line,
  * one main action (add the best pick). Everything else waits behind "See all 3".
  */
-export function PicksFocus({ gap, picks, inBag, onToggle, more }: { gap: Gap; picks: { item: Item; gain: number; fit: number }[]; inBag: (i: Item) => boolean; onToggle: (i: Item) => void; more: boolean }) {
+export function PicksFocus({ gap, picks, inBag, onToggle, more }: { gap: Gap; picks: { item: Item; gain: number; fit: number; match?: string | null }[]; inBag: (i: Item) => boolean; onToggle: (i: Item) => void; more: boolean }) {
   const [all, setAll] = useState(false);
   const best = picks[0];
   if (!best) return null;
   const added = inBag(best.item);
   const s = useRoutine();
-  const line = [best.item.name, best.item.price != null ? money(best.item.price) : null].filter(Boolean).join(' · ');
+  const line = [best.item.name, best.item.price != null ? money(best.item.price) : null, best.match].filter(Boolean).join(' · ');
   const note = lookNote(best.item, s);
   return (
     <View style={{ alignItems: 'center', gap: 14, paddingVertical: 22, paddingHorizontal: 18, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.72)', borderWidth: 0.5, borderColor: 'rgba(20,20,40,0.10)' }}>
@@ -891,7 +891,7 @@ export function PicksFocus({ gap, picks, inBag, onToggle, more }: { gap: Gap; pi
                 <Bubble category={p.item.category} item={p.item} size={40} />
                 <View style={{ flex: 1, gap: 2 }}>
                   <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 14, lineHeight: 19, color: '#1D1D22' }}>{p.item.name}</Text>
-                  <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 12, color: '#6C6A80' }}>{[p.item.price != null ? money(p.item.price) : 'At store', p.gain ? `+${p.gain} fit` : null].filter(Boolean).join(' · ')}</Text>
+                  <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 12, color: '#6C6A80' }}>{[p.item.price != null ? money(p.item.price) : 'At store', p.match, p.gain ? `+${p.gain} fit` : null].filter(Boolean).join(' · ')}</Text>
                 </View>
                 <Pressable {...(on ? {} : fill('chrome-key'))} onPress={() => onToggle(p.item)} accessibilityRole="button" accessibilityLabel={on ? `Remove ${p.item.name} from bag` : `Add ${p.item.name} to bag`}
                   style={{ height: 30, paddingHorizontal: 12, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? '#E5F4EA' : '#DADADA', borderWidth: 1.5, borderColor: on ? '#CDEBD6' : '#161616' }}>

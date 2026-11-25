@@ -5,7 +5,7 @@ import { Btn, Heading, Label, Pill, Shell, st, useWide } from '../../components/
 import { GlassCard } from '../../components/routine/Glass';
 import { icon3d } from '../../data/icons3d';
 import { haptic } from '../../lib/haptics';
-import { AREA_Q, AREAS, GOALS, HAIR_Q, pref, setRoutine, useRoutine, type Area } from '../../lib/routine/model';
+import { AREA_Q, AREAS, GOALS, HAIR_Q, pref, session, setRoutine, useRoutine, type Area } from '../../lib/routine/model';
 import { fill } from '../../lib/routine/shine';
 import { C, F } from '../../theme';
 
@@ -63,6 +63,13 @@ export default function About() {
   const ready = missing.length === 0;
   const next = () => {
     if (!ready) { haptic('select'); setWarn(true); return; }
+    // Came from a look: they're telling Moi their current routine, so skip the choice and go add what they use.
+    if (s.lookText) {
+      session.chose = true;
+      setRoutine(r => ({ ...r, started: true, mode: 'check' }));
+      router.push({ pathname: '/routine/build', params: { area: (s.areas ?? ['hair'])[0] ?? 'hair' } });
+      return;
+    }
     setRoutine(r => ({ ...r, started: true })); router.push('/routine');
   };
   const label = 'Next';

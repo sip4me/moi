@@ -100,7 +100,7 @@ export default function Welcome() {
     const r0 = lookFromText(look);
     session.lookPhoto = photo ?? undefined;
     setRoutine(r => ({ ...r, welcomed: true, started: false, lookText: look.trim() || undefined, areas: r0.area ? [r0.area] : [], prefs: r0.prefs, goals: r0.goals, hair: {} }));
-    const next = '/routine/about';
+    const next = '/routine/look';
     if (account && !account.anonymous) router.push(next);
     else router.push({ pathname: '/sign-in', params: { mode: 'signup', next } });
   };

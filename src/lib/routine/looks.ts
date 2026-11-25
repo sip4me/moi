@@ -1,3 +1,6 @@
+import { hexToLab, type Lab } from './color';
+import { shadeWords } from './shade';
+import SHADES_JSON from './shades.json';
 import { pref, type Item, type RoutineState } from './model';
 
 /**
@@ -98,4 +101,56 @@ export function lookFromText(text: string): { area?: 'hair' | 'skin' | 'makeup' 
   const skin = has(/skin|glow|dewy|acne|spot|glass skin|pores/);
   const body = has(/body|lotion|shower/);
   return { area: makeup ? 'makeup' : hair ? 'hair' : skin ? 'skin' : body ? 'body' : undefined, prefs, goals };
+}
+
+// ── Shade targets ─────────────────────────────────────────────────────────────
+const HEX: Record<string, string> = Object.fromEntries((SHADES_JSON as { shades: { w: string; hex: string }[] }).shades.map(x => [x.w, x.hex]));
+const lab = (w: string) => (HEX[w] ? hexToLab(HEX[w]) : undefined);
+
+/** Words that say which product a colour word is about ("berry lip", "brown liner", "peach blush"). */
+const NEAR: [RegExp, string][] = [[/lip ?liner|liner on (the )?lips/, 'lips'], [/gloss/, 'lip_gloss'], [/lip|mouth/, 'lips'], [/blush|cheek/, 'blush'], [/bronz|contour/, 'bronzer'], [/highlight|glow/, 'highlighter'],
+  [/liner|kohl|kajal|wing/, 'eyeliner'], [/shadow|lid|eye/, 'eyeshadow'], [/brow/, 'brows'], [/lash|mascara/, 'mascara']];
+
+/**
+ * The shade (and finish) each product should have for the look they want: colours they typed come first
+ * ("cherry cola lips"), then each trend look's own colours, then their own skin for base products.
+ */
+export function lookTargets(s: RoutineState): Record<string, { lab: Lab; finish?: string }> {
+  const out: Record<string, { lab: Lab; finish?: string }> = {};
+  const put = (cat: string, w: string, finish?: string) => { const l = lab(w); if (l && !out[cat]) out[cat] = { lab: l, finish }; };
+  const warm = pref(s, 'mk_undertone')[0] === 'Warm' || pref(s, 'mk_undertone')[0] === 'Olive';
+  // 1. Colours they typed, matched to the nearest product word after or before them.
+  const text = (s.lookText ?? '').toLowerCase();
+  for (const c of shadeWords(text)) {
+    const around = text.slice(Math.max(0, c.at - 20), c.at + c.w.length + 24);
+    const cat = NEAR.find(([re]) => re.test(around))?.[1] ?? 'lips';
+    put(cat, c.w);
+  }
+  // 2. Each trend look's colours.
+  const lip = pref(s, 'mk_lip_look')[0], eye = pref(s, 'mk_eye_look')[0], face = pref(s, 'mk_face_look')[0];
+  if (lip === 'Lip contour') { put('lips', 'nude brown'); put('lip_gloss', 'clear', 'gloss'); }
+  if (lip === 'Blurred lip') put('lips', 'rosewood', 'matte');
+  if (lip === 'Glossy') put('lip_gloss', warm ? 'peach' : 'sheer pink', 'gloss');
+  if (lip === 'Bold lip') put('lips', warm ? 'orange red' : 'true red');
+  if (eye === 'Smudged kohl') put('eyeliner', 'dark brown');
+  if (eye === 'Micro wing' || eye === 'Siren eyes') put('eyeliner', 'black');
+  if (eye === 'Siren eyes') put('eyeshadow', 'soft brown');
+  if (eye === 'Soft metallic') put('eyeshadow', warm ? 'champagne' : 'opal', 'metallic');
+  if (eye === 'Barely there') put('mascara', 'dark brown');
+  if (face === 'Toasty') { put('bronzer', 'bronze'); put('blush', 'terracotta'); }
+  if (face === 'Soft sculpt') { put('bronzer', 'cool brown'); put('blush', 'dusty rose'); }
+  if (face === 'Cloud skin') { put('blush', 'petal'); put('foundation', 'nude', 'matte'); }
+  if (face === 'Skin first') put('blush', warm ? 'peach' : 'pink nude');
+  // 3. Base products match their own skin, not the look.
+  const tone = ({ Fair: 'fair', Light: 'light', Medium: 'medium', Tan: 'tan', Deep: 'deep', Rich: 'rich' } as Record<string, string>)[pref(s, 'mk_tone')[0] ?? ''];
+  if (tone) for (const c of ['foundation', 'concealer', 'powder']) put(c, tone, out.foundation?.finish);
+  return out;
+}
+
+/**
+ * "You can achieve this look": the routine it takes, one product per step, inside their budget and
+ * preferences (best fit first), as a readable list.
+ */
+export function achieveList(picks: { item: Item }[]): string[] {
+  return picks.map(p => `${p.item.brand ? `${p.item.brand} ` : ''}${p.item.name}`);
 }

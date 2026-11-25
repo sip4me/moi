@@ -15,6 +15,13 @@ export type Item = {
   code?: string | null;
   /** Amazon's product ID, when we know it: lets a link drop the product straight into the Amazon cart. */
   asin?: string | null;
+  /** Shade in CIELAB, its name and how sure we are (0–1), when known. */
+  lab?: [number, number, number];
+  shadeName?: string;
+  shadeConf?: number;
+  /** matte, satin, gloss, shimmer, metallic, dewy or sheer. */
+  finish?: string;
+  undertone?: string;
   hairTypes?: string[];
   /** Ingredient label, when we have one. Used to match the tracker plan's look-for and avoid groups. */
   ingredients?: string;
@@ -253,7 +260,7 @@ export function allSteps(s: RoutineState): { where: string; step: Step }[] {
 export type Catalog = { products: Item[]; tools: Item[] };
 // Labels stay on the server: ing_groups carries just which rules.json ingredient groups each label contains.
 const PRODUCT_COLS = 'id,code,brand,name,category,price_usd,tags,hair_types,ing_groups,goals';
-const AREA_COLS = 'id,code,brand,name,step_cat,price_usd,tags,ing_groups';
+const AREA_COLS = 'id,code,brand,name,step_cat,price_usd,tags,ing_groups,shade_name,lab_l,lab_a,lab_b,finish,undertone,shade_conf,asin';
 const toProduct = (r: any): Item => ({ kind: 'product' as const, id: r.id, code: r.code ?? null, brand: r.brand, name: r.name, category: r.category, tags: r.tags ?? [], price: r.price_usd, hairTypes: r.hair_types ?? [], ingGroups: r.ing_groups ?? [], goals: r.goals ?? [] });
 const mergeProducts = (a: Item[], b: Item[]) => { const m = new Map(a.map(i => [i.id, i])); b.forEach(i => m.set(i.id, i)); return [...m.values()]; };
 const areaLoads = new Map<string, Promise<void>>();
@@ -265,7 +272,8 @@ export function ensureAreaProducts(areas: string[]) {
     if (a === 'hair' || areaLoads.has(a)) continue;
     areaLoads.set(a, (async () => {
       const { data } = await sb.from('kb_products').select(AREA_COLS).eq('area', a).not('step_cat', 'is', null).order('popularity', { ascending: false }).limit(2500);
-      const items: Item[] = (data ?? []).map((r: any) => ({ kind: 'product' as const, id: r.id, code: r.code ?? null, brand: r.brand, name: r.name, category: r.step_cat, tags: r.tags ?? [], price: r.price_usd, ingGroups: r.ing_groups ?? [] }));
+      const items: Item[] = (data ?? []).map((r: any) => ({ kind: 'product' as const, id: r.id, code: r.code ?? null, brand: r.brand, name: r.name, category: r.step_cat, tags: r.tags ?? [], price: r.price_usd, ingGroups: r.ing_groups ?? [], asin: r.asin ?? null,
+        ...(r.lab_l != null ? { lab: [r.lab_l, r.lab_a, r.lab_b] as [number, number, number], shadeName: r.shade_name, shadeConf: r.shade_conf ?? 0.5 } : {}), finish: r.finish ?? undefined, undertone: r.undertone ?? undefined }));
       catalog = { ...catalog, products: mergeProducts(catalog.products, items) };
       csubs.forEach(f => f());
     })().catch(() => { areaLoads.delete(a); }));
