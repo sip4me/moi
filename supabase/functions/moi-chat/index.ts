@@ -96,10 +96,13 @@ const system = (ctx: string) => `You are Moi, a warm, sharp beauty routine assis
 
 How you work:
 - Learn their habits with tap-to-answer questions. Ask ONE at a time using reply.ask with a key from the question list. Never ask a question that is already answered. Never write the options in your text; the app shows them.
-- Ask at most 3 questions before giving something useful. Recommend as soon as you know enough.
-- Recommend only real products: call search_products first and use its ids in reply.cards with source "moi". Respect their budget and must-haves.
+- Narrow down with taps, broad to specific, in this order: (1) which routine it's for (hair_focus, skin_focus, makeup_when then makeup_focus, body_focus, fragrance_when, tools_focus or wellness_focus; for hair Occasions ask hair_occasion); (2) one or two follow-ups for that segment (e.g. hair_everyday, hair.texture, skin_type, skin_feel, mk_lip_look, fragrance_notes, body_scent, hair_tools or skin_tools, wellness_time); (3) their favourite brands so far (brands_makeup, brands_skin, brands_hair or brands_fragrance); (4) for pigmented makeup only, the shade question for that part (lip_shade, cheek_shade or eye_shade; for base products ask mk_tone and mk_undertone instead); (5) budget if unknown. Skip anything already answered. Keep it quick: at most 5 taps, then show 2 or 3 products. Never make them type.
+- Use their favourite brands as a search_products query first, and their shade answers as shade_hex targets. If they chose "Explore with Moi", pick freely across brands and include at least one they may not know yet.
+- If they send a photo, read the look in it (shades, finishes, placement) and refine your picks to match it, using shade_hex in search_products.
+- Recommend only real products: call search_products first and use its ids in reply.cards with source "moi". Moi's products come first, and among them prefer ones with on_amazon true. Respect their budget and must-haves.
 - Only if search_products has nothing that fits (or they ask for a specific brand Moi doesn't have), you may use web_search once to find ONE product on the brand's or a store's own product page, and add it with source "web", its exact url, brand and name. Never invent products or links. Never use Amazon pages. Never state prices for web products.
 - If they type an answer to a question in their own words, record it in reply.save with the matching option. Only save what they actually said; never guess or infer answers.
+- They may also want help with fragrance, tools and devices, or wellness (their interests are in the context). Moi's database has few of these, so for them you may use web finds, still one product at a time and only real product pages. For wellness, keep to habits and products, never health or medical advice.
 - Talk about the look and the routine, never about the person's identity or body. No medical claims.
 - Keep text to 60 words or less. Always end by calling reply.
 
@@ -122,10 +125,10 @@ async function searchProducts(input: { category: string; query?: string; shade_h
   const rows = (data ?? []).map(p => {
     const lab = p.lab_l != null ? [p.lab_l, p.lab_a, p.lab_b] : null;
     const d = target && lab && (p.shade_conf ?? 0) >= 0.5 ? dE(target, lab) : null;
-    const score = (d != null ? Math.max(0, 1 - d / 30) * 10 : 0) + (p.asin ? 2 : 0) + (input.finish && p.finish === input.finish ? 2 : 0) - (d != null && d > 20 ? (d - 20) / 3 : 0);
+    const score = (d != null ? Math.max(0, 1 - d / 30) * 10 : 0) + (p.asin ? 4 : 0) + (input.finish && p.finish === input.finish ? 2 : 0) - (d != null && d > 20 ? (d - 20) / 3 : 0);
     return { p, d, score };
   }).sort((a, b) => b.score - a.score).slice(0, 6);
-  return { products: rows.map(({ p, d }) => ({ id: p.id, brand: p.brand, name: p.name, shade: p.shade_name, finish: p.finish, price: p.price_usd, ...(d != null ? { shade_match: matchLabel(d) } : {}) })) };
+  return { products: rows.map(({ p, d }) => ({ id: p.id, brand: p.brand, name: p.name, shade: p.shade_name, finish: p.finish, price: p.price_usd, on_amazon: !!p.asin, ...(d != null ? { shade_match: matchLabel(d) } : {}) })) };
 }
 
 /** A web link is shown only if it loads as a web page. */
@@ -160,11 +163,18 @@ Deno.serve(async req => {
     const { data: { user } } = await db.auth.getUser(token);
     if (!user) return json({ error: 'Sign in first' }, 401);
 
-    const body = await req.json().catch(() => ({})) as { history?: { role: 'user' | 'assistant'; text: string }[]; context?: Record<string, unknown> };
+    const body = await req.json().catch(() => ({})) as { history?: { role: 'user' | 'assistant'; text: string }[]; context?: Record<string, unknown>; image?: string };
     const history = (body.history ?? []).filter(m => (m.role === 'user' || m.role === 'assistant') && typeof m.text === 'string' && m.text.trim()).slice(-14)
       .map(m => ({ role: m.role, content: m.text.slice(0, 1200) }));
     if (!history.length || history[history.length - 1].role !== 'user') return json({ error: 'Nothing to answer' }, 400);
     while (history.length && history[0].role !== 'user') history.shift();
+    // An inspiration photo rides on the latest message.
+    let photo: { media_type: string; data: string } | null = null;
+    if (body.image) {
+      const m = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(body.image);
+      if (!m || m[2].length * 0.75 > 3_500_000) return json({ error: 'That photo couldn’t be read. Try a JPG or PNG.' }, 400);
+      photo = { media_type: m[1], data: m[2] };
+    }
 
     const { data: sub } = await db.from('subscriptions').select('status').eq('user_id', user.id).maybeSingle();
     const { data: founder } = await db.from('founders').select('spot').eq('user_id', user.id).maybeSingle();
@@ -176,7 +186,7 @@ Deno.serve(async req => {
 
     const ctx = JSON.stringify(body.context ?? {}).slice(0, 4000);
     const sys = system(ctx);
-    const messages: any[] = [...history];
+    const messages: any[] = history.map((m, i) => (photo && i === history.length - 1 ? { role: 'user', content: [{ type: 'image', source: { type: 'base64', ...photo } }, { type: 'text', text: m.content }] } : m));
     let reply: any = null;
     for (let turn = 0; turn < 6 && !reply; turn++) {
       const out = await claude(messages, sys);

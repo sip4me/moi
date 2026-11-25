@@ -9,7 +9,7 @@ import { allSteps, type Item, type RoutineState } from './model';
 export type MoiCard =
   | { source: 'moi'; why: string; step?: string | null; item: Item }
   | { source: 'web'; why: string; step?: string | null; brand: string; name: string; url: string; category: string | null; shade_hex: string | null };
-export type ChatMsg = { id: string; role: 'user' | 'moi'; text: string; ask?: Question | null; cards?: MoiCard[]; local?: 'area' };
+export type ChatMsg = { id: string; role: 'user' | 'moi'; text: string; ask?: Question | null; cards?: MoiCard[]; local?: 'area' | 'photo'; photo?: string };
 export type ChatResult = { ok: true; text: string; ask: Question | null; cards: MoiCard[]; save: { key: string; value: string }[]; left: number } | { ok: false; why: 'limit' | 'off' | 'error'; limit?: number };
 
 /** A database row as one of Moi's products. */
@@ -28,11 +28,11 @@ export function chatContext(s: RoutineState) {
   };
 }
 
-export async function sendChat(history: { role: 'user' | 'assistant'; text: string }[], s: RoutineState): Promise<ChatResult> {
+export async function sendChat(history: { role: 'user' | 'assistant'; text: string }[], s: RoutineState, image?: string | null): Promise<ChatResult> {
   const sb = supabase();
   if (!sb) return { ok: false, why: 'off' };
   await ensureUser();
-  const { data, error } = await sb.functions.invoke<any>('moi-chat', { body: { history, context: chatContext(s) } });
+  const { data, error } = await sb.functions.invoke<any>('moi-chat', { body: { history, context: chatContext(s), ...(image ? { image } : {}) } });
   if (error || !data) return { ok: false, why: 'error' };
   if (data.configured === false) return { ok: false, why: 'off' };
   if (data.limited) return { ok: false, why: 'limit', limit: data.limit };

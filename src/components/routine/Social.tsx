@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import type { Item } from '../../lib/routine/model';
+import { setRoutine, type Area, type Item } from '../../lib/routine/model';
 import { stepCount, type Page, type SharedStep } from '../../lib/routine/social';
 import { F } from '../../theme';
 import { Bubble, SYS } from './Kit';
@@ -48,5 +48,40 @@ export function RoutineCard({ page, onPress }: { page: Page; onPress?: () => voi
       {page.routine?.look ? <Text style={{ fontFamily: SYS ?? F.medium, fontSize: 13, color: '#4A4858' }}>{page.routine.look.name}</Text> : page.bio ? <Text numberOfLines={2} style={{ fontFamily: SYS ?? F.medium, fontSize: 13, color: '#4A4858' }}>{page.bio}</Text> : null}
       {steps.length ? <View style={{ flexDirection: 'row', gap: 6 }}>{steps.slice(0, 6).map((x, n) => <Bubble key={n} category={x.category} item={asItem(x)} size={28} />)}</View> : null}
     </Pressable>
+  );
+}
+
+/** Beauty categories under the Routine tab. Four are routine builders; the rest open the Moi chat with that type picked. */
+export const CATEGORIES: { key: string; label: string; area?: Area }[] = [
+  { key: 'all', label: 'All' }, { key: 'skin', label: 'Skincare', area: 'skin' }, { key: 'makeup', label: 'Makeup', area: 'makeup' },
+  { key: 'hair', label: 'Haircare', area: 'hair' }, { key: 'fragrance', label: 'Fragrance' }, { key: 'body', label: 'Bath & Body', area: 'body' },
+  { key: 'tools', label: 'Tools & Devices' }, { key: 'wellness', label: 'Wellness' },
+];
+const CHAT_TYPE: Record<string, string> = { fragrance: 'Fragrance', tools: 'Tools & devices', wellness: 'Wellness' };
+
+/** The category row. `mode` build: switches which routine you're building; list: filters the list (via the cat param). */
+export function CategoryTabs({ active, mode, tab }: { active: string; mode: 'build' | 'list'; tab?: RoutineTab }) {
+  const go = (c: (typeof CATEGORIES)[number]) => {
+    if (CHAT_TYPE[c.key]) { router.push({ pathname: '/routine/chat', params: { type: CHAT_TYPE[c.key] } } as any); return; }
+    if (mode === 'build') {
+      if (!c.area) return;
+      setRoutine(r => ({ ...r, areas: [c.area!] }));
+      router.replace({ pathname: '/routine/build', params: { area: c.area } });
+      return;
+    }
+    router.replace({ pathname: '/routine/routines', params: { tab: tab ?? 'saved', ...(c.key === 'all' ? {} : { cat: c.key }) } });
+  };
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 18, paddingVertical: 2 }}>
+      {CATEGORIES.filter(c => mode === 'list' || c.key !== 'all').map(c => {
+        const on = c.key === active;
+        return (
+          <Pressable key={c.key} onPress={() => go(c)} accessibilityRole="tab" accessibilityState={{ selected: on }} hitSlop={6}
+            style={{ paddingVertical: 6, borderBottomWidth: 2, borderBottomColor: on ? '#111114' : 'transparent' }}>
+            <Text style={{ fontFamily: SYS ?? F.semibold, fontWeight: on ? '700' : '500', fontSize: 14, color: on ? '#111114' : '#5B5F6B' }}>{c.label}</Text>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
   );
 }

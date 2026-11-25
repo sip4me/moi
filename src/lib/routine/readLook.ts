@@ -10,7 +10,7 @@ export type ReadResult =
   | { ok: false; why: 'limit' | 'off' | 'none' | 'error'; limit?: number };
 
 /** Photo → JPEG data URL, longest side at most 1024 px (enough detail for colours, small to send). */
-async function shrink(uri: string): Promise<string | null> {
+export async function shrink(uri: string): Promise<string | null> {
   if (typeof document === 'undefined') return null;
   const img = new Image();
   img.crossOrigin = 'anonymous';
