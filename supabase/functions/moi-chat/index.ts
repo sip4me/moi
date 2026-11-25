@@ -3,14 +3,15 @@
 // - Recommends real products from Moi's database (search_products), shade-matched.
 // - When the database has nothing that fits, it may suggest a product found on the web (labelled "From the web",
 //   plain brand link, no affiliate tag); every web link is checked to load before it is shown.
-// Limits per day: FREE_PER_DAY messages, ROYAL_PER_DAY for paying members (public.usage_counts, kind 'chat').
+// Limits: FREE_TOTAL messages ever for free accounts (then the paywall), ROYAL_PER_DAY a day for paying members
+// (public.usage_counts: kind 'chat_free' lifetime, kind 'chat' daily).
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import QUESTIONS from './questions.json' with { type: 'json' };
 import SHADES from './shades.json' with { type: 'json' };
 
 const KEY = Deno.env.get('ANTHROPIC_API_KEY');
 const MODEL = 'claude-sonnet-5-5';
-const FREE_PER_DAY = 15;
+const FREE_TOTAL = 3;
 const ROYAL_PER_DAY = 150;
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' };
@@ -286,6 +287,7 @@ Deno.serve(async req => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   if (!KEY) return json({ configured: false });
   let claimed: string | null = null;
+  let royalUser = false;
   try {
     const token = req.headers.get('Authorization')?.replace('Bearer ', '') ?? '';
     const { data: { user } } = await db.auth.getUser(token);
@@ -307,13 +309,18 @@ Deno.serve(async req => {
     const { data: sub } = await db.from('subscriptions').select('status').eq('user_id', user.id).maybeSingle();
     const { data: founder } = await db.from('founders').select('spot').eq('user_id', user.id).maybeSingle();
     const royal = !!founder || sub?.status === 'active' || sub?.status === 'trialing';
-    const limit = royal ? ROYAL_PER_DAY : FREE_PER_DAY;
-    const { data: used } = await db.rpc('claim_usage', { p_user: user.id, p_kind: 'chat', p_limit: limit });
-    if (used == null) return json({ configured: true, limited: true, limit, royal });
+    royalUser = royal;
+    const limit = royal ? ROYAL_PER_DAY : FREE_TOTAL;
+    const { data: used } = royal
+      ? await db.rpc('claim_usage', { p_user: user.id, p_kind: 'chat', p_limit: limit })
+      : await db.rpc('claim_lifetime', { p_user: user.id, p_kind: 'chat_free', p_limit: limit });
+    if (used == null) return json({ configured: true, limited: true, limit, royal, paywall: !royal });
     claimed = user.id;
+    // A free account's last message: show value now, not another question.
+    const last = !royal && (used as number) >= limit;
 
     const ctx = JSON.stringify(body.context ?? {}).slice(0, 4000);
-    const sys = system(ctx);
+    const sys = system(ctx) + (last ? `\n\nThis is their last free message before Moi Royal. Don't ask another question: from what you know so far, show your 2 best picks now (search_products first), each filling a step of the look they want, and end your text by saying Royal unlocks more picks and the full chat.` : '');
     const messages: any[] = history.map((m, i) => (photo && i === history.length - 1 ? { role: 'user', content: [{ type: 'image', source: { type: 'base64', ...photo } }, { type: 'text', text: m.content }] } : m));
     let reply: any = null;
     for (let turn = 0; turn < 6 && !reply; turn++) {
@@ -350,13 +357,13 @@ Deno.serve(async req => {
       checked = await checkCards(reply);
     }
     const cards = checked;
-    const ask = typeof reply.ask === 'string' ? BANK.find(q => q.key === reply.ask) ?? null : null;
+    const ask = !last && typeof reply.ask === 'string' ? BANK.find(q => q.key === reply.ask) ?? null : null;
     const save = (Array.isArray(reply.save) ? reply.save : []).filter((x: any) => BANK.some(q => q.key === x?.key && q.options.includes(x?.value))).slice(0, 4);
 
     return json({ configured: true, text: String(reply.text ?? '').slice(0, 600), ask, save, cards, left: limit - (used as number), royal });
   } catch (e) {
     console.error(e);
-    if (claimed) await db.rpc('release_usage', { p_user: claimed, p_kind: 'chat' });
+    if (claimed) await db.rpc(royalUser ? 'release_usage' : 'release_lifetime', { p_user: claimed, p_kind: royalUser ? 'chat' : 'chat_free' });
     return json({ error: 'Moi couldn’t answer right now. Try again.' }, 500);
   }
 });

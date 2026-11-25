@@ -1,8 +1,8 @@
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { Image, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { Bubble, Shell, SYS, TypingDots, useWide } from '../../components/routine/Kit';
+import { Btn, Bubble, Shell, SYS, TypingDots, useWide } from '../../components/routine/Kit';
 import { logClick, openStore, storeLinks, withUtm } from '../../lib/routine/affiliate';
 import { takeProductPhoto } from '../../lib/routine/capture';
 import { sendChat, type ChatMsg, type MoiCard } from '../../lib/routine/chat';
@@ -40,21 +40,30 @@ export default function Chat() {
 
   // Sends the conversation so far (plus the new message) to Moi.
   const ask = async (show: string, said: string, after?: ChatMsg[], photo?: { uri: string; data: string }) => {
+    // Out of free messages: the paywall again, without another round trip.
+    if (free === 0) { setMsgs(m => (m[m.length - 1]?.local === 'paywall' ? m : [...m, { id: id(), role: 'moi', text: 'You’ve used your 3 free messages. Unlock Moi Royal to keep chatting, get every pick for your look, and save your routine.', local: 'paywall' }])); return; }
     const base = [...(after ?? msgs), { id: id(), role: 'user' as const, text: show, ...(photo ? { photo: photo.uri } : {}) }];
     setMsgs(base); setBusy(true); setMulti([]);
     const history = base.map((m, n) => ({ role: m.role === 'user' ? 'user' as const : 'assistant' as const, text: n === base.length - 1 ? said : m.local === 'photo' ? '' : m.text })).filter(m => m.text);
     const r = await sendChat(history, getRoutine(), photo?.data).catch(() => ({ ok: false as const, why: 'error' as const }));
     setBusy(false);
     if (!r.ok) {
-      const t = r.why === 'limit' ? `You’ve used today’s ${'limit' in r ? r.limit : ''} chats. Moi resets tomorrow, and Royal members get far more.` : r.why === 'off' ? 'Chat isn’t switched on yet.' : 'I couldn’t answer just now. Try again in a moment.';
+      if (r.why === 'limit' && r.paywall) {
+        // Free messages used up: the paywall, right in the chat.
+        setFree(0);
+        setMsgs(m => [...m, { id: id(), role: 'moi', text: 'You’ve used your 3 free messages. Unlock Moi Royal to keep chatting, get every pick for your look, and save your routine.', local: 'paywall' }]);
+        return;
+      }
+      const t = r.why === 'limit' ? `You’ve used today’s ${'limit' in r ? r.limit : ''} chats. Moi resets tomorrow.` : r.why === 'off' ? 'Chat isn’t switched on yet.' : 'I couldn’t answer just now. Try again in a moment.';
       setMsgs(m => [...m, { id: id(), role: 'moi', text: t }]);
       return;
     }
     if (r.save.length) setRoutine(x => r.save.reduce((acc, a) => applyAnswer(acc, a.key, a.value), x));
+    setFree(r.royal ? null : r.left);
     setMsgs(m => {
       const next = [...m, { id: id(), role: 'moi' as const, text: r.text, ask: r.ask, cards: r.cards }];
       // After the first picks, invite an inspiration photo to refine them (once).
-      if (r.cards.length && !m.some(x => x.cards?.length) && !m.some(x => x.local === 'photo') && !photo) next.push({ id: id(), role: 'moi', text: 'Feel free to send me an inspiration picture, and I’ll refine these to match the look.', local: 'photo' });
+      if (r.cards.length && (r.royal || r.left > 0) && !m.some(x => x.cards?.length) && !m.some(x => x.local === 'photo') && !photo) next.push({ id: id(), role: 'moi', text: 'Feel free to send me an inspiration picture, and I’ll refine these to match the look.', local: 'photo' });
       return next;
     });
   };
@@ -100,6 +109,8 @@ export default function Chat() {
   };
   const host = (url: string) => { try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return 'the brand’s site'; } };
 
+  // Free messages left (null for Royal members or before the first answer).
+  const [free, setFree] = useState<number | null>(null);
   // Two products at a time; "See more" opens the rest of that message's picks.
   const [more, setMore] = useState<Record<string, boolean>>({});
   const ring = (focused?: boolean) => (focused ? ({ outlineStyle: 'solid', outlineWidth: 2, outlineColor: '#5F4FC4', outlineOffset: 2 } as any) : null);
@@ -183,7 +194,9 @@ export default function Chat() {
   const last = msgs[msgs.length - 1];
   return (
     <Shell glass active="build"
-      footer={<View style={{ width: wide ? 560 : '100%', flexDirection: 'row', alignItems: 'center', gap: 10, padding: 8, paddingLeft: 16, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.88)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.9)' }}>
+      footer={<View style={{ width: wide ? 560 : '100%', gap: 6 }}>
+        {free != null ? <Text accessibilityLiveRegion="polite" style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 12, color: free ? '#3A3C45' : '#B42318', textAlign: 'center' }}>{free ? `${free} free message${free === 1 ? '' : 's'} left` : 'Free messages used. Unlock Royal to keep chatting.'}</Text> : null}
+        <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', gap: 10, padding: 8, paddingLeft: 16, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.88)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.9)' }}>
         <Pressable onPress={sendPhoto} disabled={busy} accessibilityRole="button" accessibilityLabel="Send an inspiration photo" accessibilityState={{ disabled: busy }} hitSlop={6}
           style={({ hovered, pressed, focused }: any) => ({ width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#DADDE2' : hovered && !busy ? '#E6E8EB' : '#F1F3F5', opacity: busy ? 0.45 : 1, marginLeft: -6, ...ring(focused) })}>
           <Svg width={18} height={18} viewBox="0 0 24 24"><Path d="M4 7h3l2-2h6l2 2h3v12H4z" stroke="#111114" strokeWidth={1.8} fill="none" strokeLinejoin="round" /><Path d="M12 16.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="#111114" strokeWidth={1.8} fill="none" /></Svg>
@@ -194,6 +207,7 @@ export default function Chat() {
           style={({ hovered, pressed, focused }: any) => ({ width: 38, height: 38, borderRadius: 19, backgroundColor: hovered && text.trim() && !busy ? '#2A2A30' : '#111114', alignItems: 'center', justifyContent: 'center', opacity: text.trim() && !busy ? 1 : 0.3, transform: [{ scale: pressed ? 0.94 : 1 }], ...ring(focused) })}>
           <Svg width={16} height={16} viewBox="0 0 24 24"><Path d="M12 19V5M6 11l6-6 6 6" stroke="#fff" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
         </Pressable>
+      </View>
       </View>}>
       <ScrollView ref={scroll} contentContainerStyle={{ gap: 12, paddingBottom: 8 }}>
         {msgs.map(m => m.role === 'user' ? (
@@ -217,6 +231,7 @@ export default function Chat() {
                 ) : null}<Text style={{ fontFamily: F.regular, fontSize: 11, lineHeight: 15, color: '#6C6F7A' }}>{`${m.cards.some(x => x.source === 'moi' || (x as any).amazon) ? 'As an Amazon Associate, Moi earns from qualifying purchases. ' : ''}${m.cards.some(x => x.source === 'web') ? 'Web finds aren’t checked by Moi; the brand’s site has the current details.' : 'The store shows the current price.'}`}</Text></View> : null}
               {/* Tap answers: only on the latest message. */}
               {m.local === 'photo' ? <View style={{ flexDirection: 'row' }}>{chip('Upload inspiration', false, sendPhoto, true)}</View> : null}
+              {m.local === 'paywall' ? <Btn label="Unlock Moi Royal" onPress={() => router.push('/routine/plans')} /> : null}
               {m === last && m.local === 'area' ? (
                 <View style={{ gap: 8 }}>
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>

@@ -141,7 +141,7 @@ export function Shell({ active, children, side, footer, step, hideNav, glass, si
       <View style={{ flex: 1 }} />
       {r.bag.length ? <BagPill n={r.bag.reduce((t, k) => t + Math.max(1, r.qty?.[k] ?? 1), 0)} /> : null}
       {step && !toasting ? <Text style={[st.meta, r.bag.length ? { marginLeft: 12 } : null]}>{step}</Text> : null}
-      {path !== '/routine/chat' ? <AskMoi style={{ marginLeft: 12 }} /> : null}
+      {path !== '/routine/chat' && path !== '/routine/plans' ? <AskMoi style={{ marginLeft: 12 }} /> : null}
     </View>
   );
   const scrollRef = useRef<ScrollViewInstance>(null);
