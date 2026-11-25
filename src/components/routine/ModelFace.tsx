@@ -5,6 +5,7 @@ import { hexToLab } from '../../lib/routine/color';
 import { shadeOf } from '../../lib/routine/shade';
 import type { Item } from '../../lib/routine/model';
 import MARKS from '../../lib/routine/models.json';
+import LIPS from '../../lib/routine/lips.json';
 
 /**
  * A generated model (fictional, one per skin tone) wearing the routine's actual shades, like virtual try-on:
@@ -19,6 +20,19 @@ type P = [number, number];
 const W = 512, H = 640;
 const path = (pts: P[], close = true) => `M${pts.map(p => p.join(' ')).join(' L')}${close ? ' Z' : ''}`;
 const smooth = (pts: P[]) => pts.length < 3 ? path(pts, false) : `M${pts[0].join(' ')} ` + pts.slice(1, -1).map((p, i) => { const n = pts[i + 2]; return `Q${p[0]} ${p[1]} ${(p[0] + n[0]) / 2} ${(p[1] + n[1]) / 2}`; }).join(' ') + ` L${pts[pts.length - 1].join(' ')}`;
+/** A smooth curve through points (Catmull-Rom as cubic Béziers). */
+const curve = (pts: P[]) => pts.slice(0, -1).map((p, i) => {
+  const p0 = pts[i - 1] ?? p, p2 = pts[i + 1], p3 = pts[i + 2] ?? p2;
+  const c1: P = [p[0] + (p2[0] - p0[0]) / 6, p[1] + (p2[1] - p0[1]) / 6], c2: P = [p2[0] - (p3[0] - p[0]) / 6, p2[1] - (p3[1] - p[1]) / 6];
+  return `${i ? '' : `M${p.join(' ')} `}C${c1.join(' ')} ${c2.join(' ')} ${p2.join(' ')}`;
+}).join(' ');
+type Lip = { l: P; r: P; up: P[]; mo: P[]; lo: P[] };
+/** Upper and lower lip as two closed shapes from the hand-measured outline, so the mouth line stays visible. */
+const lipShapes = (q: Lip) => {
+  const upper = `${curve([q.l, ...q.up, q.r])} ${curve([q.r, ...[...q.mo].reverse(), q.l]).replace(/^M[^C]*/, '')} Z`;
+  const lower = `${curve([q.l, ...q.mo, q.r])} ${curve([q.r, ...[...q.lo].reverse(), q.l]).replace(/^M[^C]*/, '')} Z`;
+  return `${upper} ${lower}`;
+};
 const mid = (a: P, b: P, t = 0.5): P => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
 
 export function ModelFace({ tone, items, on, width = 240 }: { tone?: string; items: Item[]; on: boolean; width?: number }) {
@@ -34,7 +48,9 @@ export function ModelFace({ tone, items, on, width = 240 }: { tone?: string; ite
   const dark = (hex?: string) => (hex ? hexToLab(hex)[0] < 45 : false);
 
   // Landmarks (68-point): jaw 0–16, brows 17–26, eyes 36–41 / 42–47, lips outer 48–59, inner 60–67.
-  const outer = m.slice(48, 60), inner = m.slice(60, 68);
+  const q = (LIPS as unknown as Record<string, Lip>)[key.toLowerCase()];
+  const lipsD = lipShapes(q);
+  const outerD = `${curve([q.l, ...q.up, q.r])} ${curve([q.r, ...[...q.lo].reverse(), q.l]).replace(/^M[^C]*/, '')} Z`;
   const upperR = [m[36], m[37], m[38], m[39]], upperL = [m[42], m[43], m[44], m[45]];
   const lowerR = [m[39], m[40], m[41], m[36]], lowerL = [m[45], m[46], m[47], m[42]];
   // Lids: from the lash line up about 40% of the way to the brow.
@@ -67,8 +83,8 @@ export function ModelFace({ tone, items, on, width = 240 }: { tone?: string; ite
               <Ellipse cx={cheekL[0]} cy={cheekL[1]} rx={eyeW * 0.62} ry={eyeW * 0.42} fill={blush} />
             </G> : null}
             {shadow ? <G filter="url(#mid)" opacity={0.6}><Path d={path(lidR)} fill={shadow} /><Path d={path(lidL)} fill={shadow} /></G> : null}
-            {lipColor ? <G filter="url(#edge)" opacity={0.35}><Path d={`${path(outer)} ${path(inner)}`} fill={lipColor} fillRule="evenodd" /></G> : null}
-            {lip && items.filter(i => i.category === 'lips').length > 1 ? <G filter="url(#edge)" opacity={0.6}><Path d={path(outer)} stroke={lip} strokeWidth={3} fill="none" /></G> : null}
+            {lipColor ? <G filter="url(#edge)" opacity={0.35}><Path d={lipsD} fill={lipColor} /></G> : null}
+            {lip && items.filter(i => i.category === 'lips').length > 1 ? <G filter="url(#edge)" opacity={0.6}><Path d={outerD} stroke={lip} strokeWidth={3} fill="none" /></G> : null}
             {liner ? <G filter="url(#edge)" opacity={0.9}>
               <Path d={smooth([...upperR, wing(m[36], -1)].reverse())} stroke={liner} strokeWidth={3.2} fill="none" strokeLinecap="round" />
               <Path d={smooth([...upperL, wing(m[45], 1)])} stroke={liner} strokeWidth={3.2} fill="none" strokeLinecap="round" />
@@ -79,11 +95,11 @@ export function ModelFace({ tone, items, on, width = 240 }: { tone?: string; ite
           {/* Lipstick sits on top of the lips (normal blend) so its real colour shows; the multiply pass above keeps the lip texture. */}
           {lipColor ? <Svg viewBox={`0 0 ${W} ${H}`} style={layer} pointerEvents="none">
             <Defs><Filter id="lipedge" filterUnits="userSpaceOnUse" x="0" y="0" width={W} height={H}><FeGaussianBlur stdDeviation="1.6" /></Filter></Defs>
-            <G filter="url(#lipedge)" opacity={0.55}><Path d={`${path(outer)} ${path(inner)}`} fill={lipColor} fillRule="evenodd" /></G>
+            <G filter="url(#lipedge)" opacity={0.55}><Path d={lipsD} fill={lipColor} /></G>
           </Svg> : null}
           <Svg viewBox={`0 0 ${W} ${H}`} style={[layer, blend('screen')]} pointerEvents="none">
             <Defs><Filter id="shine" filterUnits="userSpaceOnUse" x="0" y="0" width="{W}" height="{H}"><FeGaussianBlur stdDeviation="5" /></Filter><Filter id="glowf" filterUnits="userSpaceOnUse" x="0" y="0" width="{W}" height="{H}"><FeGaussianBlur stdDeviation="12" /></Filter></Defs>
-            {gloss ? <G filter="url(#shine)" opacity={0.55}><Ellipse cx={(m[57][0] + m[66][0]) / 2} cy={(m[57][1] + m[66][1]) / 2} rx={eyeW * 0.35} ry={eyeW * 0.09} fill="#FFFFFF" /></G> : null}
+            {gloss ? <G filter="url(#shine)" opacity={0.55}><Ellipse cx={q.lo[1][0]} cy={(q.lo[1][1] + q.mo[1][1]) / 2} rx={eyeW * 0.35} ry={eyeW * 0.09} fill="#FFFFFF" /></G> : null}
             {glow ? <G filter="url(#glowf)" opacity={0.35}>
               <Ellipse cx={mid(cheekR, m[36], 0.45)[0]} cy={mid(cheekR, m[36], 0.45)[1]} rx={eyeW * 0.35} ry={eyeW * 0.16} fill="#FFF3E0" />
               <Ellipse cx={mid(cheekL, m[45], 0.45)[0]} cy={mid(cheekL, m[45], 0.45)[1]} rx={eyeW * 0.35} ry={eyeW * 0.16} fill="#FFF3E0" />
