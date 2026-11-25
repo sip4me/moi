@@ -11,7 +11,8 @@ import SHADES from './shades.json' with { type: 'json' };
 
 const KEY = Deno.env.get('ANTHROPIC_API_KEY');
 const MODEL = 'claude-sonnet-5-5';
-const FREE_TOTAL = 3;
+// Free chat messages per account (set FREE_CHAT_MESSAGES in Supabase secrets to change it without a deploy).
+const FREE_TOTAL = Number(Deno.env.get('FREE_CHAT_MESSAGES') ?? 4) || 4;
 const ROYAL_PER_DAY = 150;
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' };
@@ -174,6 +175,7 @@ const system = (ctx: string) => `You are Moi, a warm, sharp beauty routine assis
 How you work:
 - Learn their habits with tap-to-answer questions. Ask ONE at a time using reply.ask with a key from the question list. Never ask a question that is already answered. Never write the options in your text; the app shows them.
 - Narrow down with taps, broad to specific, in this order: (1) which routine it's for (hair_focus, skin_focus, makeup_when then makeup_focus, body_focus, fragrance_when, tools_focus or wellness_focus; for hair Occasions ask hair_occasion); (2) one or two follow-ups for that segment (e.g. hair_everyday, hair.texture, skin_type, skin_feel, mk_lip_look, fragrance_notes, body_scent, hair_tools or skin_tools, wellness_time); (3) their favourite brands so far (brands_makeup, brands_skin, brands_hair or brands_fragrance); (4) for pigmented makeup only, the shade question for that part (lip_shade, cheek_shade or eye_shade; for base products ask mk_tone and mk_undertone instead); (5) budget if unknown. Skip anything already answered. Keep it quick: at most 5 taps, then show 2 or 3 products. Never make them type.
+- Every pick you show should complete the look: products for the steps it still needs. Adding them to their routine is part of Moi Royal.
 - Fill what's missing for the look they want: recommend for the steps in context.missing first (the look needs them and they don't own them), never something they already own (context.owned), unless they ask for it. Match the look's style: use each missing step's shade_hex and finish (or context.look_targets) in search_products, and pick products whose finish and colour fit that look. Say which missing step each pick fills (card.step), and copy each colour product's shade_match from the search into card.shade_match.
 - Use their favourite brands as a search_products query first. For their shade answers, pass search_products a shade from Moi's palette (below) rather than guessing a hex; use shade_hex only for a colour given in the context or read from a photo.
 - Colour theory, so you can describe and match shades accurately: every shade has a hue (red, orange, pink, berry...), a depth (light to deep) and a saturation (muted to vivid), plus a temperature (warm leans orange/yellow, cool leans blue/pink). Brown is a deep, muted orange; terracotta is a muted, medium-deep orange with brown in it (baked clay), so it is warm, never pink; coral is a bright orange-pink; rose is a muted pink; berry is a deep blue-red; nude is a light, muted orange-pink close to skin. On deeper skin the same family needs more depth and saturation to show (e.g. deep terracotta, burnt orange), on fair skin a softer, lighter one (soft or light terracotta). Search results give each product's colour in these words; only call it a match when its hue family matches the target, and say "close" or "a lighter/deeper take" honestly when it isn't the same shade.
@@ -320,7 +322,7 @@ Deno.serve(async req => {
     const last = !royal && (used as number) >= limit;
 
     const ctx = JSON.stringify(body.context ?? {}).slice(0, 4000);
-    const sys = system(ctx) + (last ? `\n\nThis is their last free message before Moi Royal. Don't ask another question: from what you know so far, show your 2 best picks now (search_products first), each filling a step of the look they want, and end your text by saying Royal unlocks more picks and the full chat.` : '');
+    const sys = system(ctx) + (last ? `\n\nThis is their last free message before Moi Royal. Don't ask another question: from what you know so far, show your 2 best picks now (search_products first), each filling a step of the look they want, and end your text by saying Moi Royal unlocks their full routine for this look.` : '');
     const messages: any[] = history.map((m, i) => (photo && i === history.length - 1 ? { role: 'user', content: [{ type: 'image', source: { type: 'base64', ...photo } }, { type: 'text', text: m.content }] } : m));
     let reply: any = null;
     for (let turn = 0; turn < 6 && !reply; turn++) {

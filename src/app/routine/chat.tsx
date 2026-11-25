@@ -7,7 +7,8 @@ import { logClick, openStore, storeLinks, withUtm } from '../../lib/routine/affi
 import { takeProductPhoto } from '../../lib/routine/capture';
 import { sendChat, type ChatMsg, type MoiCard } from '../../lib/routine/chat';
 import { shrink } from '../../lib/routine/readLook';
-import { getRoutine, itemKey, placeItems, setRoutine, type Area, type Item } from '../../lib/routine/model';
+import { useAccess } from '../../lib/routine/access';
+import { getRoutine, itemKey, placeItems, session, setRoutine, type Area, type Item } from '../../lib/routine/model';
 import { applyAnswer, type Question } from '../../lib/routine/questions';
 import { shadeOf } from '../../lib/routine/shade';
 import { F } from '../../theme';
@@ -30,7 +31,10 @@ const TYPES: { label: string; area?: Area }[] = [
 /** Build a routine in conversation: tap answers save into the routine, product cards add to it. */
 export default function Chat() {
   const wide = useWide();
-  const [msgs, setMsgs] = useState<ChatMsg[]>(kept);
+  // Arriving with an inspiration from the home screen starts a fresh conversation about that look.
+  const { inspo } = useLocalSearchParams<{ inspo?: string }>();
+  const fromInspo = inspo === '1' && !session.inspoSent;
+  const [msgs, setMsgs] = useState<ChatMsg[]>(fromInspo ? [] : kept);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [multi, setMulti] = useState<string[]>([]);
@@ -41,7 +45,7 @@ export default function Chat() {
   // Sends the conversation so far (plus the new message) to Moi.
   const ask = async (show: string, said: string, after?: ChatMsg[], photo?: { uri: string; data: string }) => {
     // Out of free messages: the paywall again, without another round trip.
-    if (free === 0) { setMsgs(m => (m[m.length - 1]?.local === 'paywall' ? m : [...m, { id: id(), role: 'moi', text: 'You’ve used your 3 free messages. Unlock Moi Royal to keep chatting, get every pick for your look, and save your routine.', local: 'paywall' }])); return; }
+    if (free === 0) { setMsgs(m => (m[m.length - 1]?.local === 'paywall' ? m : [...m, { id: id(), role: 'moi', text: 'You’ve used your 4 free messages. Unlock Moi Royal to keep chatting, get every pick for your look, and save your routine.', local: 'paywall' }])); return; }
     const base = [...(after ?? msgs), { id: id(), role: 'user' as const, text: show, ...(photo ? { photo: photo.uri } : {}) }];
     setMsgs(base); setBusy(true); setMulti([]);
     const history = base.map((m, n) => ({ role: m.role === 'user' ? 'user' as const : 'assistant' as const, text: n === base.length - 1 ? said : m.local === 'photo' ? '' : m.text })).filter(m => m.text);
@@ -51,7 +55,7 @@ export default function Chat() {
       if (r.why === 'limit' && r.paywall) {
         // Free messages used up: the paywall, right in the chat.
         setFree(0);
-        setMsgs(m => [...m, { id: id(), role: 'moi', text: 'You’ve used your 3 free messages. Unlock Moi Royal to keep chatting, get every pick for your look, and save your routine.', local: 'paywall' }]);
+        setMsgs(m => [...m, { id: id(), role: 'moi', text: 'You’ve used your 4 free messages. Unlock Moi Royal to keep chatting, get every pick for your look, and save your routine.', local: 'paywall' }]);
         return;
       }
       const t = r.why === 'limit' ? `You’ve used today’s ${'limit' in r ? r.limit : ''} chats. Moi resets tomorrow.` : r.why === 'off' ? 'Chat isn’t switched on yet.' : 'I couldn’t answer just now. Try again in a moment.';
@@ -75,6 +79,19 @@ export default function Chat() {
     if (!data) { setMsgs(m => [...m, { id: id(), role: 'moi', text: 'That photo couldn’t be opened. Try a JPG or PNG.' }]); return; }
     ask('', 'Here’s my inspiration photo. Read the look and refine my picks to match it.', undefined, { uri, data });
   };
+
+  useEffect(() => {
+    if (!fromInspo) return;
+    session.inspoSent = true;
+    const look = getRoutine().lookText?.trim();
+    const uri = session.lookPhoto;
+    (async () => {
+      const data = uri ? await shrink(uri) : null;
+      if (data && uri) ask(look ?? '', `Here’s my inspiration${look ? `: ${look}` : ' photo'}. Read the look and help me get it.`, [], { uri, data });
+      else if (look) ask(look, `I want this look: ${look}. Help me get it.`, []);
+      else setMsgs([START]);
+    })();
+  }, []);
 
   // Opening question: pick any of the routine types, then Start. A category tab can open the chat with one picked.
   const { type: preset } = useLocalSearchParams<{ type?: string }>();
@@ -139,11 +156,16 @@ export default function Chat() {
       <Text numberOfLines={1} style={{ fontFamily: SYS ?? F.semibold, fontWeight: '600', fontSize: 13, color: '#111114' }}>{label}</Text>
     </Pressable>
   );
+  // Adding picks to the routine is part of Royal: free accounts see a lock that opens the plans.
+  const access = useAccess();
+  const locked = !access.ok;
   const addBtn = (done: boolean, onPress: () => void) => (
-    <Pressable onPress={onPress} disabled={done} accessibilityRole="button" accessibilityLabel={done ? 'Added to my routine' : 'Add to my routine'} accessibilityState={{ disabled: done }}
+    <Pressable onPress={locked ? () => router.push('/routine/plans') : onPress} disabled={done} accessibilityRole="button"
+      accessibilityLabel={done ? 'Added to my routine' : locked ? 'Unlock Royal to add to my routine' : 'Add to my routine'} accessibilityState={{ disabled: done }}
       style={({ hovered, pressed, focused }: any) => ({ width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: done ? '#E5F4EA' : pressed ? '#EDEDF1' : hovered ? '#F6F6F8' : '#FFFFFF', borderWidth: 1, borderColor: done ? '#B9E2C6' : hovered ? 'rgba(17,17,20,0.35)' : 'rgba(17,17,20,0.18)', transform: [{ scale: pressed ? 0.95 : 1 }], ...ring(focused) })}>
       <Svg width={16} height={16} viewBox="0 0 24 24">
         {done ? <Path d="M5 12.5l4.5 4.5L19 7.5" stroke="#1E7B45" strokeWidth={2.4} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          : locked ? <Path d="M7 11V8a5 5 0 0 1 10 0v3M5.5 11h13v9h-13z" stroke="#111114" strokeWidth={2} fill="none" strokeLinejoin="round" />
           : <Path d="M12 5v14M5 12h14" stroke="#111114" strokeWidth={2.2} strokeLinecap="round" />}
       </Svg>
     </Pressable>

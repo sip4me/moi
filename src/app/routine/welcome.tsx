@@ -101,8 +101,10 @@ export default function Welcome() {
     session.started = true;
     const r0 = lookFromText(look);
     session.lookPhoto = photo ?? undefined;
+    session.inspoSent = false;
     setRoutine(r => ({ ...r, welcomed: true, started: false, lookRead: undefined, lookPicks: {}, lookText: look.trim() || undefined, areas: r0.area ? [r0.area] : [], prefs: r0.prefs, goals: r0.goals, hair: {} }));
-    const next = '/routine/look';
+    // The inspiration opens Moi's chat, which carries the conversation from there.
+    const next = '/routine/chat?inspo=1';
     if (account && !account.anonymous) router.push(next);
     else router.push({ pathname: '/sign-in', params: { mode: 'signup', next } });
   };

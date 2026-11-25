@@ -401,7 +401,7 @@ export async function searchRemote(q: string, hint?: string, areaOverride?: Area
 }
 
 /** Per app-open flags (reset on every load): the start choice and the goals page open empty the first time through. */
-export const session: { started: boolean; chose: boolean; lookPhoto?: string; lookReadFor?: string } = { started: false, chose: false };
+export const session: { started: boolean; chose: boolean; lookPhoto?: string; lookReadFor?: string; inspoSent?: boolean } = { started: false, chose: false };
 
 /** True once the person has told us enough to judge: goals, plus a routine (entered or built). */
 /** Puts bag items into the person's routines: an empty matching step first, else a new step in the right routine. */
